@@ -11,66 +11,153 @@ updateClock();
 
 
 
-// ─── Dashboard Stats ──────────────────────────────────────────────────────────
+// ─── Dashboard Stats & Recent Activity ──────────────────────────────────────────
 async function loadStats() {
+  if (document.hidden) return; // Skip DB queries when window/tab is hidden
   const today = getLocalISODate();
 
-  const salesRes = await window.db.queryOne(
-    `SELECT COALESCE(SUM(net_total),0) as total, COUNT(*) as cnt FROM invoices WHERE invoice_date=? AND is_returned=0`,
-    [today]
-  );
-  if (salesRes.success) {
-    document.getElementById('todaySales').textContent = Number(salesRes.data.total).toLocaleString('en-US');
+  try {
+    const [salesRes, expRes, netCashRes, netVCRes, netIPRes, advRes, balRes] = await Promise.all([
+      window.db.queryOne(
+        `SELECT COALESCE(SUM(net_total),0) as total, COUNT(*) as cnt FROM invoices WHERE invoice_date=? AND is_returned=0`,
+        [today]
+      ),
+      window.db.queryOne(
+        `SELECT COALESCE(SUM(amount),0) as total FROM expenses WHERE date=?`,
+        [today]
+      ),
+      window.db.queryOne(
+        `SELECT COALESCE(SUM(CASE WHEN type='إيراد' THEN amount ELSE -amount END),0) as net FROM treasury WHERE date=? AND treasury_type='الخزينة'`,
+        [today]
+      ),
+      window.db.queryOne(
+        `SELECT COALESCE(SUM(CASE WHEN type='إيراد' THEN amount ELSE -amount END),0) as net FROM treasury WHERE date=? AND treasury_type='فودافون كاش'`,
+        [today]
+      ),
+      window.db.queryOne(
+        `SELECT COALESCE(SUM(CASE WHEN type='إيراد' THEN amount ELSE -amount END),0) as net FROM treasury WHERE date=? AND treasury_type='إنستا باي'`,
+        [today]
+      ),
+      window.db.queryOne(
+        `SELECT COALESCE(SUM(amount),0) as total FROM advances WHERE date=?`,
+        [today]
+      ),
+      window.db.getTreasuryBalance('الخزينة')
+    ]);
+
+    const elSales = document.getElementById('todaySales');
+    if (elSales && salesRes.success && salesRes.data) {
+      elSales.textContent = Number(salesRes.data.total).toLocaleString('en-US');
+    }
+
+    const elExp = document.getElementById('todayExpenses');
+    if (elExp && expRes.success && expRes.data) {
+      elExp.textContent = Number(expRes.data.total).toLocaleString('en-US');
+    }
+
+    const elCash = document.getElementById('dailyNetCash');
+    if (elCash && netCashRes.success && netCashRes.data) {
+      elCash.textContent = Number(netCashRes.data.net).toLocaleString('en-US');
+    }
+
+    const elVC = document.getElementById('dailyNetVodafone');
+    if (elVC && netVCRes.success && netVCRes.data) {
+      elVC.textContent = Number(netVCRes.data.net).toLocaleString('en-US');
+    }
+
+    const elIP = document.getElementById('dailyNetInstapay');
+    if (elIP && netIPRes.success && netIPRes.data) {
+      elIP.textContent = Number(netIPRes.data.net).toLocaleString('en-US');
+    }
+
+    const elAdv = document.getElementById('todayAdvances');
+    if (elAdv && advRes.success && advRes.data) {
+      elAdv.textContent = Number(advRes.data.total).toLocaleString('en-US');
+    }
+
+    const elBal = document.getElementById('treasuryBalance');
+    if (elBal && balRes.success) {
+      elBal.textContent = Number(balRes.data).toLocaleString('en-US');
+    }
+
+    // ── Secondary KPI cards ──────────────────────────────────────────────────
+    const elDashBal = document.getElementById('dashTreasuryBalance');
+    if (elDashBal && balRes.success) {
+      elDashBal.textContent = Number(balRes.data).toLocaleString('en-US');
+    }
+
+    const elDashAdv = document.getElementById('dashTodayAdvances');
+    if (elDashAdv && advRes.success && advRes.data) {
+      elDashAdv.textContent = Number(advRes.data.total).toLocaleString('en-US');
+    }
+
+    const elDashCnt = document.getElementById('dashTodayInvoiceCount');
+    if (elDashCnt && salesRes.success && salesRes.data) {
+      elDashCnt.textContent = salesRes.data.cnt || 0;
+    }
+
+  } catch (err) {
+    console.error('Error loading dashboard stats:', err);
   }
 
-  const expRes = await window.db.queryOne(
-    `SELECT COALESCE(SUM(amount),0) as total FROM expenses WHERE date=?`, [today]
-  );
-  if (expRes.success) {
-    document.getElementById('todayExpenses').textContent = Number(expRes.data.total).toLocaleString('en-US');
-  }
+  // Load today's invoices feed (non-blocking)
+  loadTodayInvoices();
+}
 
-  // Daily Net Cash (الخزينة)
-  const netCashRes = await window.db.queryOne(
-    `SELECT COALESCE(SUM(CASE WHEN type='إيراد' THEN amount ELSE -amount END),0) as net FROM treasury WHERE date=? AND treasury_type='الخزينة'`,
-    [today]
-  );
-  if (netCashRes.success) {
-    document.getElementById('dailyNetCash').textContent = Number(netCashRes.data.net).toLocaleString('en-US');
-  }
+async function loadTodayInvoices() {
+  const today = getLocalISODate();
+  try {
+    const res = await window.db.query(
+      `SELECT id, invoice_number, customer_name, net_total, paid_amount, amount_paid, is_returned, created_at
+       FROM invoices
+       WHERE invoice_date = ?
+       ORDER BY id DESC
+       LIMIT 15`,
+      [today]
+    );
+    const tbody = document.getElementById('todayInvoicesBody');
+    if (!tbody) return;
 
-  // Daily Net Vodafone Cash (فودافون كاش)
-  const netVCRes = await window.db.queryOne(
-    `SELECT COALESCE(SUM(CASE WHEN type='إيراد' THEN amount ELSE -amount END),0) as net FROM treasury WHERE date=? AND treasury_type='فودافون كاش'`,
-    [today]
-  );
-  if (netVCRes.success) {
-    document.getElementById('dailyNetVodafone').textContent = Number(netVCRes.data.net).toLocaleString('en-US');
-  }
+    if (!res.success || !res.data || res.data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:28px; color:#94A3B8; font-size:13px;">لا توجد فواتير اليوم بعد</td></tr>`;
+      return;
+    }
 
-  // Daily Net InstaPay (إنستا باي)
-  const netIPRes = await window.db.queryOne(
-    `SELECT COALESCE(SUM(CASE WHEN type='إيراد' THEN amount ELSE -amount END),0) as net FROM treasury WHERE date=? AND treasury_type='إنستا باي'`,
-    [today]
-  );
-  if (netIPRes.success) {
-    document.getElementById('dailyNetInstapay').textContent = Number(netIPRes.data.net).toLocaleString('en-US');
-  }
+    tbody.innerHTML = res.data.map(inv => {
+      const paid = Number(inv.paid_amount || inv.amount_paid || 0);
+      const total = Number(inv.net_total || 0);
+      const isReturned = inv.is_returned == 1;
+      const isPartial = !isReturned && paid < total && total > 0;
+      const statusBadge = isReturned
+        ? `<span style="background:#FEE2E2; color:#DC2626; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700;">مُرتجع</span>`
+        : isPartial
+          ? `<span style="background:#FEF3C7; color:#D97706; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700;">جزئي</span>`
+          : `<span style="background:#DCFCE7; color:#16A34A; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700;">مكتمل</span>`;
 
-  // Today Advances
-  const advRes = await window.db.queryOne(
-    `SELECT COALESCE(SUM(amount),0) as total FROM advances WHERE date=?`,
-    [today]
-  );
-  if (advRes.success) {
-    document.getElementById('todayAdvances').textContent = Number(advRes.data.total).toLocaleString('en-US');
-  }
+      // Extract time from created_at
+      let timeStr = '';
+      if (inv.created_at) {
+        try {
+          const d = new Date(inv.created_at);
+          timeStr = d.toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' });
+        } catch(e) { timeStr = '—'; }
+      }
 
-  const balRes = await window.db.getTreasuryBalance('الخزينة');
-  if (balRes.success) {
-    document.getElementById('treasuryBalance').textContent = Number(balRes.data).toLocaleString('en-US');
+      return `<tr>
+        <td style="font-weight:800; color:#0F172A;">${inv.invoice_number || '—'}</td>
+        <td style="color:#475569;">${inv.customer_name || 'عميل نقدي'}</td>
+        <td style="color:#64748B; font-variant-numeric:tabular-nums;">${timeStr || '—'}</td>
+        <td style="font-weight:700; color:#0F172A; text-align:left;">${Number(total).toLocaleString('en-US')} <span style="font-size:11px; color:#94A3B8;">ج.م</span></td>
+        <td style="text-align:center;">${statusBadge}</td>
+      </tr>`;
+    }).join('');
+  } catch(err) {
+    console.error('Error loading today invoices feed:', err);
   }
 }
+
+// ─── Dashboard Stats ──────────────────────────────────────────────────────────
+
 
 // ─── WhatsApp ─────────────────────────────────────────────────────────────────
 async function openWhatsApp() {
@@ -531,7 +618,7 @@ async function saveAdvance() {
 // ─── Keyboard Shortcuts ───────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
   if (e.key === 'F1') { e.preventDefault(); navigate('pos-invoice.html'); }
-  if (e.key === 'F2') { e.preventDefault(); navigate('daily-report.html'); }
+  if (e.key === 'F2') { e.preventDefault(); navigate('reports.html'); }
   if (e.key === 'F3') { e.preventDefault(); navigate('finance.html'); }
   if (e.key === 'F4') { e.preventDefault(); showAdvanceModal(); }
 });
@@ -664,10 +751,29 @@ loadSystemLogo();
 loadStats();
 updateWhatsAppUnreadBadge();
 updateLowStockBadge();
-setInterval(loadStats, 3000); // Refresh stats every 3 seconds
-setInterval(updateWhatsAppUnreadBadge, 10000); // Refresh unread count every 10 seconds
-setInterval(updateLowStockBadge, 60000); // Refresh low-stock badge every minute
-checkTrialStatus(); // ← فحص حالة التجربة
+checkTrialStatus();
+
+// Optimized polling intervals (only run when document is visible)
+setInterval(() => {
+  if (!document.hidden) {
+    loadStats();
+  }
+}, 8000); // 8s polling is responsive yet gentle on SQLite IPC
+
+setInterval(() => {
+  if (!document.hidden) updateWhatsAppUnreadBadge();
+}, 15000);
+
+setInterval(() => {
+  if (!document.hidden) updateLowStockBadge();
+}, 60000);
+
+// Immediate refresh on window focus (e.g. returning from pos-invoice or another tab)
+window.addEventListener('focus', () => {
+  loadStats();
+  updateWhatsAppUnreadBadge();
+  updateLowStockBadge();
+});
 
 // ─── Low Stock Badge ──────────────────────────────────────────────────────────
 async function updateLowStockBadge() {
@@ -677,12 +783,15 @@ async function updateLowStockBadge() {
     const count = (res.success && res.data) ? res.data.length : 0;
     const sideBadge = document.getElementById('sidebarInventoryBadge');
     const btnBadge  = document.getElementById('lowStockBadge');
+    const dashCount = document.getElementById('dashLowStockCount');
     if (count > 0) {
       if (sideBadge) { sideBadge.textContent = count; sideBadge.style.display = 'inline-block'; }
       if (btnBadge)  { btnBadge.textContent = count;  btnBadge.style.display = 'flex'; }
+      if (dashCount) dashCount.innerHTML = `${count} <small style="font-size:11px; font-weight:600; color:#DC2626;">صنف</small>`;
     } else {
       if (sideBadge) sideBadge.style.display = 'none';
       if (btnBadge)  btnBadge.style.display  = 'none';
+      if (dashCount) dashCount.innerHTML = `0 <small>صنف</small>`;
     }
   } catch (e) {}
 }
