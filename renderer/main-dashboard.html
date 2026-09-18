@@ -265,11 +265,11 @@
 
     .kpi-card {
       border-radius: 12px;
-      padding: 16px 18px;
+      padding: 20px 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 104px;
+      min-height: 140px;
       position: relative;
       transition: all 0.2s ease;
       box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
@@ -554,17 +554,18 @@
       background: #FFFFFF;
       border: 1px solid var(--studio-border);
       border-radius: 8px;
-      padding: 14px 16px;
+      padding: 22px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 10px;
       cursor: pointer;
       transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
       color: var(--studio-text);
       text-decoration: none;
       position: relative;
+      min-height: 90px;
     }
 
     .action-tile:hover {
@@ -940,53 +941,6 @@
           </div>
         </div>
 
-        <!-- ── Zone 2b: Secondary KPI Row ── -->
-        <div class="kpi-grid-secondary">
-          <!-- Treasury Balance -->
-          <div class="kpi-card-sm kpi-sm-treasury">
-            <div class="kpi-sm-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><path d="M12 11v4"/><line x1="10" y1="13" x2="14" y2="13"/></svg>
-            </div>
-            <div class="kpi-sm-content">
-              <div class="kpi-sm-label">رصيد الخزينة الكلي</div>
-              <div class="kpi-sm-value"><span id="dashTreasuryBalance">0</span> <small>ج.م</small></div>
-            </div>
-          </div>
-
-          <!-- Today Advances -->
-          <div class="kpi-card-sm kpi-sm-advance">
-            <div class="kpi-sm-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-            </div>
-            <div class="kpi-sm-content">
-              <div class="kpi-sm-label">سُلف اليوم</div>
-              <div class="kpi-sm-value"><span id="dashTodayAdvances">0</span> <small>ج.م</small></div>
-            </div>
-          </div>
-
-          <!-- Today Invoice Count -->
-          <div class="kpi-card-sm kpi-sm-invoices">
-            <div class="kpi-sm-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            </div>
-            <div class="kpi-sm-content">
-              <div class="kpi-sm-label">عدد الفواتير اليوم</div>
-              <div class="kpi-sm-value"><span id="dashTodayInvoiceCount">0</span> <small>فاتورة</small></div>
-            </div>
-          </div>
-
-          <!-- Low Stock -->
-          <div class="kpi-card-sm kpi-sm-stock">
-            <div class="kpi-sm-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </div>
-            <div class="kpi-sm-content">
-              <div class="kpi-sm-label">أصناف تحت الحد الأدنى</div>
-              <div class="kpi-sm-value" id="dashLowStockCount">0 <small>صنف</small></div>
-            </div>
-          </div>
-        </div>
-
         <!-- ── Zone 3: Focused Cashier Actions ── -->
         <div>
           <div class="section-title-clean">
@@ -1073,33 +1027,6 @@
               </div>
               <span class="action-tile-label">طباعة باركود</span>
             </button>
-          </div>
-        </div>
-
-        <!-- ── Zone 4: Today's Invoices Feed ── -->
-        <div class="activity-panel">
-          <div class="panel-header">
-            <div class="panel-title">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              سجل فواتير اليوم
-            </div>
-            <span class="panel-link" onclick="navigate('reports.html')">عرض الكل &larr;</span>
-          </div>
-          <div id="todayInvoicesFeed">
-            <table class="activity-table">
-              <thead>
-                <tr>
-                  <th>رقم الفاتورة</th>
-                  <th>العميل</th>
-                  <th>الوقت</th>
-                  <th style="text-align:left;">الإجمالي</th>
-                  <th style="text-align:center;">الحالة</th>
-                </tr>
-              </thead>
-              <tbody id="todayInvoicesBody">
-                <tr><td colspan="5" style="text-align:center; padding:28px; color:#94A3B8; font-size:13px;">لا توجد فواتير اليوم بعد</td></tr>
-              </tbody>
-            </table>
           </div>
         </div>
 

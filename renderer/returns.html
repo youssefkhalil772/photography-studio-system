@@ -462,50 +462,37 @@ async function searchInvoice() {
     container.innerHTML = '<div class="table-empty" style="padding:24px 0; font-size:12px;">اكتب للبحث عن فاتورة</div>';
     return;
   }
+  container.innerHTML = '<div class="table-empty" style="padding:16px 0; font-size:12px; color:#94A3B8;">جارٍ البحث...</div>';
+
   const res = await window.db.query(
-    `SELECT i.*, 
+    `SELECT id, invoice_number, customer_name, net_total, invoice_date, is_returned,
             (SELECT treasury_type FROM treasury WHERE reference_id=i.id AND reference_type='invoice' LIMIT 1) as treasury_type
      FROM invoices i
-     WHERE (i.invoice_number LIKE ? OR i.customer_name LIKE ? OR i.invoice_date LIKE ?)
-       AND COALESCE(i.is_returned, 0) = 0
-     ORDER BY i.id DESC LIMIT 30`,
+     WHERE (invoice_number LIKE ? OR customer_name LIKE ? OR invoice_date LIKE ?)
+     ORDER BY id DESC LIMIT 30`,
     [`%${q}%`, `%${q}%`, `%${q}%`]
   );
+
   if(!res.success || !res.data || !res.data.length){
-    // Try without the is_returned filter as fallback
-    const res2 = await window.db.query(
-      `SELECT i.*, 
-              (SELECT treasury_type FROM treasury WHERE reference_id=i.id AND reference_type='invoice' LIMIT 1) as treasury_type
-       FROM invoices i
-       WHERE (i.invoice_number LIKE ? OR i.customer_name LIKE ? OR i.invoice_date LIKE ?)
-       ORDER BY i.id DESC LIMIT 30`,
-      [`%${q}%`, `%${q}%`, `%${q}%`]
-    );
-    if(!res2.success || !res2.data || !res2.data.length){
-      container.innerHTML = '<div class="table-empty" style="padding:24px 0; font-size:12px;">لم يتم العثور على فواتير مطابقة</div>';
-      return;
-    }
-    renderSearchResults(container, res2.data, q);
+    container.innerHTML = '<div class="table-empty" style="padding:24px 0; font-size:12px;">لم يتم العثور على فواتير مطابقة</div>';
     return;
   }
 
-  renderSearchResults(container, res.data, q);
-}
-
-function renderSearchResults(container, data, q) {
+  const data = res.data;
   const exactMatch = data.find(inv => inv.invoice_number && inv.invoice_number.toLowerCase() === q.toLowerCase());
   if(exactMatch && data.length === 1) {
     loadInvoice(exactMatch);
   }
-  
+
   container.innerHTML = data.map(inv => `
-    <div class="search-result-item" onclick="loadInvoice(${JSON.stringify(inv).replace(/"/g,'&quot;')})"
-         style="${inv.is_returned == 1 ? 'opacity:0.6;' : ''}">
-      <div class="inv-num">${inv.invoice_number}${inv.is_returned == 1 ? ' <span style="font-size:9px;color:#EF4444;">(مُرتجع)</span>' : ''}</div>
+    <div class="search-result-item" onclick="loadInvoice(${JSON.stringify(inv).replace(/"/g,'&quot;')})">
+      <div class="inv-num">${inv.invoice_number}</div>
       <div class="inv-meta">${inv.customer_name || 'عميل نقدي'} | ${inv.invoice_date} | ${fmt(inv.net_total)} جنيه</div>
     </div>
   `).join('');
 }
+
+
 
 async function loadInvoice(inv) {
   currentInvoice = inv;
