@@ -598,7 +598,7 @@ async function saveAdvance() {
 // ─── Keyboard Shortcuts ───────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
   if (e.key === 'F1') { e.preventDefault(); navigate('pos-invoice.html'); }
-  if (e.key === 'F2') { e.preventDefault(); navigate('reports.html'); }
+  if (e.key === 'F2') { e.preventDefault(); navigate('daily-report.html'); }
   if (e.key === 'F3') { e.preventDefault(); navigate('finance.html'); }
   if (e.key === 'F4') { e.preventDefault(); showAdvanceModal(); }
 });
