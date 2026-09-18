@@ -56,34 +56,47 @@
 <div class="fin-layout">
 
   <!-- Sidebar -->
-  <div class="fin-sidebar">
-    <div class="fin-sidebar-title">الحسابات والمالية</div>
-    <button class="fin-nav-btn active" onclick="showSection('expenses')">المصروفات</button>
+  <div class="fin-sidebar" style="width:220px;">
+    <div style="padding:16px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px;">
+      <div style="width:38px; height:38px; background:linear-gradient(135deg, var(--accent), #B8963E); border-radius:var(--radius); display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; box-shadow:0 2px 8px rgba(201,168,76,0.3);"></div>
+      <div>
+        <div style="font-size:14px; font-weight:800; color:#fff;">الحسابات والمالية</div>
+        <div style="font-size:10px; color:rgba(255,255,255,0.5);">إدارة النقدية والخزائن</div>
+      </div>
+    </div>
+    <div class="fin-sidebar-title" style="padding:12px 14px 4px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.08em;">أقسام الحسابات</div>
+    <button class="fin-nav-btn active" onclick="showSection('expenses')">المصروفات اليومية</button>
     <button class="fin-nav-btn" onclick="showSection('revenues')">الإيرادات الأخرى</button>
-    <button class="fin-nav-btn" onclick="showSection('treasury')">الخزينة</button>
+    <button class="fin-nav-btn" onclick="showSection('treasury')">الخزينة النقدية (الدرج)</button>
     <button class="fin-nav-btn" onclick="showSection('vodafone')">فودافون كاش</button>
-    <button class="fin-nav-btn" onclick="showSection('instapay')">إنستا باي</button>
+    <button class="fin-nav-btn" onclick="showSection('instapay')">إنستا باي / بنك</button>
     <button class="fin-nav-btn" onclick="showSection('customers-accounts')">حسابات العملاء</button>
     <button class="fin-nav-btn" onclick="showSection('suppliers-accounts')">حسابات الموردين</button>
-    <button class="fin-nav-btn" onclick="showSection('stats')">إحصائيات مهمة</button>
-    <div style="margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,0.08);">
-      <button class="btn" onclick="goBack()" style="width:100%;color:rgba(255,255,255,0.6);background:transparent;border:1px solid rgba(255,255,255,0.15);font-size:12px;">← رجوع</button>
+    <button class="fin-nav-btn" onclick="showSection('stats')">إحصائيات وتقارير</button>
+    <div style="margin-top:auto; padding:14px; border-top:1px solid rgba(255,255,255,0.08);">
+      <button class="btn btn-outline" onclick="goBack()" style="width:100%; color:rgba(255,255,255,0.7); border-color:rgba(255,255,255,0.15); font-size:12px;">
+        ← رجوع للرئيسية
+      </button>
     </div>
   </div>
 
   <!-- Content -->
   <div class="fin-content">
     <header class="app-header" style="flex-shrink:0;">
-      <div>
-        <div class="header-title" id="finSectionTitle">المصروفات</div>
-        <div class="header-subtitle">إدارة المصروفات والإيرادات والخزينة</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="font-size:20px;"></div>
+        <div>
+          <div class="header-title" id="finSectionTitle">المصروفات</div>
+          <div class="header-subtitle">إدارة المصروفات والإيرادات اليومية وتوزيع الخزائن</div>
+        </div>
       </div>
       <div class="header-actions">
-        <input type="date" id="filterFrom" class="form-control" style="width:140px;" />
-        <input type="date" id="filterTo" class="form-control" style="width:140px;" />
+        <input type="date" id="filterFrom" class="form-control" style="width:135px; height:34px;" />
+        <input type="date" id="filterTo" class="form-control" style="width:135px; height:34px;" />
         <button class="btn btn-primary btn-sm" onclick="applyFilter()">فلتر</button>
-        <button class="btn btn-outline btn-sm" id="btnPrintA4" onclick="printCurrentSection('a4')" style="display:none;">🖨️ طباعة A4</button>
-        <button class="btn btn-outline btn-sm" id="btnPrintThermal" onclick="printCurrentSection('thermal')" style="display:none;">🖨️ طباعة حراري</button>
+        <button class="btn btn-outline btn-sm" id="btnPrintA4" onclick="printCurrentSection('a4')" style="display:none;">طباعة A4</button>
+        <button class="btn btn-outline btn-sm" id="btnPrintThermal" onclick="printCurrentSection('thermal')" style="display:none;">طباعة حراري</button>
+        <button class="btn btn-outline btn-sm" onclick="goBack()">رجوع</button>
       </div>
     </header>
 
@@ -223,13 +236,13 @@
 
         <!-- إيداع / سحب — للمدير فقط -->
         <div class="card mb-4" id="treasuryManageCard" style="display:none;">
-          <div class="card-header"><div class="card-title">💰 إيداع / سحب من الخزينة (مدير النظام)</div></div>
+          <div class="card-header"><div class="card-title">إيداع / سحب من الخزينة (مدير النظام)</div></div>
           <div class="flex gap-3 items-end flex-wrap">
             <div class="form-group" style="margin:0; min-width:140px;">
               <label class="form-label">النوع</label>
               <select id="tr_type" class="form-control">
-                <option value="إيراد">إيداع ➕</option>
-                <option value="مصروف">سحب ➖</option>
+                <option value="إيراد">إيداع </option>
+                <option value="مصروف">سحب </option>
               </select>
             </div>
             <div class="form-group" style="margin:0; min-width:120px;">

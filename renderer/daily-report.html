@@ -180,20 +180,20 @@
   <!-- ══ Screen toolbar (hidden in print/PDF) ═════════════ -->
   <div class="rpt-toolbar">
     <div>
-      <div class="rpt-toolbar-title" id="rptTitle">📊 التقرير اليومي الشامل</div>
-      <div class="rpt-toolbar-sub"   id="rptSubtitle">اختر التاريخ وتحميل البيانات</div>
+      <div class="rpt-toolbar-title" id="rptTitle">التقرير اليومي الشامل والإغلاق</div>
+      <div class="rpt-toolbar-sub"   id="rptSubtitle">استعراض حركة المبيعات، الإيرادات، المصروفات، وحركة الخزائن اليومية</div>
     </div>
     <div class="rpt-actions">
-      <input type="date" id="reportDate" class="form-control" style="min-width:150px;" onchange="loadDailyReport()" />
-      <button class="btn btn-outline btn-sm" onclick="printReport('a4')">🖨️ A4</button>
-      <button class="btn btn-outline btn-sm" onclick="printReport('thermal')">🖨️ حراري</button>
-      <button class="btn btn-outline btn-sm" onclick="savePDFReport()">💾 PDF</button>
+      <input type="date" id="reportDate" class="form-control" style="min-width:150px; height:34px;" onchange="loadDailyReport()" />
+      <button class="btn btn-outline btn-sm" onclick="printReport('a4')">طباعة A4</button>
+      <button class="btn btn-outline btn-sm" onclick="printReport('thermal')">حراري</button>
+      <button class="btn btn-outline btn-sm" onclick="savePDFReport()">حفظ PDF</button>
       <button class="btn-wa" id="sendWaBtn" onclick="savePDFAndSend()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.449A12 12 0 1 0 23 12a11.93 11.93 0 0 0-2.48-7.551zM12 21.5A9.5 9.5 0 1 1 21.5 12 9.51 9.51 0 0 1 12 21.5zm4.29-6.33c-.23-.12-1.36-.67-1.57-.74s-.36-.12-.51.12-.59.74-.72.9-.27.18-.49.06a6.24 6.24 0 0 1-1.84-1.14 6.89 6.89 0 0 1-1.27-1.58c-.14-.23 0-.36.1-.48s.23-.27.35-.41a1.6 1.6 0 0 0 .23-.38.42.42 0 0 0 0-.41c-.06-.12-.51-1.23-.7-1.68s-.37-.38-.51-.39h-.43a.83.83 0 0 0-.6.28 2.52 2.52 0 0 0-.78 1.87 4.38 4.38 0 0 0 .91 2.32 10 10 0 0 0 3.84 3.38 4.32 4.32 0 0 0 2.56.57 2.31 2.31 0 0 0 1.51-1.07 1.87 1.87 0 0 0 .13-1.07c-.07-.1-.24-.16-.47-.28z"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.449A12 12 0 1 0 23 12a11.93 11.93 0 0 0-2.48-7.551zM12 21.5A9.5 9.5 0 1 1 21.5 12 9.51 9.51 0 0 1 12 21.5zm4.29-6.33c-.23-.12-1.36-.67-1.57-.74s-.36-.12-.51.12-.59.74-.72.9-.27.18-.49.06a6.24 6.24 0 0 1-1.84-1.14 6.89 6.89 0 0 1-1.27-1.58c-.14-.23 0-.36.1-.48s.23-.27.35-.41a1.6 1.6 0 0 0 .23-.38.42.42 0 0 0 0-.41c-.06-.12-.51-1.23-.7-1.68s-.37-.38-.51-.39h-.43a.83.83 0 0 0-.6.28 2.52 2.52 0 0 0-.78 1.87 4.38 4.38 0 0 0 .91 2.32 10 10 0 0 0 3.84 3.38 4.32 4.32 0 0 0 2.56.57 2.31 2.31 0 0 0 1.51-1.07 1.87 1.87 0 0 0 .13-1.07c-.07-.1-.24-.16-.47-.28z"/></svg>
         إرسال PDF للإدارة
       </button>
-      <button class="btn btn-outline btn-sm" id="backupBtn" onclick="doBackup()" title="نسخة احتياطية">💾 نسخة</button>
-      <button class="btn btn-primary btn-sm" onclick="navigate('main-dashboard.html')" style="border-radius:50px;">← رجوع</button>
+      <button class="btn btn-outline btn-sm" id="backupBtn" onclick="doBackup()" title="نسخة احتياطية">نسخة</button>
+      <button class="btn btn-primary btn-sm" onclick="navigate('main-dashboard.html')">← رجوع للرئيسية</button>
     </div>
   </div>
 
@@ -226,52 +226,52 @@
   <!-- ══ Treasury (3 — no bank) ════════════════════════════ -->
   <div class="trs-grid">
     <div class="trs-card">
-      <div class="t-lbl">💵 الخزينة النقدية</div>
+      <div class="t-lbl">الخزينة النقدية</div>
       <div class="t-val c-green" id="balCash">—</div>
     </div>
     <div class="trs-card">
-      <div class="t-lbl">📱 فودافون كاش</div>
+      <div class="t-lbl">فودافون كاش</div>
       <div class="t-val" id="balVodafone">—</div>
     </div>
     <div class="trs-card">
-      <div class="t-lbl">💳 إنستا باي</div>
+      <div class="t-lbl">إنستا باي</div>
       <div class="t-val" id="balInstapay">—</div>
     </div>
   </div>
 
   <!-- ══ Invoices ═══════════════════════════════════════════ -->
   <div class="rpt-section">
-    <div class="rpt-sec-title">🧾 فواتير اليوم</div>
+    <div class="rpt-sec-title">فواتير اليوم</div>
     <div id="invoicesList"><div class="empty-msg">جاري التحميل...</div></div>
   </div>
 
   <!-- ══ Today's payments on old invoices ══════════════════ -->
   <div class="rpt-section" id="oldInvSection" style="display:none;">
-    <div class="rpt-sec-title">💰 تحصيلات اليوم على فواتير قديمة</div>
+    <div class="rpt-sec-title">تحصيلات اليوم على فواتير قديمة</div>
     <div id="oldInvList"></div>
   </div>
 
   <!-- ══ Expenses + Returns ═════════════════════════════════ -->
   <div class="rpt-section">
-    <div class="rpt-sec-title">💸 المصروفات والمرتجعات</div>
+    <div class="rpt-sec-title">المصروفات والمرتجعات</div>
     <div id="expensesList"><div class="empty-msg">جاري التحميل...</div></div>
   </div>
 
   <!-- ══ Advances & Salaries ════════════════════════════════ -->
   <div class="rpt-section">
-    <div class="rpt-sec-title">👥 السلف والرواتب</div>
+    <div class="rpt-sec-title">السلف والرواتب</div>
     <div id="advancesList"><div class="empty-msg">جاري التحميل...</div></div>
   </div>
 
   <!-- ══ Attendance ════════════════════════════════════════ -->
   <div class="rpt-section">
-    <div class="rpt-sec-title">🕐 سجل الحضور والانصراف</div>
+    <div class="rpt-sec-title">سجل الحضور والانصراف</div>
     <div id="attendanceList"><div class="empty-msg">جاري التحميل...</div></div>
   </div>
 
   <!-- ══ Revenues (shown if data exists) ══════════════════ -->
   <div class="rpt-section" id="revenueSection" style="display:none;">
-    <div class="rpt-sec-title">📥 الإيرادات الأخرى</div>
+    <div class="rpt-sec-title">الإيرادات الأخرى</div>
     <div id="revenuesList"></div>
   </div>
 
@@ -284,8 +284,8 @@
   <div class="modal" style="max-width:320px;">
     <div class="modal-header"><div class="modal-title">الخروج من البرنامج</div></div>
     <div style="padding:0 16px 16px; display:flex; flex-direction:column; gap:8px;">
-      <button class="btn btn-success" onclick="window.electron.quitWithBackup()">💾 نسخ احتياطي وخروج</button>
-      <button class="btn btn-danger"  onclick="window.electron.quitWithoutBackup()">⚠️ خروج بدون نسخة</button>
+      <button class="btn btn-success" onclick="window.electron.quitWithBackup()">نسخ احتياطي وخروج</button>
+      <button class="btn btn-danger"  onclick="window.electron.quitWithoutBackup()">خروج بدون نسخة</button>
       <button class="btn btn-outline" onclick="document.getElementById('quitModal').classList.remove('open'); window.electron.cancelQuit();">إلغاء</button>
     </div>
   </div>

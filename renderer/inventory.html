@@ -29,13 +29,16 @@
   <!-- Sidebar (shared pattern) -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div style="font-size:22px;">📸</div>
+      <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
       <div>
-        <div style="font-weight:800; font-size:13px; color:var(--primary);">Photography Studio</div>
-        <div style="font-size:10px; color:var(--text-muted);">نظام إدارة الاستوديو</div>
+        <div class="logo-text">استوديو التصوير</div>
+        <div class="sidebar-status-pill">
+          <span class="sidebar-status-dot"></span>
+          <span>المخزون نشط</span>
+        </div>
       </div>
     </div>
-    <div style="padding-top:20px;"></div>
+
     <div class="sidebar-section">
       <div class="sidebar-section-title">القوائم الرئيسية</div>
       <div class="sidebar-nav-item" onclick="navigate('main-dashboard.html')">
@@ -44,7 +47,7 @@
       </div>
       <div class="sidebar-nav-item" onclick="navigate('pos-invoice.html')">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
-        نقطة البيع
+        نقطة البيع (POS)
       </div>
       <div class="sidebar-nav-item" onclick="navigate('returns.html')">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"/><path d="M3 8C5.3 4.9 8.9 3 13 3c5.5 0 10 4.5 10 10s-4.5 10-10 10c-4.1 0-7.7-1.9-10-5"/></svg>
@@ -54,12 +57,17 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         إدارة العملاء
       </div>
+      <div class="sidebar-nav-item" onclick="navigate('whatsapp-chat.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        محادثات الواتساب
+      </div>
     </div>
+
     <div class="sidebar-section admin-only">
       <div class="sidebar-section-title">المالية والمخازن</div>
       <div class="sidebar-nav-item" onclick="navigate('finance.html')">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        الحسابات
+        الحسابات والمالية
       </div>
       <div class="sidebar-nav-item" onclick="navigate('services.html')">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
@@ -70,6 +78,7 @@
         المخزون
       </div>
     </div>
+
     <div class="sidebar-section">
       <div class="sidebar-section-title">التقارير والإعدادات</div>
       <div class="sidebar-nav-item" onclick="navigate('reports.html')">
@@ -81,9 +90,10 @@
         الإعدادات
       </div>
     </div>
+
     <div class="sidebar-footer">
-      <div>Photography Studio System</div>
-      <div>Dev Blue Tech © 2026</div>
+      <div style="font-weight:700; color:rgba(255,255,255,0.7);">Photography Studio System</div>
+      <div style="font-size:10px; color:rgba(255,255,255,0.4);">Dev Blue Tech © 2026</div>
     </div>
   </aside>
 
@@ -91,25 +101,26 @@
   <div class="main-content">
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:12px;">
-        <div style="font-size:22px;">📦</div>
+        
         <div>
-          <div style="font-size:16px; font-weight:800; color:var(--primary);">إدارة المخزون</div>
-          <div style="font-size:11px; color:var(--text-muted);">تتبع الكميات — جرد الأصناف — تقارير المخزون</div>
+          <div class="header-title">إدارة المخزون والأصناف</div>
+          <div class="header-subtitle">تتبع الكميات — جرد الأصناف — تنبيهات النواقص</div>
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-secondary btn-sm" onclick="navigate('inventory-report.html')">📊 تقرير المخزون</button>
-        <button class="btn btn-success btn-sm" onclick="openRestockModal()">+ إضافة رصيد / توريد بضاعة</button>
-        <button class="btn btn-outline btn-sm" onclick="openPrintBarcodeModal()">🏷️ طباعة باركود</button>
+        <button class="btn btn-primary btn-sm" onclick="navigate('inventory-report.html')">تقرير المخزون</button>
+        <button class="btn btn-success btn-sm" onclick="openRestockModal()">+ إضافة رصيد / توريد</button>
+        <button class="btn btn-outline btn-sm" onclick="openPrintBarcodeModal()">طباعة باركود</button>
+        <button class="btn btn-outline btn-sm" onclick="navigate('main-dashboard.html')">رجوع للرئيسية</button>
       </div>
     </header>
 
     <div class="content-area" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
       <!-- Tabs -->
       <div class="inv-tabs">
-        <div class="inv-tab active" id="tab-items" onclick="switchTab('items')">📦 أصناف المخزن والرصيد</div>
-        <div class="inv-tab" id="tab-stocktake" onclick="switchTab('stocktake')">🔢 جرد المحل الفعلي</div>
-        <div class="inv-tab" id="tab-movements" onclick="switchTab('movements')">📋 سجل حركة المخزن</div>
+        <div class="inv-tab active" id="tab-items" onclick="switchTab('items')">أصناف المخزن والرصيد</div>
+        <div class="inv-tab" id="tab-stocktake" onclick="switchTab('stocktake')">جرد المحل الفعلي</div>
+        <div class="inv-tab" id="tab-movements" onclick="switchTab('movements')">سجل حركة المخزن</div>
       </div>
 
       <!-- ═══ ITEMS TAB ═══ -->
@@ -117,28 +128,28 @@
         <!-- Quick Stats for Staff -->
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:18px;">
           <div class="stat-card">
-            <div class="stat-icon blue">📦</div>
+            <div class="stat-icon blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/></svg></div>
             <div class="stat-body">
               <div class="stat-value" id="statTotalItems">0</div>
               <div class="stat-label">أصناف البضاعة بالمخزن</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon green">🔢</div>
+            <div class="stat-icon green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
             <div class="stat-body">
               <div class="stat-value" id="statTotalUnits">0</div>
               <div class="stat-label">إجمالي عدد القطع المتوفرة</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon gold">⚠️</div>
+            <div class="stat-icon gold"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
             <div class="stat-body">
               <div class="stat-value" id="statLowStockCount">0</div>
               <div class="stat-label">أصناف قاربت على النفاد</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon red">🚫</div>
+            <div class="stat-icon red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
             <div class="stat-body">
               <div class="stat-value" id="statOutStockCount">0</div>
               <div class="stat-label">أصناف نفدت بالكامل (0)</div>
@@ -147,7 +158,7 @@
         </div>
 
         <div class="table-toolbar" style="margin-bottom:14px; display:flex; gap:10px; align-items:center;">
-          <input type="text" id="invSearchInput" class="form-control" style="width:280px;" placeholder="🔍 بحث باسم الصنف أو الباركود..." oninput="loadItems()" />
+          <input type="text" id="invSearchInput" class="form-control" style="width:280px;" placeholder="بحث باسم الصنف أو الباركود..." oninput="loadItems()" />
           <label style="display:flex;align-items:center;gap:6px; font-size:13px; font-weight:600; cursor:pointer;">
             <input type="checkbox" id="trackedOnlyChk" onchange="loadItems()" checked style="width:16px;height:16px;" />
             عرض البضاعة والمخزون فقط
@@ -205,7 +216,7 @@
             <div class="card-header" style="justify-content:space-between;">
               <div class="card-title" id="activeSessionTitle">جلسة الجرد الحالية</div>
               <div style="display:flex; gap:8px;">
-                <button class="btn btn-success btn-sm" onclick="completeStocktake()">✅ اعتماد الجرد وتحديث رصيد المخزن</button>
+                <button class="btn btn-success btn-sm" onclick="completeStocktake()">اعتماد الجرد وتحديث رصيد المخزن</button>
               </div>
             </div>
             <div class="card-body" style="padding-bottom:0;">
@@ -240,7 +251,7 @@
           <input type="text" id="movSearchItem" class="form-control" style="width:220px;" placeholder="بحث بالصنف..." />
           <input type="date" id="movFrom" class="form-control" style="width:160px;" />
           <input type="date" id="movTo"   class="form-control" style="width:160px;" />
-          <button class="btn btn-secondary btn-sm" onclick="loadMovements()">🔍 بحث</button>
+          <button class="btn btn-secondary btn-sm" onclick="loadMovements()">بحث</button>
         </div>
         <div class="table-container">
           <table class="data-table">
@@ -307,7 +318,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('editItemModal')">إلغاء</button>
-      <button class="btn btn-primary" onclick="saveItemSettings()">💾 حفظ</button>
+      <button class="btn btn-primary" onclick="saveItemSettings()">حفظ</button>
     </div>
   </div>
 </div>
@@ -345,7 +356,7 @@
 <div class="modal-overlay" id="printBarcodeModal">
   <div class="modal" style="max-width:560px;">
     <div class="modal-header">
-      <div class="modal-title">🏷️ طباعة باركود</div>
+      <div class="modal-title">طباعة باركود</div>
       <button class="modal-close" onclick="closeModal('printBarcodeModal')">✕</button>
     </div>
     <div class="modal-body">
@@ -375,14 +386,14 @@
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <!-- زر الطباعة بحسب كمية المخزن المتوفرة (بضغطة واحدة) -->
           <button class="btn btn-success" onclick="doPrintBarcodeByStock()" style="flex:1.2; min-width:180px; height:42px; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(22,163,74,0.25);" title="طباعة باركود لكل صنف محدد بعدد الكمية المتوفرة في المخزن">
-            <span>📦</span> طباعة بالكمية المتاحة
+            طباعة بالكمية المتاحة
           </button>
 
           <!-- خيار طباعة بعدد نسخ ثابت -->
           <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:150px;">
             <input type="number" id="barcodeCopiesInput" class="form-control" value="1" min="1" max="100" style="width:55px; height:42px; text-align:center; font-weight:700;" title="عدد النسخ الثابت" />
             <button class="btn btn-outline" onclick="doPrintBarcodeLabels()" style="height:42px; white-space:nowrap; font-size:12px; font-weight:600; flex:1;" title="طباعة عدد نسخ ثابت لكل صنف محدد">
-              🖨️ طباعة نسخ محددة
+              طباعة نسخ محددة
             </button>
           </div>
         </div>
@@ -397,7 +408,7 @@
     <div class="modal-header" style="background:linear-gradient(135deg, #1B2A4A, #283e6b); color:#fff; padding:18px 24px;">
       <div>
         <div class="modal-title" id="reportModalTitle" style="color:#fff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-          <span>📊</span> تقرير جلسة الجرد
+          تقرير جلسة الجرد
         </div>
         <div id="reportModalSub" style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:3px;">
           تفاصيل الكميات المحصورة والفروقات
@@ -416,7 +427,7 @@
       </button>
       <div style="display:flex; gap:10px;">
         <button class="btn btn-primary" onclick="printModalReport()" style="font-weight:800; display:flex; align-items:center; gap:8px; padding:10px 24px;">
-          <span>🖨️</span> طباعة التقرير (A4)
+          طباعة التقرير (A4)
         </button>
       </div>
     </div>

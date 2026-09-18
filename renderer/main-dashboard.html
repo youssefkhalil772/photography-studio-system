@@ -3,188 +3,227 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Photography Studio System — الشاشة الرئيسية</title>
+  <title>استوديو التصوير — لوحة التحكم</title>
   <link rel="stylesheet" href="../styles/global.css" />
   <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
   <style>
-    .actions-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+    /* ─── Dashboard Modern Layout ──────────────────────────────────── */
+    .dashboard-container {
       padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
     }
 
-    .action-btn.blue .action-btn-icon { background: var(--info-light); color: var(--info); }
-    .action-btn.green .action-btn-icon { background: var(--success-light); color: var(--success); }
-    .action-btn.gold .action-btn-icon { background: var(--accent-light); color: var(--accent); }
-    .action-btn.red .action-btn-icon { background: var(--danger-light); color: var(--danger); }
-    .action-btn.navy .action-btn-icon { background: rgba(27,42,74,0.1); color: var(--primary); }
-    .action-btn.purple .action-btn-icon { background: rgba(139,92,246,0.1); color: #7C3AED; }
-
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+    /* ─── Shift & Attendance Bar ──────────────────────────────────── */
+    .session-bar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 16px;
-      padding: 0 24px 16px;
+      box-shadow: var(--shadow-xs);
     }
 
-    .today-label {
-      padding: 0 24px 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .section-label {
-      padding: 16px 24px 4px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .whatsapp-btn {
+    .session-info {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      background: #25D366;
-      border: none;
-      border-radius: 50px;
-      color: #fff;
-      font-family: var(--font);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all var(--transition);
-    }
-    .whatsapp-btn:hover { background: #128C7E; box-shadow: var(--shadow); }
-
-    .clock-display {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--primary);
-      font-variant-numeric: tabular-nums;
+      gap: 12px;
     }
 
-    .date-display {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .shift-indicator {
+    .shift-status-pill {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 14px;
-      background: var(--success-light);
-      border: 1px solid var(--success);
-      border-radius: 50px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--success);
+      gap: 7px;
+      padding: 5px 12px;
+      background: #ECFDF5;
+      border: 1px solid #A7F3D0;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 700;
+      color: #059669;
     }
 
-    .shift-dot {
+    .shift-status-dot {
       width: 8px;
       height: 8px;
-      background: var(--success);
       border-radius: 50%;
-      animation: pulse 1.5s ease infinite;
+      background: #10B981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+      animation: pulseGreen 1.5s infinite ease-in-out;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    .sidebar-nav-item span.badge-count {
-      margin-right: auto;
-      margin-left: 0;
-      background: var(--accent);
-      color: #fff;
-      font-size: 10px;
-      padding: 1px 7px;
-      border-radius: 10px;
-    }
-
-    .alert-banner {
-      margin: 0 24px 0;
-      padding: 10px 16px;
-      background: linear-gradient(135deg, var(--accent-light), rgba(201,168,76,0.05));
-      border: 1px solid rgba(201,168,76,0.3);
-      border-radius: var(--radius);
-      font-size: 12px;
-      color: #7A5C1E;
-      font-weight: 500;
+    .session-actions {
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    /* ─── Stats Grid (5 Clean Cards) ──────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 1200px) {
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* ─── Operations Sections ─────────────────────────────────────── */
+    .operations-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-header-clean {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--primary);
+      padding: 0 4px;
+    }
+
+    .primary-ops-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 1100px) {
+      .primary-ops-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .action-btn-hero {
+        grid-column: span 2;
+      }
+    }
+
+    .secondary-ops-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 1100px) {
+      .secondary-ops-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .currency-suffix {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-right: 3px;
+    }
+
+    .modal-close-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all var(--transition);
+    }
+    .modal-close-btn:hover {
+      background: #FEE2E2;
+      border-color: #FECACA;
+      color: var(--danger);
     }
   </style>
 </head>
 <body>
 <div class="app-layout">
-  <!-- Sidebar (right, RTL) -->
+
+  <!-- ─── Sidebar (Clean & Professional) ────────────────────────── -->
   <aside class="sidebar">
-    <div style="padding-top:20px;"></div>
+    <div class="sidebar-logo">
+      <div class="logo-icon" id="navbarLogoIcon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div>
+        <div class="logo-text" id="navbarLogoText">استوديو التصوير</div>
+        <div class="sidebar-status-pill">
+          <span class="sidebar-status-dot"></span>
+          <span>النظام نشط</span>
+        </div>
+      </div>
+    </div>
 
     <div class="sidebar-section">
-      <div class="sidebar-section-title">القوائم الرئيسية</div>
+      <div class="sidebar-section-title">القوائم الأساسية</div>
 
       <div class="sidebar-nav-item active" onclick="navigate('main-dashboard.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         الرئيسية
       </div>
 
       <div class="sidebar-nav-item" onclick="navigate('pos-invoice.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
-        نقطة البيع
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
+        نقطة البيع (POS)
       </div>
 
       <div class="sidebar-nav-item" onclick="navigate('returns.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"/><path d="M3 8C5.3 4.9 8.9 3 13 3c5.5 0 10 4.5 10 10s-4.5 10-10 10c-4.1 0-7.7-1.9-10-5"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
         المرتجعات
       </div>
 
       <div class="sidebar-nav-item" onclick="navigate('customers.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        إدارة العملاء
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        العملاء
       </div>
 
       <div class="sidebar-nav-item" onclick="navigate('whatsapp-chat.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-        محادثات الواتساب
-        <span class="badge-count" id="sidebarWaBadge" style="display:none; margin-right:auto; background:#25D366; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px;">0</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        محادثات واتساب
+        <span class="badge-count" id="sidebarWaBadge" style="display:none; margin-right:auto; background:#15803D; color:#fff;">0</span>
       </div>
     </div>
 
     <div class="sidebar-section admin-only">
-      <div class="sidebar-section-title">الموارد البشرية</div>
-
-      <div class="sidebar-nav-item" onclick="navigate('hr.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        شئون الموظفين
-      </div>
-    </div>
-
-    <div class="sidebar-section admin-only">
-      <div class="sidebar-section-title">المالية والمخازن</div>
+      <div class="sidebar-section-title">الإدارة والمالية</div>
 
       <div class="sidebar-nav-item" onclick="navigate('finance.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        الحسابات
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        الحسابات والمالية
+      </div>
+
+      <div class="sidebar-nav-item" onclick="navigate('hr.html')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        شئون الموظفين
       </div>
 
       <div class="sidebar-nav-item" onclick="navigate('services.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
         الخدمات والأصناف
       </div>
 
       <div class="sidebar-nav-item" onclick="navigate('inventory.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><path d="M12 7v4"/><line x1="8" y1="7" x2="8" y2="7.01"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><path d="M12 7v4"/><line x1="8" y1="7" x2="8" y2="7.01"/></svg>
         المخزون
-        <span id="sidebarInventoryBadge" style="display:none; margin-right:auto; background:var(--danger); color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700;">0</span>
+        <span id="sidebarInventoryBadge" class="badge-count" style="display:none; margin-right:auto; background:var(--danger); color:#fff;">0</span>
       </div>
     </div>
 
@@ -192,36 +231,33 @@
       <div class="sidebar-section-title">التقارير والإعدادات</div>
 
       <div class="sidebar-nav-item" onclick="navigate('reports.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         التقارير
       </div>
 
       <div class="sidebar-nav-item admin-only" onclick="navigate('settings.html')">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         الإعدادات
       </div>
     </div>
 
     <div class="sidebar-footer">
-      <div>Photography Studio System v1.0</div>
-      <div>Dev Blue Tech © 2026</div>
+      <div style="font-weight:700; color:rgba(255,255,255,0.7); font-size:12px;">Photography Studio System</div>
     </div>
   </aside>
 
-  <!-- Main Content -->
+  <!-- ─── Main Content Area ──────────────────────────────────────── -->
   <div class="main-content">
-    <!-- Header -->
+
+    <!-- Top Command Header -->
     <header class="app-header">
-      <div style="display:flex; align-items:center; gap:20px;">
-        <div style="display:flex; align-items:center; gap:10px;" id="navbarLogoContainer">
-          <div class="logo-icon" id="navbarLogoIcon" style="width:40px; height:40px; background:var(--accent); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#fff;">📸</div>
-          <div>
-            <div class="logo-text" id="navbarLogoText" style="font-size:16px; font-weight:800; color:var(--primary);">Photography Studio System</div>
-            <div class="logo-sub" style="font-size:11px; color:var(--text-muted); font-weight:600;">نظام إدارة استوديو التصوير</div>
-          </div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--secondary);"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <div class="header-title">لوحة العمليات</div>
         </div>
-        
-        <div style="width:1px; height:30px; background:var(--border);"></div>
+
+        <div style="width:1px; height:24px; background:var(--border); margin:0 4px;"></div>
 
         <div>
           <div class="clock-display" id="clockDisplay">00:00:00</div>
@@ -230,261 +266,347 @@
       </div>
 
       <div class="header-actions">
-        <div class="shift-indicator" id="shiftIndicator" style="display:none">
+        <!-- Live Shift Indicator -->
+        <div class="shift-indicator" id="shiftIndicator" style="display:none;">
           <div class="shift-dot"></div>
-          <span>شيفت جارٍ</span>
+          <span>الوردية نشطة</span>
         </div>
 
+        <!-- User Profile Chip -->
         <div class="header-user">
           <div class="header-user-avatar" id="userAvatarLetter">م</div>
-          <span id="currentUserName">مدير النظام</span>
-          <span id="userRoleBadge" style="font-size:10px;background:var(--primary);color:#fff;padding:2px 8px;border-radius:50px;margin-right:4px;">أدمن</span>
+          <span id="currentUserName">المستخدم</span>
+          <span id="userRoleBadge" style="font-size:10px; background:var(--primary); color:#fff; padding:2px 8px; border-radius:50px;">أدمن</span>
         </div>
 
-        <button class="whatsapp-btn" onclick="navigate('whatsapp-chat.html')" style="background:#25D366; color:#fff; font-weight:700; gap:6px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-          محادثات العملاء
-          <span id="headerWaBadge" style="display:none; background:#fff; color:#128C7E; border-radius:10px; padding:1px 6px; font-size:10px; font-weight:800;">0</span>
+        <!-- WhatsApp Button -->
+        <button class="btn btn-outline btn-sm" onclick="navigate('whatsapp-chat.html')" title="محادثات العملاء" style="gap:6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          الواتساب
+          <span id="headerWaBadge" style="display:none; background:#15803D; color:#fff; border-radius:10px; padding:1px 6px; font-size:10px; font-weight:800;">0</span>
         </button>
 
-        <button class="whatsapp-btn" onclick="openWhatsApp()" title="واتساب الدعم الفني">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+        <!-- Tech Support -->
+        <button class="btn btn-ghost btn-sm" onclick="openWhatsApp()" title="الدعم الفني">
           الدعم الفني
         </button>
 
-        <button class="btn btn-danger btn-sm" onclick="handleLogout()" style="border-radius:50px;">
-          تسجيل خروج
+        <!-- Logout Button -->
+        <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="color:var(--danger);">
+          خروج
         </button>
       </div>
     </header>
 
-    <!-- ─── Trial Banner ──────────────────────────────────────────────────────── -->
-    <div id="trialBanner" style="display:none; background:linear-gradient(135deg,#92400e,#78350f); border-bottom:1px solid rgba(251,191,36,0.3); padding:10px 24px; align-items:center; justify-content:space-between; gap:16px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:18px;">⏳</span>
-        <span id="trialBannerText" style="font-size:13px;font-weight:700;color:#FCD34D;">أنت في فترة التجربة المجانية</span>
-      </div>
-      <button onclick="window.electron.navigate('activation.html')" style="background:linear-gradient(135deg,#C9A84C,#E8C46A);border:none;border-radius:50px;color:#1B2A4A;font-family:var(--font);font-size:12px;font-weight:800;padding:8px 20px;cursor:pointer;white-space:nowrap;flex-shrink:0;">🛒 اشترِ النظام الآن</button>
+    <!-- Trial Banner (hidden if activated) -->
+    <div id="trialBanner" style="display:none; background:#92400E; padding:8px 24px; align-items:center; justify-content:space-between; gap:16px;">
+      <span id="trialBannerText" style="font-size:13px; font-weight:700; color:#FEF3C7;">فترة التجربة المجانية</span>
+      <button class="btn btn-accent btn-sm" onclick="window.electron.navigate('activation.html')">تفعيل النظام الآن</button>
     </div>
 
-    <!-- Scrollable Content -->
+    <!-- ─── Workspace Content ─────────────────────────────────────── -->
     <div class="content-area" style="padding:0; overflow-y:auto;">
+      <div class="dashboard-container">
 
-      <!-- Today Stats -->
-      <div class="today-label" style="padding:20px 24px 8px;">إحصائيات اليوم</div>
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-icon gold"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--success);"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8v2m0 8v2m9-6a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-          <div class="stat-body">
-            <div class="stat-value" id="todaySales">0</div>
-            <div class="stat-label">مبيعات اليوم (جنيه)</div>
+        <!-- ── Shift Status & Attendance Strip ── -->
+        <div class="session-bar">
+          <div class="session-info">
+            <div class="shift-status-pill">
+              <span class="shift-status-dot"></span>
+              <span>الوردية الحالية مفتوحة</span>
+            </div>
+          </div>
+          <div class="session-actions">
+            <button class="btn btn-outline btn-sm" id="btnAttendance" onclick="handleAttendance('in')">
+              تسجيل حضور
+            </button>
+            <button class="btn btn-outline btn-sm" id="btnCheckout" onclick="handleAttendance('out')">
+              تسجيل انصراف
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="endShift()">
+              إغلاق الوردية
+            </button>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon green"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent);"><path d="M9 12h6M9 16h6M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
-          <div class="stat-body">
-            <div class="stat-value" id="dailyNetCash">0</div>
-            <div class="stat-label">صافي الدرج اليوم</div>
+
+        <!-- ── Key Stats Row (Clean 5 Cards) ── -->
+        <div class="stats-grid">
+          <!-- Today Sales -->
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8v2m0 8v2m9-6a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value">
+                <span id="todaySales">0</span>
+                <span class="currency-suffix">ج.م</span>
+              </div>
+              <div class="stat-label">مبيعات اليوم</div>
+            </div>
+          </div>
+
+          <!-- Drawer Cash -->
+          <div class="stat-card">
+            <div class="stat-icon gold">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value">
+                <span id="dailyNetCash">0</span>
+                <span class="currency-suffix">ج.م</span>
+              </div>
+              <div class="stat-label">نقدية الدرج</div>
+            </div>
+          </div>
+
+          <!-- Vodafone Cash -->
+          <div class="stat-card">
+            <div class="stat-icon red">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value">
+                <span id="dailyNetVodafone">0</span>
+                <span class="currency-suffix">ج.م</span>
+              </div>
+              <div class="stat-label">فودافون كاش</div>
+            </div>
+          </div>
+
+          <!-- InstaPay -->
+          <div class="stat-card">
+            <div class="stat-icon purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value">
+                <span id="dailyNetInstapay">0</span>
+                <span class="currency-suffix">ج.م</span>
+              </div>
+              <div class="stat-label">إنستا باي</div>
+            </div>
+          </div>
+
+          <!-- Expenses -->
+          <div class="stat-card">
+            <div class="stat-icon navy">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value">
+                <span id="todayExpenses">0</span>
+                <span class="currency-suffix">ج.م</span>
+              </div>
+              <div class="stat-label">المصروفات</div>
+            </div>
+          </div>
+
+          <!-- Advances (Preserved for JS) -->
+          <div class="stat-card admin-only" style="display:none;">
+            <div class="stat-body">
+              <span id="todayAdvances">0</span>
+            </div>
+          </div>
+
+          <!-- Treasury (Preserved for JS) -->
+          <div class="stat-card admin-only" style="display:none;">
+            <div class="stat-body">
+              <span id="treasuryBalance">0</span>
+            </div>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon blue"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--primary);"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
-          <div class="stat-body">
-            <div class="stat-value" id="dailyNetVodafone">0</div>
-            <div class="stat-label">صافي فودافون كاش اليوم</div>
+
+        <!-- ── Primary Daily Operations (For Cashier / Employee) ── -->
+        <div class="operations-container">
+          <div class="section-header-clean">
+            <span>العمليات اليومية</span>
+          </div>
+
+          <div class="primary-ops-grid">
+            <!-- Hero Button: New Invoice [F1] -->
+            <button class="action-btn-hero" onclick="navigate('pos-invoice.html')" title="فاتورة جديدة">
+              <div class="hero-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              </div>
+              <div class="hero-content">
+                <div class="hero-title">
+                  <span>فاتورة بيع جديدة</span>
+                  <span class="key-tag" style="position:static; background:rgba(255,255,255,0.2); color:#fff; border-color:rgba(255,255,255,0.3); font-size:11px; padding:2px 8px;">F1</span>
+                </div>
+              </div>
+            </button>
+
+            <!-- Return Sale -->
+            <button class="action-btn" onclick="navigate('returns.html')">
+              <div class="action-btn-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              </div>
+              <div class="action-btn-label">مرتجع بيع</div>
+            </button>
+
+            <!-- New Customer -->
+            <button class="action-btn" onclick="showNewCustomerModal()">
+              <div class="action-btn-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+              </div>
+              <div class="action-btn-label">عميل جديد</div>
+            </button>
+
+            <!-- Employee Advance [F4] -->
+            <button class="action-btn" onclick="showAdvanceModal()" title="F4">
+              <div class="key-tag">F4</div>
+              <div class="action-btn-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              </div>
+              <div class="action-btn-label">سلفة موظف</div>
+            </button>
+
+            <!-- WhatsApp Chats -->
+            <button class="action-btn" onclick="navigate('whatsapp-chat.html')">
+              <div class="action-btn-icon" style="color:#15803D;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              </div>
+              <div class="action-btn-label">محادثات واتساب</div>
+            </button>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--accent-light);"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent);"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
-          <div class="stat-body">
-            <div class="stat-value" id="dailyNetInstapay">0</div>
-            <div class="stat-label">صافي إنستا باي اليوم</div>
+
+        <!-- ── Management & Tools ── -->
+        <div class="operations-container">
+          <div class="section-header-clean">
+            <span>الإدارة والتقارير</span>
+          </div>
+
+          <div class="secondary-ops-grid">
+            <!-- Finance [F3] -->
+            <button class="action-btn" onclick="navigate('finance.html')" title="F3">
+              <div class="key-tag">F3</div>
+              <div class="action-btn-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div class="action-btn-label">الحسابات والمالية</div>
+            </button>
+
+            <!-- HR -->
+            <button class="action-btn" onclick="navigate('hr.html')">
+              <div class="action-btn-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div class="action-btn-label">شئون الموظفين</div>
+            </button>
+
+            <!-- Inventory -->
+            <button class="action-btn" onclick="navigate('inventory.html')" style="position:relative;">
+              <div class="action-btn-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+              </div>
+              <div class="action-btn-label">المخزون</div>
+              <span id="lowStockBadge" class="badge-count" style="display:none; position:absolute; top:6px; left:6px; background:var(--danger); color:#fff; width:20px; height:20px; border-radius:50%; align-items:center; justify-content:center;">0</span>
+            </button>
+
+            <!-- Reports [F2] -->
+            <button class="action-btn" onclick="navigate('reports.html')" title="F2">
+              <div class="key-tag">F2</div>
+              <div class="action-btn-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              <div class="action-btn-label">التقارير المحاسبية</div>
+            </button>
+
+            <!-- Services -->
+            <button class="action-btn" onclick="navigate('services.html')">
+              <div class="action-btn-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              </div>
+              <div class="action-btn-label">الخدمات والأسعار</div>
+            </button>
+
+            <!-- Barcode -->
+            <button class="action-btn" onclick="openPrintBarcodeModal()">
+              <div class="action-btn-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="5" x2="3" y2="19"/><line x1="7" y1="5" x2="7" y2="19"/><line x1="11" y1="5" x2="11" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/><line x1="19" y1="5" x2="19" y2="19"/><line x1="21" y1="5" x2="21" y2="19"/></svg>
+              </div>
+              <div class="action-btn-label">طباعة باركود</div>
+            </button>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon red"></div>
-          <div class="stat-body">
-            <div class="stat-value" id="todayExpenses">0</div>
-            <div class="stat-label">مصروفات اليوم (جنيه)</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon navy"></div>
-          <div class="stat-body">
-            <div class="stat-value" id="todayAdvances">0</div>
-            <div class="stat-label">سلف اليوم (جنيه)</div>
-          </div>
-        </div>
-        <div class="stat-card admin-only" style="display:none;">
-          <div class="stat-icon purple"></div>
-          <div class="stat-body">
-            <div class="stat-value" id="treasuryBalance">0</div>
-            <div class="stat-label">رصيد الخزينة (جنيه)</div>
-          </div>
-        </div>
+
       </div>
-
-      <!-- Main Action Buttons -->
-      <div class="section-label">العمليات الرئيسية</div>
-      <div class="actions-grid">
-        <button class="action-btn blue" id="btnAttendance" onclick="handleAttendance('in')">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          </div>
-          <div class="action-btn-label">حضور</div>
-        </button>
-
-        <button class="action-btn green" onclick="navigate('pos-invoice.html')">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-          </div>
-          <div class="action-btn-label">فاتورة بيع</div>
-        </button>
-
-        <button class="action-btn red" onclick="navigate('returns.html')">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"/><path d="M3 8C5.3 4.9 8.9 3 13 3c5.5 0 10 4.5 10 10s-4.5 10-10 10c-4.1 0-7.7-1.9-10-5"/></svg>
-          </div>
-          <div class="action-btn-label">مرتجع بيع</div>
-        </button>
-
-        <button class="action-btn gold" onclick="showNewCustomerModal()">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-          </div>
-          <div class="action-btn-label">عميل جديد</div>
-        </button>
-
-
-
-        <button class="action-btn purple" onclick="navigate('finance.html')">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          </div>
-          <div class="action-btn-label">الحسابات</div>
-        </button>
-
-
-
-        <button class="action-btn red" id="btnCheckout" onclick="handleAttendance('out')">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 8 12 12 16"/><line x1="16" y1="12" x2="8" y2="12"/></svg>
-          </div>
-          <div class="action-btn-label">انصراف</div>
-        </button>
-
-        <button class="action-btn navy" onclick="navigate('hr.html')">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div class="action-btn-label">شئون الموظفين</div>
-        </button>
-
-        <button class="action-btn gold" onclick="navigate('reports.html')">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          </div>
-          <div class="action-btn-label">التقارير</div>
-        </button>
-
-        <button class="action-btn blue" onclick="endShift()">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          </div>
-          <div class="action-btn-label">نهاية الشيفت</div>
-        </button>
-
-        <button class="action-btn green" onclick="navigate('services.html')">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-          </div>
-          <div class="action-btn-label">الخدمات</div>
-        </button>
-
-        <button class="action-btn navy" onclick="navigate('inventory.html')" style="position:relative;">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-          </div>
-          <div class="action-btn-label">المخزون</div>
-          <span id="lowStockBadge" style="display:none; position:absolute; top:6px; left:6px; background:var(--danger); color:#fff; border-radius:50%; width:20px; height:20px; font-size:10px; font-weight:800; display:none; align-items:center; justify-content:center;">0</span>
-        </button>
-
-        <button class="action-btn purple" onclick="openPrintBarcodeModal()">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="3" height="16" rx="1"/><rect x="8" y="4" width="2" height="16" rx="0.5"/><rect x="12" y="4" width="3" height="16" rx="1"/><rect x="17" y="4" width="1" height="16" rx="0.5"/><rect x="20" y="4" width="2" height="16" rx="0.5"/></svg>
-          </div>
-          <div class="action-btn-label">طباعة باركود</div>
-        </button>
-      </div>
-
     </div>
 
-    <!-- Quick Access Footer -->
+    <!-- ─── Quick Command Shortcut Footer ─────────────────────────── -->
     <footer class="quick-footer">
       <button class="quick-btn" onclick="navigate('pos-invoice.html')" title="F1">
-        <span class="key-badge">F1</span> فاتورة سريعة
+        <span class="key-badge">F1</span> فاتورة بيع
       </button>
       <button class="quick-btn" onclick="navigate('daily-report.html')" title="F2">
-        <span class="key-badge">F2</span> تقرير يومي
+        <span class="key-badge">F2</span> تقرير اليوم
       </button>
       <button class="quick-btn" onclick="navigate('finance.html')" title="F3">
-        <span class="key-badge">F3</span> مصروفات
+        <span class="key-badge">F3</span> الحسابات
       </button>
       <button class="quick-btn" onclick="showAdvanceModal()" title="F4">
         <span class="key-badge">F4</span> سلفة
       </button>
-      <div style="margin-right: auto; color: rgba(255,255,255,0.3); font-size: 11px;">
-        Photography Studio System — Dev Blue Tech © 2026
+      <div style="margin-right:auto; color:rgba(255,255,255,0.4); font-size:11px; font-weight:600;">
+        Photography Studio System
       </div>
     </footer>
+
   </div>
 </div>
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- ─── Barcode Print Modal ─────────────────────────────────────────────────── -->
+<!-- ─── Barcode Print Modal ────────────────────────────────────── -->
 <div class="modal-overlay" id="printBarcodeModal">
   <div class="modal" style="max-width:560px;">
     <div class="modal-header">
-      <div class="modal-title">🏷️ طباعة باركود</div>
-      <button class="modal-close" onclick="closeModal('printBarcodeModal')">✕</button>
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="5" x2="3" y2="19"/><line x1="7" y1="5" x2="7" y2="19"/><line x1="11" y1="5" x2="11" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/><line x1="19" y1="5" x2="19" y2="19"/><line x1="21" y1="5" x2="21" y2="19"/></svg>
+        <span>طباعة ملصقات الباركود</span>
+      </div>
+      <button class="modal-close-btn" onclick="closeModal('printBarcodeModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
-      <div class="form-group" style="margin-bottom:10px;">
+      <div class="form-group" style="margin-bottom:12px;">
         <label class="form-label">بحث عن صنف</label>
-        <input type="text" id="barcodeSearchInput" class="form-control" placeholder="اسم الصنف أو الباركود..." oninput="searchBarcodeItems()" />
-      </div>
-
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px;">
-        <span style="color:var(--text-muted); font-weight:600;">الأصناف المتاحة:</span>
-        <div style="display:flex; gap:10px;">
-          <a href="javascript:void(0)" onclick="selectAllBarcodeItems(true)" style="color:var(--primary); font-weight:700; text-decoration:none; cursor:pointer;">تحديد الكل</a>
-          <span style="color:var(--border);">|</span>
-          <a href="javascript:void(0)" onclick="selectAvailableBarcodeItems()" style="color:var(--success); font-weight:700; text-decoration:none; cursor:pointer;">المتوفر فقط</a>
-          <span style="color:var(--border);">|</span>
-          <a href="javascript:void(0)" onclick="selectAllBarcodeItems(false)" style="color:var(--danger); font-weight:700; text-decoration:none; cursor:pointer;">إلغاء التحديد</a>
+        <div class="search-bar">
+          <input type="text" id="barcodeSearchInput" placeholder="اكتب اسم الصنف أو الباركود..." oninput="searchBarcodeItems()" />
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
       </div>
 
-      <div id="barcodeItemsList" style="max-height:260px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; margin-bottom:12px;"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:12px;">
+        <span style="color:var(--text-muted); font-weight:600;">الأصناف:</span>
+        <div style="display:flex; gap:10px;">
+          <a href="javascript:void(0)" onclick="selectAllBarcodeItems(true)" style="color:var(--primary); font-weight:700; cursor:pointer;">تحديد الكل</a>
+          <span style="color:var(--border);">|</span>
+          <a href="javascript:void(0)" onclick="selectAvailableBarcodeItems()" style="color:var(--success); font-weight:700; cursor:pointer;">المتوفر فقط</a>
+          <span style="color:var(--border);">|</span>
+          <a href="javascript:void(0)" onclick="selectAllBarcodeItems(false)" style="color:var(--danger); font-weight:700; cursor:pointer;">إلغاء</a>
+        </div>
+      </div>
 
-      <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px;">
+      <div id="barcodeItemsList" style="max-height:240px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius); margin-bottom:12px; background:var(--card);"></div>
+
+      <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius); padding:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <div id="barcodeSelectedCount" style="font-size:12px; font-weight:700; color:var(--primary);">لا توجد أصناف محددة</div>
         </div>
 
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <!-- زر الطباعة بحسب كمية المخزن المتوفرة (بضغطة واحدة) -->
-          <button class="btn btn-success" onclick="doPrintBarcodeByStock()" style="flex:1.2; min-width:200px; height:42px; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(22,163,74,0.25);" title="طباعة باركود لكل صنف محدد بعدد الكمية المتوفرة في المخزن">
-            <span>📦</span> طباعة بعدد الكمية المتاحة لكل صنف
+          <button class="btn btn-success" onclick="doPrintBarcodeByStock()" style="flex:1.2; min-width:200px; height:40px;">
+            طباعة حسب الكمية المتوفرة
           </button>
 
-          <!-- خيار طباعة بعدد نسخ ثابت -->
           <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:160px;">
-            <input type="number" id="barcodeCopiesInput" class="form-control" value="1" min="1" max="100" style="width:60px; height:42px; text-align:center; font-weight:700;" title="عدد النسخ الثابت" />
-            <button class="btn btn-outline" onclick="doPrintBarcodeLabels()" style="height:42px; white-space:nowrap; font-size:12px; font-weight:600; flex:1;" title="طباعة عدد نسخ ثابت لكل صنف محدد">
-              🖨️ طباعة نسخ محددة
+            <input type="number" id="barcodeCopiesInput" class="form-control" value="1" min="1" max="100" style="width:60px; height:40px; text-align:center; font-weight:800;" />
+            <button class="btn btn-outline" onclick="doPrintBarcodeLabels()" style="height:40px; white-space:nowrap; font-size:12px; flex:1;">
+              طباعة نسخ محددة
             </button>
           </div>
         </div>
@@ -493,26 +615,31 @@
   </div>
 </div>
 
-<!-- New Customer Modal -->
+<!-- ─── New Customer Modal ─────────────────────────────────────── -->
 <div class="modal-overlay" id="newCustomerModal">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <div class="modal-title">عميل جديد</div>
-      <button class="modal-close" onclick="closeModal('newCustomerModal')">✕</button>
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span>إضافة عميل جديد</span>
+      </div>
+      <button class="modal-close-btn" onclick="closeModal('newCustomerModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
       <div class="flex flex-col gap-3">
         <div class="form-group">
-          <label class="form-label">الاسم *</label>
-          <input type="text" id="newCustName" class="form-control" placeholder="اسم العميل" />
+          <label class="form-label">اسم العميل *</label>
+          <input type="text" id="newCustName" class="form-control" placeholder="اكتب اسم العميل" />
         </div>
         <div class="form-group">
-          <label class="form-label">التليفون / رقم الواتساب</label>
+          <label class="form-label">رقم الهاتف / الواتساب</label>
           <input type="text" id="newCustPhone" class="form-control" placeholder="01xxxxxxxxx" />
         </div>
         <div class="form-group">
           <label class="form-label">العنوان</label>
-          <input type="text" id="newCustAddress" class="form-control" placeholder="العنوان" />
+          <input type="text" id="newCustAddress" class="form-control" placeholder="العنوان أو المنطقة" />
         </div>
         <div class="form-group">
           <label class="form-label">الرصيد الافتتاحي (جنيه)</label>
@@ -521,30 +648,32 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-success" onclick="saveNewCustomer()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        حفظ
-      </button>
+      <button class="btn btn-success" onclick="saveNewCustomer()">حفظ العميل</button>
       <button class="btn btn-outline" onclick="closeModal('newCustomerModal')">إلغاء</button>
     </div>
   </div>
 </div>
 
-<!-- New Supplier Modal -->
+<!-- ─── New Supplier Modal ─────────────────────────────────────── -->
 <div class="modal-overlay" id="newSupplierModal">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <div class="modal-title">مورد جديد</div>
-      <button class="modal-close" onclick="closeModal('newSupplierModal')">✕</button>
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/></svg>
+        <span>إضافة مورد جديد</span>
+      </div>
+      <button class="modal-close-btn" onclick="closeModal('newSupplierModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
       <div class="flex flex-col gap-3">
         <div class="form-group">
-          <label class="form-label">الاسم *</label>
-          <input type="text" id="newSuppName" class="form-control" placeholder="اسم المورد" />
+          <label class="form-label">اسم المورد *</label>
+          <input type="text" id="newSuppName" class="form-control" placeholder="اسم المورد أو الشركة" />
         </div>
         <div class="form-group">
-          <label class="form-label">التليفون</label>
+          <label class="form-label">رقم الهاتف</label>
           <input type="text" id="newSuppPhone" class="form-control" placeholder="01xxxxxxxxx" />
         </div>
         <div class="form-group">
@@ -558,21 +687,23 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-success" onclick="saveNewSupplier()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        حفظ
-      </button>
+      <button class="btn btn-success" onclick="saveNewSupplier()">حفظ المورد</button>
       <button class="btn btn-outline" onclick="closeModal('newSupplierModal')">إلغاء</button>
     </div>
   </div>
 </div>
 
-<!-- Advance Modal -->
+<!-- ─── Advance Modal ──────────────────────────────────────────── -->
 <div class="modal-overlay" id="advanceModal">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <div class="modal-title">تسجيل سلفة</div>
-      <button class="modal-close" onclick="closeModal('advanceModal')">✕</button>
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        <span>تسجيل سلفة موظف</span>
+      </div>
+      <button class="modal-close-btn" onclick="closeModal('advanceModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
       <div class="flex flex-col gap-3">
@@ -584,79 +715,80 @@
         </div>
         <div class="form-group">
           <label class="form-label">المبلغ (جنيه) *</label>
-          <input type="number" id="advAmount" class="form-control" placeholder="0" />
+          <input type="number" id="advAmount" class="form-control" placeholder="0.00" />
         </div>
         <div class="form-group">
           <label class="form-label">الخزينة *</label>
           <select id="advTreasury" class="form-control">
-            <option value="الخزينة">الخزينة النقدية</option>
+            <option value="الخزينة">الخزينة النقدية (الدرج)</option>
             <option value="فودافون كاش">فودافون كاش</option>
             <option value="إنستا باي">إنستا باي / تحويل</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">ملاحظات</label>
-          <input type="text" id="advNotes" class="form-control" placeholder="سبب السلفة" />
+          <label class="form-label">سبب السلفة</label>
+          <input type="text" id="advNotes" class="form-control" placeholder="ملاحظات..." />
         </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-success" onclick="saveAdvance()">حفظ السلفة</button>
+      <button class="btn btn-success" onclick="saveAdvance()">تأكيد السلفة</button>
       <button class="btn btn-outline" onclick="closeModal('advanceModal')">إلغاء</button>
     </div>
   </div>
 </div>
 
+<!-- ─── Attendance Modal ───────────────────────────────────────── -->
+<div class="modal-overlay" id="attendanceModal">
+  <div class="modal modal-sm" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title" id="attModalTitle">تسجيل حضور / انصراف</div>
+      <button class="modal-close-btn" onclick="closeModal('attendanceModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group mb-2">
+        <label class="form-label">الموظف</label>
+        <select class="form-control" id="attEmpSelect"></select>
+      </div>
+      <div class="form-group mb-2">
+        <label class="form-label">التاريخ</label>
+        <input type="date" class="form-control" id="attDate">
+      </div>
+      <div class="form-group mb-2" id="attTimeInGroup">
+        <label class="form-label">وقت الحضور</label>
+        <input type="time" class="form-control" id="attTimeIn">
+      </div>
+      <div class="form-group mb-2" id="attTimeOutGroup">
+        <label class="form-label">وقت الانصراف</label>
+        <input type="time" class="form-control" id="attTimeOut">
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:center; gap:8px;">
+      <button class="btn btn-primary" id="btnSubmitAttIn" onclick="saveDashboardAttendance()">تسجيل حضور</button>
+      <button class="btn btn-warning" id="btnSubmitAttOut" onclick="saveDashboardCheckout()">تسجيل انصراف</button>
+      <button class="btn btn-outline" id="btnSubmitAttOutAll" onclick="saveDashboardCheckoutAll()" style="display:none; color:var(--warning);">انصراف للكل</button>
+    </div>
+  </div>
+</div>
 
-
-<!-- Quit confirmation overlay -->
+<!-- ─── Quit Modal ─────────────────────────────────────────────── -->
 <div class="modal-overlay" id="quitModal">
   <div class="modal modal-sm" style="max-width:420px;">
     <div class="modal-header">
       <div class="modal-title">إغلاق البرنامج</div>
     </div>
     <div class="modal-body" style="text-align:center;">
-      <p style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">هل تريد إنشاء نسخة احتياطية قبل الخروج؟</p>
-      <p style="font-size:12px;color:var(--text-muted);">سيتم حفظ نسخة من قاعدة البيانات تلقائياً</p>
+      <p style="font-size:14px; font-weight:700; color:var(--primary); margin-bottom:6px;">هل تريد عمل نسخة احتياطية قبل الخروج؟</p>
     </div>
-    <div class="modal-footer" style="justify-content:center;gap:8px;flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="sendDailyReportAndQuit()" style="width:100%;margin-bottom:8px;">إرسال التقرير وإنهاء</button>
-      <button class="btn btn-success" onclick="window.electron.quitWithBackup()">نسخ وخروج</button>
-      <button class="btn btn-danger" onclick="window.electron.quitWithoutBackup()">خروج بدون نسخة</button>
+    <div class="modal-footer" style="justify-content:center; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="sendDailyReportAndQuit()" style="width:100%; margin-bottom:6px;">
+        إرسال التقرير اليومي وخروج
+      </button>
+      <button class="btn btn-success" onclick="window.electron.quitWithBackup()">نسخة وخروج</button>
+      <button class="btn btn-danger" onclick="window.electron.quitWithoutBackup()">خروج</button>
       <button class="btn btn-outline" onclick="document.getElementById('quitModal').classList.remove('open'); window.electron.cancelQuit();">إلغاء</button>
-    </div>
-  </div>
-</div>
-
-<!-- Attendance Modal -->
-<div class="modal-overlay" id="attendanceModal">
-  <div class="modal modal-sm" style="max-width:400px;">
-    <div class="modal-header">
-      <div class="modal-title" id="attModalTitle">تسجيل حضور / انصراف</div>
-      <button class="modal-close" onclick="closeModal('attendanceModal')">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">الموظف</label>
-        <select class="form-control" id="attEmpSelect"></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">التاريخ</label>
-        <input type="date" class="form-control" id="attDate">
-      </div>
-      <div class="form-group" id="attTimeInGroup">
-        <label class="form-label">وقت الحضور</label>
-        <input type="time" class="form-control" id="attTimeIn">
-      </div>
-      <div class="form-group" id="attTimeOutGroup">
-        <label class="form-label">وقت الانصراف</label>
-        <input type="time" class="form-control" id="attTimeOut">
-      </div>
-    </div>
-    <div class="modal-footer" style="justify-content:center;gap:10px;">
-      <button class="btn btn-primary" id="btnSubmitAttIn" onclick="saveDashboardAttendance()">تسجيل حضور</button>
-      <button class="btn btn-warning" id="btnSubmitAttOut" onclick="saveDashboardCheckout()">تسجيل انصراف</button>
-      <button class="btn btn-outline" id="btnSubmitAttOutAll" onclick="saveDashboardCheckoutAll()" style="display:none; color:var(--warning); border-color:var(--warning);">انصراف للكل</button>
     </div>
   </div>
 </div>

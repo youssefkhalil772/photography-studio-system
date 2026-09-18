@@ -61,9 +61,9 @@ function stockStatusHtml(item) {
   if (!item.track_inventory) return '<span style="color:var(--text-muted);font-size:11px;">خدمة عمل</span>';
   const qty = Number(item.quantity || 0);
   const thr = Number(item.low_stock_threshold || 0);
-  if (qty <= 0)               return `<span class="stock-status-out">🚫 نفد الرصيد</span>`;
-  if (thr > 0 && qty <= thr) return `<span class="stock-status-low">⚠️ رصيد منخفض (${qty})</span>`;
-  return `<span class="stock-status-ok">✔ متوفر (${qty})</span>`;
+  if (qty <= 0)               return `<span class="stock-status-out">نفد الرصيد</span>`;
+  if (thr > 0 && qty <= thr) return `<span class="stock-status-low">رصيد منخفض (${qty})</span>`;
+  return `<span class="stock-status-ok">متوفر (${qty})</span>`;
 }
 
 function renderItemsTable(items) {
@@ -99,7 +99,7 @@ function renderItemsTable(items) {
       <td style="text-align:center;">
         <div style="display:flex; gap:6px; justify-content:center;">
           <button class="btn btn-primary btn-sm" style="padding:2px 8px; font-size:11px;" onclick="openRestockForItem(${i.id})">+ رصيد</button>
-          <button class="btn btn-outline btn-sm" style="padding:2px 8px; font-size:11px;" onclick="openEditModal(${i.id})">✏️ تعديل</button>
+          <button class="btn btn-outline btn-sm" style="padding:2px 8px; font-size:11px;" onclick="openEditModal(${i.id})">تعديل</button>
         </div>
       </td>
     </tr>
@@ -225,7 +225,7 @@ function searchBarcodeItems() {
       <div style="flex:1; min-width:0;">
         <div style="font-weight:700; font-size:13px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</div>
         <div style="font-size:11px; color:var(--text-muted); display:flex; gap:8px; align-items:center; margin-top:2px;">
-          <span>🔢 ${i.barcode}</span>
+          <span>${i.barcode}</span>
           ${i.category_name ? `<span style="color:var(--border);">•</span><span>${i.category_name}</span>` : ''}
         </div>
       </div>
@@ -372,7 +372,7 @@ async function loadStocktakeSessions() {
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <span class="${isDone ? 'session-status-done' : 'session-status-prog'}">${isDone ? 'مكتملة' : 'جارية'}</span>
-        <button class="btn btn-secondary btn-sm" onclick="openStocktakeReportModal(${s.id})">📊 تقرير</button>
+        <button class="btn btn-secondary btn-sm" onclick="openStocktakeReportModal(${s.id})">تقرير</button>
         ${isProg ? `<button class="btn btn-primary btn-sm" onclick="resumeSession(${s.id})">▶ استكمال</button>` : ''}
       </div>
     </div>
@@ -385,7 +385,7 @@ let currentViewingReportData = null;
 async function openStocktakeReportModal(sessionId) {
   try { sessionStorage.setItem('view_stocktake_session_id', sessionId); } catch(e){}
   openModal('stocktakeReportModal');
-  document.getElementById('reportModalTitle').innerHTML = `<span>📊</span> تقرير جلسة الجرد #${sessionId}`;
+  document.getElementById('reportModalTitle').innerHTML = `تقرير جلسة الجرد #${sessionId}`;
   document.getElementById('reportModalSub').textContent = 'جارٍ تحميل بيانات الجلسة...';
   document.getElementById('reportModalBody').innerHTML = `
     <div style="text-align:center; padding:40px; color:var(--text-muted); font-size:14px;">

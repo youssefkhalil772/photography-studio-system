@@ -454,21 +454,29 @@
     <!-- POS Header -->
     <div class="pos-header">
       <!-- Back -->
-      <button style="background:transparent;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:20px;padding:0 6px;" onclick="goBack()" title="رجوع">←</button>
+      <button class="btn btn-outline btn-sm" onclick="goBack()" title="رجوع للرئيسية" style="color:#fff; border-color:rgba(255,255,255,0.25); background:rgba(255,255,255,0.08);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+        رجوع للرئيسية
+      </button>
       
       <div id="posLogoContainer" class="sidebar-logo" style="margin:0; padding:0; border:none; background:transparent;">
-        <div class="logo-icon" id="posLogoIcon" style="width:36px; height:36px; font-size:18px;">📸</div>
+        <div class="logo-icon" id="posLogoIcon" style="width:36px; height:36px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
         <div>
-          <div class="logo-text" style="font-size:16px;">Photography Studio System</div>
-          <div class="logo-sub" style="font-size:10px;">نظام إدارة استوديو التصوير</div>
+          <div class="logo-text" style="font-size:15px; font-weight:800; color:#fff;">استوديو التصوير</div>
+          <div class="logo-sub" style="font-size:10px; color:rgba(255,255,255,0.5);">نقطة البيع وإصدار الفواتير</div>
         </div>
       </div>
 
       <!-- Suspended Invoices -->
-      <button style="background:var(--warning);border:none;color:#fff;cursor:pointer;font-size:12px;padding:6px 12px;border-radius:6px;font-weight:bold;margin-right:8px;" onclick="openSuspendedModal()">المعلقة <span id="suspendedCountBadge" style="background:#fff;color:var(--warning);border-radius:10px;padding:2px 6px;margin-right:4px;">0</span></button>
+      <button class="btn btn-warning btn-sm" onclick="openSuspendedModal()" style="margin-right:8px;">
+        <span>المعلقة</span>
+        <span id="suspendedCountBadge" style="background:#fff; color:var(--warning); border-radius:10px; padding:1px 6px; font-weight:800;">0</span>
+      </button>
 
       <!-- Invoices History -->
-      <button style="background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:12px;padding:6px 12px;border-radius:6px;font-weight:bold;" onclick="openHistoryModal()">سجل الفواتير</button>
+      <button class="btn btn-accent btn-sm" onclick="openHistoryModal()">سجل الفواتير</button>
 
       <!-- Invoice Number -->
       <div class="pos-header-field">
@@ -706,7 +714,7 @@
       <!-- Payment Method Selection Cards -->
       <div class="form-group mb-3">
         <label class="form-label" style="font-size:13px;font-weight:700;color:var(--primary);">
-          💳 طريقة الدفع *
+          طريقة الدفع *
         </label>
         <div class="pay-methods-grid">
           <!-- Cash -->

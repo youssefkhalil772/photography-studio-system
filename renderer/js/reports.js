@@ -83,7 +83,7 @@ function renderSalesTablePage() {
     const statusColor = r.status === 'تم التسليم' ? 'success' : (r.status === 'في انتظار الاستلام' ? 'primary' : 'warning');
     const statusBadge = r.is_returned
       ? `<span class="badge badge-danger" title="فاتورة مرتجعة - لا يمكن تغيير الحالة">${r.status || 'مرتجع'}</span>`
-      : `<span class="badge badge-${statusColor}" style="cursor:pointer;" onclick="changeInvoiceStatus(${r.id}, '${r.status}', ${r.remaining || 0})"><bdi>${r.status || 'تحت الشغل'}</bdi> ✎</span>`;
+      : `<span class="badge badge-${statusColor}" style="cursor:pointer;" onclick="changeInvoiceStatus(${r.id}, '${r.status}', ${r.remaining || 0})"><bdi>${r.status || 'تحت الشغل'}</bdi></span>`;
     return `
       <tr class="${r.is_returned?'bg-red-50':''}">
         <td style="font-weight:700;color:var(--primary);">${r.invoice_number} ${r.is_returned?'<span class="badge badge-danger">مرتجع</span>':''}</td>
@@ -191,9 +191,9 @@ async function changeInvoiceStatus(id, currentStatus, remainingAmount) {
     title: 'تغيير حالة الفاتورة',
     input: 'select',
     inputOptions: {
-      'تحت الشغل': '🛠️ تحت الشغل',
-      'في انتظار الاستلام': '📦 في انتظار الاستلام',
-      'تم التسليم': '✅ تم التسليم'
+      'تحت الشغل': 'تحت الشغل',
+      'في انتظار الاستلام': 'في انتظار الاستلام',
+      'تم التسليم': 'تم التسليم'
     },
     inputValue: currentStatus || 'تحت الشغل',
     showCancelButton: true,
@@ -211,9 +211,9 @@ async function changeInvoiceStatus(id, currentStatus, remainingAmount) {
       text: 'يوجد مبلغ متبقي على هذه الفاتورة، اختر خزنة الاستلام:',
       input: 'select',
       inputOptions: {
-        'الخزينة': '💵 الخزنة النقدية',
-        'فودافون كاش': '📱 فودافون كاش',
-        'إنستا باي': '⚡ إنستا باي'
+        'الخزينة': 'الخزنة النقدية',
+        'فودافون كاش': 'فودافون كاش',
+        'إنستا باي': 'إنستا باي'
       },
       inputValue: 'الخزينة',
       showCancelButton: true,
@@ -234,7 +234,7 @@ async function changeInvoiceStatus(id, currentStatus, remainingAmount) {
       return;
     }
 
-    showToast('تم التسديد والتسليم بنجاح 💰✅', 'success');
+    showToast('تم التسديد والتسليم بنجاح', 'success');
     loadSalesReport();
 
     // رسالة مدمجة
@@ -268,7 +268,7 @@ async function changeInvoiceStatus(id, currentStatus, remainingAmount) {
     return;
   }
 
-  showToast('تم تغيير الحالة بنجاح ✅', 'success');
+  showToast('تم تغيير الحالة بنجاح', 'success');
 
   // إرسال واتساب حسب الحالة المختارة
   if (newStatus === 'في انتظار الاستلام') {
@@ -365,9 +365,9 @@ async function payInvoiceDebt(id, maxAmount) {
       <div class="form-group" style="text-align:right;">
         <label>إيداع في</label>
         <select id="swal-safe" class="swal2-select" style="display: flex; margin: 10px 0; width: 90%;">
-          <option value="الخزينة">💵 الخزنة النقدية</option>
-          <option value="فودافون كاش">📱 فودافون كاش</option>
-          <option value="إنستا باي">⚡ إنستا باي</option>
+          <option value="الخزينة">الخزنة النقدية</option>
+          <option value="فودافون كاش">فودافون كاش</option>
+          <option value="إنستا باي">إنستا باي</option>
         </select>
       </div>
     `,
@@ -447,7 +447,7 @@ async function payInvoiceDebt(id, maxAmount) {
       }
     }
   } else {
-    Swal.fire('تم السداد ✅', 'تم تسديد المبلغ بنجاح', 'success');
+    Swal.fire('تم السداد', 'تم تسديد المبلغ بنجاح', 'success');
   }
 }
 

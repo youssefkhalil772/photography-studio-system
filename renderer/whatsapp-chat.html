@@ -427,7 +427,16 @@
 <div class="app-layout">
   <!-- Sidebar (right, RTL) -->
   <aside class="sidebar">
-    <div style="padding-top:20px;"></div>
+    <div class="sidebar-logo">
+      <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+      <div>
+        <div class="logo-text">استوديو التصوير</div>
+        <div class="sidebar-status-pill">
+          <span class="sidebar-status-dot"></span>
+          <span>واتساب متصل</span>
+        </div>
+      </div>
+    </div>
 
     <div class="sidebar-section">
       <div class="sidebar-section-title">القوائم الرئيسية</div>
@@ -439,7 +448,7 @@
 
       <div class="sidebar-nav-item" onclick="navigate('pos-invoice.html')">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
-        نقطة البيع
+        نقطة البيع (POS)
       </div>
 
       <div class="sidebar-nav-item" onclick="navigate('returns.html')">
@@ -472,11 +481,15 @@
       <div class="sidebar-section-title">المالية والمخازن</div>
       <div class="sidebar-nav-item" onclick="navigate('finance.html')">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        الحسابات
+        الحسابات والمالية
       </div>
       <div class="sidebar-nav-item" onclick="navigate('services.html')">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
         الخدمات والأصناف
+      </div>
+      <div class="sidebar-nav-item" onclick="navigate('inventory.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+        المخزون
       </div>
     </div>
 
@@ -491,6 +504,11 @@
         الإعدادات
       </div>
     </div>
+
+    <div class="sidebar-footer">
+      <div style="font-weight:700; color:rgba(255,255,255,0.7);">Photography Studio System</div>
+      <div style="font-size:10px; color:rgba(255,255,255,0.4);">Dev Blue Tech © 2026</div>
+    </div>
   </aside>
 
   <!-- Main Content Area -->
@@ -504,14 +522,14 @@
           <span class="status-dot"></span>
           <span id="webhookStatusText">جاري فحص السيرفر...</span>
         </span>
-        <span id="metaSyncBadge" style="background:#E6FFFA; color:#234E52; border:1px solid #B2F5EA; font-size:11px; display:none; align-items:center; gap:4px; padding:3px 9px; border-radius:12px; font-weight:700;">🟢 متصل ومتزامن مع Meta تلقائياً ✨</span>
+        <span id="metaSyncBadge" style="background:#E6FFFA; color:#234E52; border:1px solid #B2F5EA; font-size:11px; display:none; align-items:center; gap:4px; padding:3px 9px; border-radius:12px; font-weight:700;"> متصل ومتزامن مع Meta تلقائياً </span>
         <span id="tunnelUrlText" style="font-family:monospace; color:var(--text-muted); direction:ltr;"></span>
       </div>
 
       <div style="display:flex; align-items:center; gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="copyWebhookUrl()" id="copyUrlBtn" style="display:none; padding:4px 10px; font-size:11px;">📋 نسخ رابط الـ Webhook</button>
-        <button class="btn btn-outline btn-sm" onclick="sendTestPing()" style="padding:4px 10px; font-size:11px;">🔔 تجربة استقبال رسالة</button>
-        <button class="btn btn-outline btn-sm" onclick="openMetaSettings()" style="padding:4px 10px; font-size:11px;">⚙️ إعدادات Meta</button>
+        <button class="btn btn-outline btn-sm" onclick="copyWebhookUrl()" id="copyUrlBtn" style="display:none; padding:4px 10px; font-size:11px;">نسخ رابط الـ Webhook</button>
+        <button class="btn btn-outline btn-sm" onclick="sendTestPing()" style="padding:4px 10px; font-size:11px;">تجربة استقبال رسالة</button>
+        <button class="btn btn-outline btn-sm" onclick="openMetaSettings()" style="padding:4px 10px; font-size:11px;">إعدادات Meta</button>
       </div>
     </div>
 
@@ -562,13 +580,13 @@
 
             <div class="chat-header-actions" style="display:flex; align-items:center; gap:8px;">
               <button class="btn btn-outline btn-sm" onclick="openCustomerInvoicesModal()" title="عرض فواتير هذا العميل">
-                📄 فواتير العميل
+                فواتير العميل
               </button>
               <button class="btn btn-outline btn-sm" onclick="deleteActiveChat()" style="color:var(--danger); border-color:var(--danger);" title="حذف هذه المحادثة بالكامل">
-                🗑️ حذف المحادثة
+                حذف المحادثة
               </button>
               <button class="btn btn-outline btn-sm" onclick="refreshCurrentChat()" title="تحديث">
-                🔄
+                
               </button>
             </div>
           </div>
@@ -597,7 +615,7 @@
 <div class="modal-overlay" id="customerInvoicesModal">
   <div class="modal modal-lg" style="max-width:860px; max-height:90vh; display:flex; flex-direction:column;">
     <div class="modal-header">
-      <div class="modal-title" id="chatCustInvoicesModalTitle">📄 فواتير العميل</div>
+      <div class="modal-title" id="chatCustInvoicesModalTitle">فواتير العميل</div>
       <button class="modal-close" onclick="closeChatInvoicesModal()">✕</button>
     </div>
     <div class="modal-body" style="overflow-y:auto; flex:1; padding:20px;">
@@ -644,7 +662,7 @@
     </div>
     <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
       <button class="btn btn-outline" onclick="goToCustomerPage()" style="display:flex; align-items:center; gap:6px;">
-        📂 فتح كشف حساب العميل في إدارة العملاء
+        فتح كشف حساب العميل في إدارة العملاء
       </button>
       <button class="btn btn-primary" onclick="closeChatInvoicesModal()">إغلاق</button>
     </div>

@@ -122,14 +122,17 @@
 
   <!-- Header -->
   <header class="app-header" style="flex-shrink:0;">
-    <div>
-      <div class="header-title">التقارير الشاملة</div>
-      <div class="header-subtitle">تقارير المبيعات، الأرباح، والمشتريات</div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      
+      <div>
+        <div class="header-title">التقارير المحاسبية والتحليلات الشاملة</div>
+        <div class="header-subtitle">تقارير المبيعات، الأرباح، المشتريات، حركة الشيفتات، وقائمة الدخل</div>
+      </div>
     </div>
     <div class="header-actions">
-      <button class="btn btn-outline" onclick="goBack()">
+      <button class="btn btn-outline btn-sm" onclick="goBack()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
-        رجوع
+        رجوع للرئيسية
       </button>
     </div>
   </header>
@@ -138,10 +141,10 @@
   <div class="rpt-tabs">
     <div class="rpt-tab active" onclick="switchTab('sales', this)">المبيعات والأرباح</div>
     <div class="rpt-tab" onclick="switchTab('purchases', this)">المشتريات</div>
-    <div class="rpt-tab" onclick="switchTab('shifts', this)">تقارير الشيفتات</div>
-    <div class="rpt-tab" onclick="switchTab('income', this)">قائمة الدخل</div>
-    <div class="rpt-tab" onclick="navigate('inventory-report.html')">تقرير المخزون الحي (A4) 📦</div>
-    <div class="rpt-tab" id="cleanupTab" onclick="switchTab('cleanup', this)" style="color:var(--danger);">حذف البيانات</div>
+    <div class="rpt-tab" onclick="switchTab('shifts', this)">تقارير الشيفتات والورديات</div>
+    <div class="rpt-tab" onclick="switchTab('income', this)">قائمة الدخل والمركز المالي</div>
+    <div class="rpt-tab" onclick="navigate('inventory-report.html')">تقرير المخزون الحي (A4)</div>
+    <div class="rpt-tab" id="cleanupTab" onclick="switchTab('cleanup', this)" style="color:var(--danger); margin-right:auto;">تصفير وتنظيف البيانات</div>
   </div>
 
   <div class="rpt-content">
@@ -195,7 +198,7 @@
         </div>
         <div class="summary-card" style="background: linear-gradient(135deg, #1e3a5f, #2563eb);">
           <div class="summary-val" id="salesAwaiting">0</div>
-          <div class="summary-lbl">في انتظار الاستلام 📦</div>
+          <div class="summary-lbl">في انتظار الاستلام</div>
         </div>
         <div class="summary-card danger">
           <div class="summary-val" id="salesUnpaidAmount">0.00</div>

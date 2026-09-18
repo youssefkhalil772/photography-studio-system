@@ -129,7 +129,7 @@ async function saveEmployee(){
       params=[...data.slice(0,-1), salaryType, editingEmployeeId];
     }
     const res=await window.db.run(sql,params);
-    if(res.success){showToast('تم تعديل بيانات الموظف بنجاح ✏️','success');clearNewEmployee();showSection('employees');}
+    if(res.success){showToast('تم تعديل بيانات الموظف بنجاح ','success');clearNewEmployee();showSection('employees');}
     else showToast('خطأ في التعديل: '+res.error,'error');
   } else {
     // ── وضع الإضافة ──
@@ -447,7 +447,7 @@ async function deleteEmployee(id){
   }
 
   if(res.success && res.changes>0){
-    showToast('تم حذف الموظف بنجاح 🗑️','success');
+    showToast('تم حذف الموظف بنجاح ','success');
     loadEmployees();
   } else if(res.success && res.changes===0){
     showToast('لم يتم العثور على الموظف','warning');
@@ -498,7 +498,7 @@ async function saveAttendance(){
   const checkIn = date + 'T' + ci + ':00';
   await window.db.run('INSERT INTO attendance (employee_id,date,check_in,late_minutes,extra_minutes) VALUES (?,?,?,0,0)',
     [empId, date, checkIn]);
-  showToast('تم تسجيل الحضور ✅','success');
+  showToast('تم تسجيل الحضور ','success');
   document.getElementById('att_checkin').value = '';
   loadAttendance();
 }
@@ -533,7 +533,7 @@ async function fetchCheckinTime(empId, date){
         const timeOut = res.data.check_out.split('T')[1]?.slice(0,5) || res.data.check_out;
         summary.style.display = 'block';
         summary.style.background = 'var(--success-light)';
-        summary.innerHTML = `✅ تم تسجيل الانصراف بالفعل: <strong>${timeOut}</strong>`;
+        summary.innerHTML = `تم تسجيل الانصراف بالفعل: <strong>${timeOut}</strong>`;
       } else {
         summary.style.display = 'block';
         summary.style.background = 'var(--warning-light)';
@@ -547,7 +547,7 @@ async function fetchCheckinTime(empId, date){
     display.value = '';
     summary.style.display = 'block';
     summary.style.background = 'var(--danger-light)';
-    summary.innerHTML = '⚠️ لا يوجد سجل حضور لهذا الموظف في هذا التاريخ';
+    summary.innerHTML = 'لا يوجد سجل حضور لهذا الموظف في هذا التاريخ';
   }
 }
 
@@ -588,7 +588,7 @@ async function saveCheckout(){
     [checkOut, late, extra, attRes.data.id]
   );
 
-  showToast(`تم تسجيل الانصراف ✅ | تأخير: ${late} دق | زيادة: ${extra} دق`, 'success');
+  showToast(`تم تسجيل الانصراف | تأخير: ${late} دق | زيادة: ${extra} دق`, 'success');
   document.getElementById('co_checkout').value = '';
   document.getElementById('co_late').value = '0';
   document.getElementById('co_extra').value = '0';
@@ -1089,7 +1089,7 @@ function paySalary(empId, name, gross, advances, ded, inc, net, month, salaryTyp
     const res = await window.db.paySalary(salaryData);
     if(res.success){
       const partialNote = totalToPay < net ? ` (${fmt(totalToPay)} جنيه من أصل ${fmt(net)})` : '';
-      showToast(`تم صرف راتب ${name}${partialNote} ✅`,'success');
+      showToast(`تم صرف راتب ${name}${partialNote} `,'success');
       closeModal('salaryConfirmModal');
       loadSalaryReport();
     } else showToast('خطأ: '+res.error,'error');
@@ -1146,10 +1146,10 @@ function syncPaySplit(changedField){
   
   const splitTotal = cash + vodafone + instapay;
   if(Math.abs(splitTotal - total) > 0.01){
-    hint.textContent = `⚠️ مجموع التقسيم: ${fmt(splitTotal)} | المطلوب: ${fmt(total)}`;
+    hint.textContent = `مجموع التقسيم: ${fmt(splitTotal)} | المطلوب: ${fmt(total)}`;
     hint.style.color = 'var(--danger)';
   } else {
-    hint.textContent = `✅ التقسيم صحيح`;
+    hint.textContent = `التقسيم صحيح`;
     hint.style.color = 'var(--success)';
   }
 }

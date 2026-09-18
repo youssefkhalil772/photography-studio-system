@@ -103,11 +103,11 @@ async function loadWaTemplates() {
   const s = res.data;
   
   // Default values if empty
-  const d_inv = `أهلاً {customerName} 🤍\n\nطلبك اتسجل عندنا في {shopName} 📸\n📋 تفاصيل الفاتورة:\nرقم الفاتورة: {invoiceNumber}\nتاريخ الاستلام: {date} {time}\nالمسؤول: {sellerName}\nالإجمالي: {total} جنيه\nالمدفوع: {paid} جنيه\nالباقي: {remaining} جنيه\n📸 ميعاد الاستلام المتوقع للصور/الألبومات: سيتم إشعاركم فور الجاهزية\nنتشرف بخدمتكم وتخليد أجمل لحظاتكم 🤍\n{shopName}\n📍 {address}\n📞 {contactPhone}`;
-  const d_rdy = `أهلاً {customerName} 🤍\n\nطلبك جاهز عندنا في {shopName} 📸\nتم تجهيز طلبك بفاتورة رقم {invoiceNumber} وفي انتظار استلامك في أقرب فرصة.\nنتمنى نكون عند حسن ظنك 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`;
-  const d_del = `أهلاً {customerName} 🤍\n\nشكراً لاستلامك طلبك من {shopName} 📸\nفاتورة رقم {invoiceNumber} — تم التسليم بنجاح ✅\n\nنتشرف بخدمتك دايماً وفي انتظار زيارتك القادمة 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`;
-  const d_full= `أهلاً {customerName} 🤍\n\nتم استلام دفعتك، وفاتورتك رقم {invoiceNumber} مسددة بالكامل ✅\n💵 المبلغ المدفوع: {paid} جنيه\n\nشكرًا لثقتك في {shopName} 🤍 نتشرف بزيارتك دايمًا\n📞 {contactPhone}`;
-  const d_part= `أهلاً {customerName} 🤍\n\nتم استلام دفعتك بنجاح في {shopName} 📸\n🧾 فاتورة رقم {invoiceNumber}\n💵 المبلغ المدفوع الآن: {paidNow} جنيه\n📊 إجمالي المدفوع لحد دلوقتي: {totalPaid} جنيه\n📌 الباقي: {remaining} جنيه\n\nشكرًا لثقتك في {shopName} 🤍\n📞 {contactPhone}`;
+  const d_inv = `أهلاً {customerName} \n\nطلبك اتسجل عندنا في {shopName} \n تفاصيل الفاتورة:\nرقم الفاتورة: {invoiceNumber}\nتاريخ الاستلام: {date} {time}\nالمسؤول: {sellerName}\nالإجمالي: {total} جنيه\nالمدفوع: {paid} جنيه\nالباقي: {remaining} جنيه\n ميعاد الاستلام المتوقع للصور/الألبومات: سيتم إشعاركم فور الجاهزية\nنتشرف بخدمتكم وتخليد أجمل لحظاتكم \n{shopName}\n {address}\n {contactPhone}`;
+  const d_rdy = `أهلاً {customerName} \n\nطلبك جاهز عندنا في {shopName} \nتم تجهيز طلبك بفاتورة رقم {invoiceNumber} وفي انتظار استلامك في أقرب فرصة.\nنتمنى نكون عند حسن ظنك \n\n{shopName}\n {address}\n {contactPhone}`;
+  const d_del = `أهلاً {customerName} \n\nشكراً لاستلامك طلبك من {shopName} \nفاتورة رقم {invoiceNumber} — تم التسليم بنجاح \n\nنتشرف بخدمتك دايماً وفي انتظار زيارتك القادمة \n\n{shopName}\n {address}\n {contactPhone}`;
+  const d_full= `أهلاً {customerName} \n\nتم استلام دفعتك، وفاتورتك رقم {invoiceNumber} مسددة بالكامل \n المبلغ المدفوع: {paid} جنيه\n\nشكرًا لثقتك في {shopName}  نتشرف بزيارتك دايمًا\n {contactPhone}`;
+  const d_part= `أهلاً {customerName} \n\nتم استلام دفعتك بنجاح في {shopName} \n فاتورة رقم {invoiceNumber}\n المبلغ المدفوع الآن: {paidNow} جنيه\n إجمالي المدفوع لحد دلوقتي: {totalPaid} جنيه\n الباقي: {remaining} جنيه\n\nشكرًا لثقتك في {shopName} \n {contactPhone}`;
 
   if(document.getElementById('tplInvoiceConfirm')) document.getElementById('tplInvoiceConfirm').value = s.wa_tpl_invoice_confirm || d_inv;
   if(document.getElementById('tplOrderReady')) document.getElementById('tplOrderReady').value = s.wa_tpl_order_ready || d_rdy;
@@ -163,7 +163,7 @@ async function saveCashierPermissions() {
     };
     const res = await window.db.updateSettings(data);
     if (res.success) {
-      showToast('تم حفظ الصلاحيات تلقائياً ✔', 'success');
+      showToast('تم حفظ الصلاحيات تلقائياً ', 'success');
     }
   } catch (e) {
     console.error('saveCashierPermissions error:', e);
@@ -655,7 +655,7 @@ async function selectExternalBackupPath() {
   const selectedDir = result.filePaths[0];
   const res = await window.backup.setExternalPath(selectedDir);
   if (res.success) {
-    showToast('✅ تم تحديد المسار: ' + selectedDir, 'success');
+    showToast(' تم تحديد المسار: ' + selectedDir, 'success');
     loadExternalBackupPath();
   } else {
     showToast('خطأ في حفظ المسار: ' + res.error, 'error');
@@ -823,10 +823,10 @@ function onProviderChange(provider) {
 function renderTemplateMapTable() {
   const container = document.getElementById('templateMapTable');
   const statusBadge = {
-    ok:            { icon: '✅', color: '#15803d', bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.3)' },
-    not_approved:  { icon: '⚠️', color: '#b45309', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)' },
-    lang_mismatch: { icon: '⚠️', color: '#b45309', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)' },
-    name_not_found:{ icon: '❌', color: '#dc2626', bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.3)' },
+    ok:            { icon: '', color: '#15803d', bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.3)' },
+    not_approved:  { icon: '', color: '#b45309', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)' },
+    lang_mismatch: { icon: '', color: '#b45309', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)' },
+    name_not_found:{ icon: '', color: '#dc2626', bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.3)' },
     empty:         { icon: '',   color: '',         bg: '',                     border: '' },
   };
 
@@ -914,13 +914,13 @@ async function saveWaProviderSettings() {
     const res = await window.whatsapp.saveProviderSettings(settings);
     
     if (res.success) {
-      showToast('✅ تم حفظ الإعدادات وتطبيق المزوّد بنجاح', 'success');
-      resultDiv.innerHTML = '<span style="color:var(--success);">✅ تم الحفظ والتبديل بنجاح</span>';
+      showToast(' تم حفظ الإعدادات وتطبيق المزوّد بنجاح', 'success');
+      resultDiv.innerHTML = '<span style="color:var(--success);"> تم الحفظ والتبديل بنجاح</span>';
       document.getElementById('waAccessToken').value = ''; // مسح الحقل للأمان
       checkWaStatus();
     } else {
-      showToast('❌ فشل التبديل: ' + res.error, 'error');
-      resultDiv.innerHTML = `<span style="color:var(--danger);">❌ فشل التبديل — تم الرجوع للإعدادات السابقة.<br>${res.error}</span>`;
+      showToast(' فشل التبديل: ' + res.error, 'error');
+      resultDiv.innerHTML = `<span style="color:var(--danger);"> فشل التبديل — تم الرجوع للإعدادات السابقة.<br>${res.error}</span>`;
     }
   } catch (err) {
     showToast('حدث خطأ غير متوقع', 'error');
@@ -957,7 +957,7 @@ async function testCloudConnection() {
       // سنطلب من الباك اند اختبار الإعدادات المحفوظة
       const res = await window.whatsapp.getProviderSettings(); // just to check if saved
     } else if (!token) {
-      resultDiv.innerHTML = '<span style="color:var(--warning);">⚠️ يرجى إدخال Access Token أو حفظ الإعدادات أولاً</span>';
+      resultDiv.innerHTML = '<span style="color:var(--warning);"> يرجى إدخال Access Token أو حفظ الإعدادات أولاً</span>';
       return;
     }
   }
@@ -970,9 +970,9 @@ async function testCloudConnection() {
   });
 
   if (res.success) {
-    resultDiv.innerHTML = `<span style="color:var(--success); font-weight:bold;">✅ الاتصال ناجح!</span><br><span style="color:var(--text-muted);">الرقم: <span style="direction:ltr;display:inline-block;">${res.data.displayPhoneNumber}</span> (${res.data.verifiedName})</span>`;
+    resultDiv.innerHTML = `<span style="color:var(--success); font-weight:bold;"> الاتصال ناجح!</span><br><span style="color:var(--text-muted);">الرقم: <span style="direction:ltr;display:inline-block;">${res.data.displayPhoneNumber}</span> (${res.data.verifiedName})</span>`;
   } else {
-    resultDiv.innerHTML = `<span style="color:var(--danger); font-weight:bold;">❌ فشل الاتصال:</span><br><span style="color:var(--text-muted);">${res.error}</span>`;
+    resultDiv.innerHTML = `<span style="color:var(--danger); font-weight:bold;"> فشل الاتصال:</span><br><span style="color:var(--text-muted);">${res.error}</span>`;
   }
 }
 
@@ -993,7 +993,7 @@ async function loadSettingsWebhookStatus() {
         urlInput.placeholder = 'https://xxxx.trycloudflare.com/webhook';
       }
       if (pill) {
-        pill.textContent = '🟢 النفق السحابي متصل وجاهز للاستقبال';
+        pill.textContent = ' النفق السحابي متصل وجاهز للاستقبال';
         pill.style.background = '#E6F7ED';
         pill.style.color = '#0E733B';
       }
@@ -1003,7 +1003,7 @@ async function loadSettingsWebhookStatus() {
         urlInput.placeholder = 'تعذر توليد الرابط — اضغط زر إعادة تشغيل النفق بالأسفل';
       }
       if (pill) {
-        pill.textContent = `🔴 تعذر ربط النفق: ${tunnel.error || 'يرجى إعادة المحاولة'}`;
+        pill.textContent = ` تعذر ربط النفق: ${tunnel.error || 'يرجى إعادة المحاولة'}`;
         pill.style.background = '#FEE2E2';
         pill.style.color = '#991B1B';
       }
@@ -1013,13 +1013,13 @@ async function loadSettingsWebhookStatus() {
         urlInput.placeholder = 'جاري توليد الرابط السحابي المعتمد من Meta... (انتظر ثوانٍ)';
       }
       if (pill) {
-        pill.textContent = `🟡 السيرفر المحلي يعمل على المنفذ ${server.port} — جاري ربط النفق السحابي...`;
+        pill.textContent = ` السيرفر المحلي يعمل على المنفذ ${server.port} — جاري ربط النفق السحابي...`;
         pill.style.background = '#FEF3C7';
         pill.style.color = '#92400E';
       }
     } else {
       if (pill) {
-        pill.textContent = '🔴 سيرفر الـ Webhook متوقف';
+        pill.textContent = ' سيرفر الـ Webhook متوقف';
         pill.style.background = '#FEE2E2';
         pill.style.color = '#991B1B';
       }
@@ -1036,7 +1036,7 @@ function copySettingsWebhookUrl() {
     return;
   }
   navigator.clipboard.writeText(urlInput.value).then(() => {
-    showToast('✅ تم نسخ رابط Callback URL بنجاح', 'success');
+    showToast(' تم نسخ رابط Callback URL بنجاح', 'success');
   });
 }
 
@@ -1044,7 +1044,7 @@ function copySettingsVerifyToken() {
   const tokenInput = document.getElementById('settingsVerifyToken');
   if (!tokenInput || !tokenInput.value) return;
   navigator.clipboard.writeText(tokenInput.value).then(() => {
-    showToast('✅ تم نسخ رمز التحقق Verify Token بنجاح', 'success');
+    showToast(' تم نسخ رمز التحقق Verify Token بنجاح', 'success');
   });
 }
 
@@ -1055,7 +1055,7 @@ async function restartSettingsTunnel() {
       const res = await window.whatsapp.restartTunnel();
       if (res.success) {
         await loadSettingsWebhookStatus();
-        showToast('✅ تم إعادة تشغيل النفق بنجاح', 'success');
+        showToast(' تم إعادة تشغيل النفق بنجاح', 'success');
       }
     }
   } catch (e) {
@@ -1067,7 +1067,7 @@ async function sendSettingsTestPing() {
   try {
     if (window.whatsapp && window.whatsapp.testWebhookPing) {
       await window.whatsapp.testWebhookPing('201000000000');
-      showToast('✅ تم إرسال رسالة تجريبية بنجاح! تفقد صفحة محادثات الواتساب', 'success');
+      showToast(' تم إرسال رسالة تجريبية بنجاح! تفقد صفحة محادثات الواتساب', 'success');
     }
   } catch (e) {
     showToast('خطأ: ' + e.message, 'error');
@@ -1107,7 +1107,7 @@ async function verifyMetaTemplates() {
     if (!res.success) {
       resultDiv.innerHTML = `
         <div style="color:var(--danger); font-weight:700; font-size:13px; display:flex; align-items:flex-start; gap:8px;">
-          <span style="font-size:18px;">⛔</span>
+          <span style="font-size:18px;"></span>
           <div>${res.error}</div>
         </div>`;
       return;
@@ -1128,11 +1128,11 @@ async function verifyMetaTemplates() {
     };
 
     const statusStyles = {
-      ok:           { bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.35)',   color: '#15803d', icon: '✅' },
-      not_approved: { bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.35)',  color: '#b45309', icon: '⚠️' },
-      lang_mismatch:{ bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.35)',  color: '#b45309', icon: '⚠️' },
-      name_not_found:{ bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.35)',   color: '#dc2626', icon: '❌' },
-      empty:        { bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.3)',  color: '#64748b', icon: '➖' },
+      ok:           { bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.35)',   color: '#15803d', icon: '' },
+      not_approved: { bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.35)',  color: '#b45309', icon: '' },
+      lang_mismatch:{ bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.35)',  color: '#b45309', icon: '' },
+      name_not_found:{ bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.35)',   color: '#dc2626', icon: '' },
+      empty:        { bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.3)',  color: '#64748b', icon: '' },
     };
 
     const rows = results.map(r => {
@@ -1160,7 +1160,7 @@ async function verifyMetaTemplates() {
     const allOk       = results.every(r => r.status === 'ok');
 
     const summaryColor = allOk ? '#15803d' : hasErrors ? '#dc2626' : '#b45309';
-    const summaryIcon  = allOk ? '✅' : hasErrors ? '❌' : '⚠️';
+    const summaryIcon  = allOk ? '' : hasErrors ? '' : '';
     const summaryText  = allOk
       ? `جميع القوالب مطابقة ومعتمدة على Meta (${metaTemplatesCount} قالب على الحساب)`
       : hasErrors
@@ -1180,10 +1180,10 @@ async function verifyMetaTemplates() {
 
   } catch (err) {
     resultDiv.style.display = 'block';
-    resultDiv.innerHTML = `<div style="color:var(--danger);">⛔ خطأ غير متوقع: ${err.message}</div>`;
+    resultDiv.innerHTML = `<div style="color:var(--danger);"> خطأ غير متوقع: ${err.message}</div>`;
   } finally {
     btn.disabled = false;
-    btn.textContent = '🔎 تحقق من القوالب';
+    btn.textContent = ' تحقق من القوالب';
   }
 }
 
@@ -1192,10 +1192,10 @@ function toggleTokenVisibility() {
   const btn = document.getElementById('tokenVisibilityBtn');
   if (input.type === 'password') {
     input.type = 'text';
-    btn.textContent = '🙈';
+    btn.textContent = '';
   } else {
     input.type = 'password';
-    btn.textContent = '👁️';
+    btn.textContent = '️';
   }
 }
 
@@ -1293,7 +1293,7 @@ function showWaQR(dataUrl) {
     secs--;
     if (secs <= 0) {
       clearInterval(waQrTimerInterval);
-      timerEl.textContent = '🔄 الكود انتهى — جاري تجديده...';
+      timerEl.textContent = ' الكود انتهى — جاري تجديده...';
     } else {
       timerEl.textContent = `⏱️ الكود صالح لـ ${secs} ثانية`;
       if (secs <= 10) timerEl.style.color = 'var(--danger)';
@@ -1328,7 +1328,7 @@ window.whatsapp.onReady(() => {
   if (waQrTimerInterval) clearInterval(waQrTimerInterval);
   stopWaPolling();
   checkWaStatus();
-  showToast('✅ واتساب متصل وجاهز!', 'success');
+  showToast(' واتساب متصل وجاهز!', 'success');
 });
 
 window.whatsapp.onAuthenticated(() => {
@@ -1350,8 +1350,8 @@ window.whatsapp.onError((msg) => {
   showToast('خطأ في واتساب: ' + msg, 'error');
   const text = document.getElementById('waStatusText');
   const hint = document.getElementById('waStatusHint');
-  if (text) text.textContent = '⚠️ حدث خطأ';
-  if (hint) hint.innerHTML = `<span style="color:var(--danger);font-weight:600;">⛔ ${msg}</span>`;
+  if (text) text.textContent = ' حدث خطأ';
+  if (hint) hint.innerHTML = `<span style="color:var(--danger);font-weight:600;"> ${msg}</span>`;
   stopWaPolling();
 });
 
@@ -1405,4 +1405,4 @@ async function executeSelectiveReset() {
   } else {
     Swal.fire('خطأ', 'حدث خطأ أثناء المسح: ' + res.error, 'error');
   }
-}
+}

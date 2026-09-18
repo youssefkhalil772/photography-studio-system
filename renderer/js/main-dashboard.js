@@ -248,14 +248,14 @@ async function handleAttendance(type) { // type = 'in' or 'out'
 
   // Toggle fields based on type
   if (type === 'in') {
-    document.getElementById('attModalTitle').innerHTML = '🟢 تسجيل حضور';
+    document.getElementById('attModalTitle').innerHTML = 'تسجيل حضور';
     document.getElementById('attTimeInGroup').style.display = 'block';
     document.getElementById('attTimeOutGroup').style.display = 'none';
     document.getElementById('btnSubmitAttIn').style.display = 'block';
     document.getElementById('btnSubmitAttOut').style.display = 'none';
     document.getElementById('btnSubmitAttOutAll').style.display = 'none';
   } else {
-    document.getElementById('attModalTitle').innerHTML = '🔴 تسجيل انصراف';
+    document.getElementById('attModalTitle').innerHTML = 'تسجيل انصراف';
     document.getElementById('attTimeInGroup').style.display = 'none';
     document.getElementById('attTimeOutGroup').style.display = 'block';
     document.getElementById('btnSubmitAttIn').style.display = 'none';
@@ -393,7 +393,7 @@ async function saveDashboardCheckoutAll() {
     count++;
   }
 
-  showToast(`تم تسجيل الانصراف لعدد ${count} موظفين بنجاح ✅`, 'success');
+  showToast(`تم تسجيل الانصراف لعدد ${count} موظفين بنجاح`, 'success');
   closeModal('attendanceModal');
 }
 
@@ -548,8 +548,8 @@ async function checkTrialStatus() {
       banner.style.display = 'flex';
       const days = status.daysLeft;
       bannerText.textContent = days === 1
-        ? '⚠️ باقي يوم واحد فقط على انتهاء فترة التجربة المجانية!'
-        : `⚠️ باقي ${days} ${days <= 10 ? 'أيام' : 'يوم'} على انتهاء فترة التجربة المجانية`;
+        ? 'باقي يوم واحد فقط على انتهاء فترة التجربة المجانية!'
+        : `باقي ${days} ${days <= 10 ? 'أيام' : 'يوم'} على انتهاء فترة التجربة المجانية`;
       if (days <= 2) {
         banner.style.background = 'linear-gradient(135deg,#7f1d1d,#991b1b)';
         bannerText.style.color = '#FCA5A5';
@@ -557,7 +557,7 @@ async function checkTrialStatus() {
     } else if (status.trialExpired && !status.activated) {
       // انتهت التجربة أو التفعيل المؤقت — إغلاق كامل للنظام
       banner.style.display = 'flex';
-      bannerText.textContent = '🔒 انتهت فترة الصلاحية. الرجاء تفعيل النظام للاستمرار.';
+      bannerText.textContent = 'انتهت فترة الصلاحية. الرجاء تفعيل النظام للاستمرار.';
       banner.style.background = 'linear-gradient(135deg,#4a1d1d,#5c1a1a)';
       bannerText.style.color = '#FCA5A5';
       showFullLockOverlay();
@@ -566,8 +566,8 @@ async function checkTrialStatus() {
       banner.style.display = 'flex';
       const days = status.daysLeft;
       bannerText.textContent = days === 1
-        ? '⚠️ باقي يوم واحد فقط على انتهاء اشتراكك!'
-        : `⏳ اشتراكك الحالي ساري ومتبقي ${days} ${days <= 10 ? 'أيام' : 'يوم'} على انتهائه.`;
+        ? 'باقي يوم واحد فقط على انتهاء اشتراكك!'
+        : `اشتراكك الحالي ساري ومتبقي ${days} ${days <= 10 ? 'أيام' : 'يوم'} على انتهائه.`;
       
       // تغيير لون البانر ليكون مختلف (مثلاً أزرق/ذهبي)
       if (days <= 5) {
@@ -602,7 +602,9 @@ function showFullLockOverlay() {
     
     overlay.innerHTML = `
       <div style="background:var(--card); padding:40px; border-radius:16px; border:1px solid var(--danger); text-align:center; max-width:500px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
-        <div style="font-size:48px; margin-bottom:16px;">🔒</div>
+        <div style="margin-bottom:16px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
         <h2 style="color:var(--danger); font-size:24px; font-weight:900; margin-bottom:12px;">انتهت فترة التجربة</h2>
         <p style="color:var(--text-secondary); font-size:15px; line-height:1.6; margin-bottom:24px;">
           لقد انتهت فترة التجربة المجانية للنظام. لم يعد بإمكانك استخدام البرنامج إلا بعد شراء النسخة الكاملة وتفعيلها.
@@ -646,7 +648,7 @@ if (window.whatsapp && typeof window.whatsapp.onNewMessage === 'function') {
     if (typeof showToast === 'function') {
       const sender = msg?.sender_name || msg?.phone || 'عميل';
       const text = msg?.message_body ? (msg.message_body.length > 40 ? msg.message_body.substring(0, 40) + '...' : msg.message_body) : 'رسالة جديدة';
-      showToast(`💬 رسالة واتساب من [${sender}]: ${text}`, 'info');
+      showToast(`رسالة واتساب من [${sender}]: ${text}`, 'info');
     }
   });
 }
@@ -722,7 +724,7 @@ function searchBarcodeItems() {
       <div style="flex:1; min-width:0;">
         <div style="font-weight:700; font-size:13px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</div>
         <div style="font-size:11px; color:var(--text-muted); display:flex; gap:8px; align-items:center; margin-top:2px;">
-          <span>🔢 ${i.barcode}</span>
+          <span>${i.barcode}</span>
           ${i.category_name ? `<span style="color:var(--border);">•</span><span>${i.category_name}</span>` : ''}
         </div>
       </div>
@@ -796,7 +798,7 @@ async function doPrintBarcodeLabels() {
   }));
   showToast(`جارٍ طباعة ${items.length * copies} ملصق...`, 'info');
   const res = await window.inventory.printBarcodeLabels(items, copies);
-  if (res.success) showToast('تمت الطباعة بنجاح ✓', 'success');
+  if (res.success) showToast('تمت الطباعة بنجاح', 'success');
   else showToast('خطأ في الطباعة: ' + (res.error || ''), 'error');
 }
 
@@ -827,7 +829,7 @@ async function doPrintBarcodeByStock() {
 
   const res = await window.inventory.printBarcodeLabels(itemsToPrint, 1);
   if (res.success) {
-    showToast(`تمت طباعة ${totalLabels} ملصق باركود بنجاح ✓`, 'success');
+    showToast(`تمت طباعة ${totalLabels} ملصق باركود بنجاح`, 'success');
   } else {
     showToast('خطأ في الطباعة: ' + (res.error || ''), 'error');
   }

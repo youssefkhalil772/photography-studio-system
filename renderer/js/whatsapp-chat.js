@@ -115,7 +115,7 @@ function setMetaBadgeSuccess() {
   badge.style.borderColor = '#B2F5EA';
   badge.style.cursor = 'default';
   badge.onclick = null;
-  badge.innerHTML = '🟢 متزامن ومربوط مع Meta تلقائياً ✨';
+  badge.innerHTML = 'متزامن ومربوط مع Meta تلقائياً ';
 }
 
 function setMetaBadgeError(errMsg) {
@@ -128,7 +128,7 @@ function setMetaBadgeError(errMsg) {
   badge.style.borderColor = '#FCA5A5';
   badge.style.cursor = 'pointer';
   badge.onclick = () => retryMetaSync();
-  badge.innerHTML = '⚠️ تعذرت مزامنة Meta تلقائياً — اضغط للمحاولة 🔄';
+  badge.innerHTML = 'تعذرت مزامنة Meta تلقائياً — اضغط للمحاولة ';
   badge.title = errMsg || 'فشل التحقق من الرابط في Meta';
 }
 
@@ -148,7 +148,7 @@ async function retryMetaSync() {
       Swal.fire({
         icon: 'success',
         title: 'تمت المزامنة بنجاح!',
-        text: 'تم ربط رابط الـ Webhook الجديد في Meta WhatsApp بنجاح تام 🎉',
+        text: 'تم ربط رابط الـ Webhook الجديد في Meta WhatsApp بنجاح تام ',
         timer: 2000,
         showConfirmButton: false
       });
@@ -281,7 +281,7 @@ function renderConversationsList() {
           (hasUnread ? '<span class="conversation-unread-badge">' + c.unread_count + '</span>' : '') +
         '</div>' +
       '</div>' +
-      '<button class="conversation-delete-btn" onclick="deleteConversationItem(\'' + escapeHtml(c.phone) + '\', \'' + escapeHtml(displayName) + '\', event)" title="حذف المحادثة">🗑️ حذف</button>' +
+      '<button class="conversation-delete-btn" onclick="deleteConversationItem(\'' + escapeHtml(c.phone) + '\', \'' + escapeHtml(displayName) + '\', event)" title="حذف المحادثة"> حذف</button>' +
     '</li>';
   }).join('');
 }
@@ -354,7 +354,7 @@ async function loadMessagesForActiveChat() {
             '</button>' +
             '<div style="flex:1;">' +
               '<div id="' + playerId + '">' +
-                '<div style="font-weight:700; font-size:13px; color:var(--text-primary);">🎤 تسجيل صوتي</div>' +
+                '<div style="font-weight:700; font-size:13px; color:var(--text-primary);">تسجيل صوتي</div>' +
                 '<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">اضغط ▶ للاستماع</div>' +
               '</div>' +
             '</div>' +
@@ -363,7 +363,7 @@ async function loadMessagesForActiveChat() {
         // لا يوجد media_id مخزون (رسائل قديمة)
         bodyHtml =
           '<div style="display:flex; align-items:center; gap:10px; padding:4px 2px;">' +
-            '<span style="font-size:22px;">🎤</span>' +
+            '<span style="font-size:22px;"></span>' +
             '<div>' +
               '<div style="font-weight:700; font-size:13px; color:var(--text-primary);">تسجيل صوتي</div>' +
               '<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">لا يمكن التشغيل — الملف غير محفوظ</div>' +
@@ -375,7 +375,7 @@ async function loadMessagesForActiveChat() {
     } else if (msgType === 'reaction') {
       const body = m.message_body || '';
       const emojiMatch = body.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})/u);
-      const emoji = emojiMatch ? emojiMatch[0] : '👍';
+      const emoji = emojiMatch ? emojiMatch[0] : '';
       bodyHtml =
         '<div style="display:flex; align-items:center; gap:8px;">' +
           '<span style="font-size:28px; line-height:1; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.15));">' + emoji + '</span>' +
@@ -417,7 +417,7 @@ async function playAudioMessage(mediaId, msgId) {
     if (!res.success) {
       playBtn.style.background = '#DC2626';
       playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><line x1="18" y1="6" x2="6" y2="18" stroke="white" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="white" stroke-width="2"/></svg>';
-      playerDiv.innerHTML = '<div style="font-size:11px; color:#DC2626; margin-top:2px;">⚠️ ' + escapeHtml(res.error || 'تعذر تحميل الصوت') + '</div>';
+      playerDiv.innerHTML = '<div style="font-size:11px; color:#DC2626; margin-top:2px;">' + escapeHtml(res.error || 'تعذر تحميل الصوت') + '</div>';
       return;
     }
 
@@ -437,7 +437,7 @@ async function playAudioMessage(mediaId, msgId) {
     playBtn.disabled = false;
     playBtn.style.background = '#DC2626';
     playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>';
-    playerDiv.innerHTML = '<div style="font-size:11px; color:#DC2626;">⚠️ خطأ: ' + escapeHtml(err.message) + '</div>';
+    playerDiv.innerHTML = '<div style="font-size:11px; color:#DC2626;">خطأ: ' + escapeHtml(err.message) + '</div>';
   }
 }
 
@@ -602,7 +602,7 @@ async function openCustomerInvoicesModal() {
   if (!activePhone) return;
 
   document.getElementById('customerInvoicesModal').classList.add('open');
-  document.getElementById('chatCustInvoicesModalTitle').textContent = `📄 فواتير ومستحقات العميل: ${activeName || activePhone}`;
+  document.getElementById('chatCustInvoicesModalTitle').textContent = `فواتير ومستحقات العميل: ${activeName || activePhone}`;
   const tbody = document.getElementById('chatCustInvoicesTableBody');
   tbody.innerHTML = '<tr><td colspan="8" class="table-empty">جاري فحص فواتير العميل...</td></tr>';
 
@@ -632,7 +632,7 @@ async function openCustomerInvoicesModal() {
               يمكنك تسجيله كعميل جديد في إدارة العملاء لربط فواتيره ومقاساته تلقائياً.
             </div>
             <button class="btn btn-primary btn-sm" onclick="goToCustomerPage()">
-              ➕ تسجيل هذا الرقم كعميل جديد
+              تسجيل هذا الرقم كعميل جديد
             </button>
           </td>
         </tr>
@@ -679,7 +679,7 @@ async function openCustomerInvoicesModal() {
         </td>
         <td style="text-align:center;">
           <button class="btn btn-sm btn-outline" onclick="sendInvoiceSummaryToChat('${escapeHtml(inv.invoice_number || '')}', '${Number(inv.net_total || 0).toFixed(2)}', '${Number(inv.amount_paid || 0).toFixed(2)}', '${Number(inv.remaining || 0).toFixed(2)}', '${escapeHtml(inv.status || '')}')" title="تجهيز ملخص الفاتورة لإرساله في الشات">
-            💬 إرسال
+            إرسال
           </button>
         </td>
       </tr>
@@ -707,12 +707,12 @@ function sendInvoiceSummaryToChat(invNo, total, paid, rem, status) {
   const input = document.getElementById('chatInput');
   if (!input) return;
 
-  const text = `📄 تفاصيل فاتورتكم رقم #${invNo}:\n` +
+  const text = `تفاصيل فاتورتكم رقم #${invNo}:\n` +
                `• الإجمالي: ${total} ج.م\n` +
                `• المدفوع: ${paid} ج.م\n` +
                `• المتبقي: ${rem} ج.م\n` +
                `• الحالة: ${status}\n` +
-               `شكراً لتعاملكم معنا! 🌹`;
+               `شكراً لتعاملكم معنا! `;
 
   input.value = text;
   input.focus();
@@ -779,7 +779,7 @@ async function sendTestPing() {
     Swal.fire({
       icon: 'success',
       title: 'تم إرسال التجربة!',
-      text: 'تم إرسال رسالة تجريبية محاكية وستظهر الآن في قائمة المحادثات 🚀',
+      text: 'تم إرسال رسالة تجريبية محاكية وستظهر الآن في قائمة المحادثات ',
       timer: 1800,
       showConfirmButton: false
     });

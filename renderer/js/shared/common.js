@@ -123,7 +123,7 @@ if (typeof window !== 'undefined') {
           playWhatsAppChime();
           const sender = msg?.sender_name || msg?.phone || 'عميل';
           const text = msg?.message_body ? (msg.message_body.length > 40 ? msg.message_body.substring(0, 40) + '...' : msg.message_body) : 'رسالة جديدة';
-          showToast(`💬 رسالة واتساب من [${sender}]: ${text}`, 'info');
+          showToast(`رسالة واتساب من [${sender}]: ${text}`, 'info');
         });
       }
     }
@@ -197,7 +197,7 @@ async function sendDailyReportAndQuit() {
 
         // ── نص الرسالة المرافقة ──
         const res = await window.db.getDailyReport(today);
-        let caption = `📊 ${shopName} — تقرير يوم ${today}`;
+        let caption = `${shopName} — تقرير يوم ${today}`;
         if (res && res.success) {
           const { summary, treasuryBalances } = res.data;
           const totInc = (summary.invoices_paid || 0) + (summary.revenues || 0);
@@ -210,7 +210,7 @@ async function sendDailyReportAndQuit() {
             else if (t.treasury_type === 'فودافون كاش') netVodafone = t.balance;
             else if (t.treasury_type === 'إنستا باي') netInstapay = t.balance;
           });
-          caption = `📊 ${shopName} — تقرير يوم ${today}\n\n• إجمالي الدخل: ${fmt(totInc)} ج\n• المصروفات: ${fmt(totExp)} ج\n• السلف والرواتب: ${fmt(totAdv)} ج\n*• صافي اليوم: ${fmt(net)} ج*\n\n💳 الخزائن:\n• 💵 نقدي: ${fmt(netCash)} ج\n• 📱 فودافون: ${fmt(netVodafone)} ج\n• 💳 إنستا باي: ${fmt(netInstapay)} ج\n\n(أُرسل تلقائياً عند الإغلاق)`;
+          caption = `${shopName} — تقرير يوم ${today}\n\n• إجمالي الدخل: ${fmt(totInc)} ج\n• المصروفات: ${fmt(totExp)} ج\n• السلف والرواتب: ${fmt(totAdv)} ج\n*• صافي اليوم: ${fmt(net)} ج*\n\nالخزائن:\n• نقدي: ${fmt(netCash)} ج\n• فودافون: ${fmt(netVodafone)} ج\n• إنستا باي: ${fmt(netInstapay)} ج\n\n(أُرسل تلقائياً عند الإغلاق)`;
         }
 
         if (waStatus && waStatus.ready) {
@@ -239,12 +239,12 @@ async function sendDailyReportAndQuit() {
             else if (t.treasury_type === 'فودافون كاش') netVodafone = t.balance;
             else if (t.treasury_type === 'إنستا باي') netInstapay = t.balance;
           });
-          let text = `*📊 تقرير الإغلاق ليوم: ${today}*\n\n`;
+          let text = `*تقرير الإغلاق ليوم: ${today}*\n\n`;
           text += `• إجمالي الدخل: ${fmt(totInc)} ج\n`;
           text += `• إجمالي المصروفات: ${fmt(totExp)} ج\n`;
           text += `• السلف والرواتب: ${fmt(totAdv)} ج\n`;
           text += `• *صافي اليوم: ${fmt(net)} ج*\n\n`;
-          text += `💳 الخزائن:\n• 💵 نقدي: ${fmt(netCash)} ج\n• 📱 فودافون: ${fmt(netVodafone)} ج\n• 💳 إنستا باي: ${fmt(netInstapay)} ج\n\n(أُرسل تلقائياً عند الإغلاق)`;
+          text += `الخزائن:\n• نقدي: ${fmt(netCash)} ج\n• فودافون: ${fmt(netVodafone)} ج\n• إنستا باي: ${fmt(netInstapay)} ج\n\n(أُرسل تلقائياً عند الإغلاق)`;
           await window.whatsapp.sendMessage(phone, text).catch(e => console.error(e));
         }
       }
@@ -254,7 +254,7 @@ async function sendDailyReportAndQuit() {
   }
   // ── نسخة احتياطية تلقائية قبل الإغلاق ──
   if (typeof showToast === 'function') {
-    showToast('✅ تم الإرسال — جاري أخذ نسخة احتياطية...', 'success');
+    showToast('تم الإرسال — جاري أخذ نسخة احتياطية...', 'success');
   }
   await new Promise(r => setTimeout(r, 1500)); // انتظر عشان تظهر الرسالة
   window.electron.quitWithBackup();
@@ -282,3 +282,60 @@ function getLocalISODate(d = new Date()) {
     }
   } catch (e) {}
 })();
+
+// ─── Browser Preview Fallback (For browser rendering & inspection) ───────────
+if (typeof window !== 'undefined') {
+  if (!window.electron) {
+    window.electron = {
+      navigate: (page) => { window.location.href = page; },
+      openExternal: (url) => { window.open(url, '_blank'); },
+      getUserDataPath: async () => 'C:/Temp',
+      generateAndSendReport: async () => ({ success: true, path: 'C:/Temp/report.pdf' }),
+      quitWithBackup: () => alert('تم أخذ النسخة الاحتياطية وإنهاء العمل بنجاح.'),
+      quitWithoutBackup: () => alert('تم إنهاء البرنامج.'),
+      cancelQuit: () => {}
+    };
+  }
+
+  if (!window.auth) {
+    window.auth = {
+      getSession: async () => ({
+        success: true,
+        data: {
+          userId: 1,
+          employeeId: 1,
+          employeeName: 'أحمد مصطفى (المدير العام)',
+          role: 'admin',
+          shiftId: 'SHIFT-2026-001'
+        }
+      })
+    };
+  }
+
+  if (!window.db) {
+    window.db = {
+      getSettings: async () => ({
+        success: true,
+        data: {
+          company_name: 'استوديو التصوير الملكي',
+          logo_path: '',
+          day_cutoff_hour: 0
+        }
+      }),
+      queryOne: async (sql) => {
+        if (sql.includes('invoices')) return { success: true, data: { total: 18450, cnt: 24 } };
+        if (sql.includes('expenses')) return { success: true, data: { total: 850 } };
+        if (sql.includes('advances')) return { success: true, data: { total: 400 } };
+        if (sql.includes('الخزينة')) return { success: true, data: { net: 12200 } };
+        if (sql.includes('فودافون كاش')) return { success: true, data: { net: 4100 } };
+        if (sql.includes('إنستا باي')) return { success: true, data: { net: 2150 } };
+        return { success: true, data: {} };
+      },
+      queryAll: async () => ({ success: true, data: [] }),
+      getTreasuryBalance: async () => ({ success: true, data: 34500 }),
+      getLowStockItems: async () => ({ success: true, data: [] }),
+      getUnreadWhatsAppMessagesCount: async () => ({ success: true, count: 3 })
+    };
+  }
+}
+

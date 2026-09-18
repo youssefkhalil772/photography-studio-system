@@ -76,35 +76,48 @@
 <div class="hr-layout">
 
   <!-- HR Sidebar -->
-  <div class="hr-sidebar">
-    <div class="hr-sidebar-title">شئون الموظفين</div>
-    <button class="hr-nav-btn active" onclick="showSection('employees')">الموظفون</button>
-    <button class="hr-nav-btn" onclick="showSection('new-employee')">موظف جديد</button>
-    <button class="hr-nav-btn" onclick="showSection('attendance')">الحضور والانصراف</button>
-    <button class="hr-nav-btn" onclick="showSection('leaves')">الإجازات</button>
-    <button class="hr-nav-btn" onclick="showSection('advances')">السلف</button>
-    <button class="hr-nav-btn" onclick="showSection('deductions')">الخصومات</button>
-    <button class="hr-nav-btn" onclick="showSection('incentives')">الحوافز</button>
-    <button class="hr-nav-btn" onclick="showSection('custody')">العهد</button>
-    <button class="hr-nav-btn" onclick="showSection('salary')">الرواتب</button>
-    <button class="hr-nav-btn" onclick="showSection('emp-sales')">مبيعات الموظف</button>
-    <div style="margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,0.08);">
-      <button class="btn btn-outline" onclick="goBack()" style="width:100%;color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.15);font-size:12px;">← رجوع</button>
+  <div class="hr-sidebar" style="width:220px;">
+    <div style="padding:16px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px;">
+      <div style="width:38px; height:38px; background:linear-gradient(135deg, var(--accent), #B8963E); border-radius:var(--radius); display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; box-shadow:0 2px 8px rgba(201,168,76,0.3);"></div>
+      <div>
+        <div style="font-size:14px; font-weight:800; color:#fff;">شئون الموظفين</div>
+        <div style="font-size:10px; color:rgba(255,255,255,0.5);">إدارة الكادر والرواتب</div>
+      </div>
+    </div>
+    <div class="hr-sidebar-title" style="padding:12px 14px 4px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.08em;">أقسام الموارد البشرية</div>
+    <button class="hr-nav-btn active" onclick="showSection('employees')">دليل الموظفين</button>
+    <button class="hr-nav-btn" onclick="showSection('new-employee')">إضافة موظف جديد</button>
+    <button class="hr-nav-btn" onclick="showSection('attendance')">⏱️ الحضور والانصراف</button>
+    <button class="hr-nav-btn" onclick="showSection('leaves')">الإجازات والغياب</button>
+    <button class="hr-nav-btn" onclick="showSection('advances')">سلف الموظفين</button>
+    <button class="hr-nav-btn" onclick="showSection('deductions')">الخصومات والجزاءات</button>
+    <button class="hr-nav-btn" onclick="showSection('incentives')">⭐ المكافآت والحوافز</button>
+    <button class="hr-nav-btn" onclick="showSection('custody')">العهد والأمانات</button>
+    <button class="hr-nav-btn" onclick="showSection('salary')">مسيرات الرواتب</button>
+    <button class="hr-nav-btn" onclick="showSection('emp-sales')">مبيعات الموظفين</button>
+    <div style="margin-top:auto; padding:14px; border-top:1px solid rgba(255,255,255,0.08);">
+      <button class="btn btn-outline" onclick="goBack()" style="width:100%; color:rgba(255,255,255,0.7); border-color:rgba(255,255,255,0.15); font-size:12px;">
+        ← رجوع للرئيسية
+      </button>
     </div>
   </div>
 
   <!-- Main Content -->
   <div class="hr-content">
     <header class="app-header" style="flex-shrink:0;">
-      <div>
-        <div class="header-title" id="sectionTitle">الموظفون</div>
-        <div class="header-subtitle">إدارة شاملة لشئون الموظفين</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="font-size:20px;"></div>
+        <div>
+          <div class="header-title" id="sectionTitle">الموظفون</div>
+          <div class="header-subtitle">إدارة شاملة لكادر العمل، الرواتب، السلف، والحضور</div>
+        </div>
       </div>
       <div class="header-actions">
-        <div class="search-bar" style="width:220px;">
-          <input type="text" placeholder="بحث..." id="globalSearch" oninput="onGlobalSearch()" />
+        <div class="search-bar" style="width:240px;">
+          <input type="text" placeholder="بحث عن موظف..." id="globalSearch" oninput="onGlobalSearch()" />
           <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
+        <button class="btn btn-outline btn-sm" onclick="goBack()">رجوع</button>
       </div>
     </header>
 
@@ -214,7 +227,7 @@
 
         <!-- كارت تسجيل الحضور -->
         <div class="card mb-4">
-          <div class="card-header"><div class="card-title">🟢 تسجيل حضور</div></div>
+          <div class="card-header"><div class="card-title">تسجيل حضور</div></div>
           <div class="form-row cols-3">
             <div class="form-group">
               <label class="form-label">الموظف *</label>
@@ -230,13 +243,13 @@
             </div>
           </div>
           <div class="flex gap-3 mt-3">
-            <button class="btn btn-success" onclick="saveAttendance()">✅ تسجيل حضور</button>
+            <button class="btn btn-success" onclick="saveAttendance()">تسجيل حضور</button>
           </div>
         </div>
 
         <!-- كارت تسجيل الانصراف -->
         <div class="card mb-4">
-          <div class="card-header"><div class="card-title">🔴 تسجيل انصراف</div></div>
+          <div class="card-header"><div class="card-title">تسجيل انصراف</div></div>
           <div class="form-row cols-3">
             <div class="form-group">
               <label class="form-label">الموظف *</label>
@@ -267,7 +280,7 @@
           </div>
           <div id="co_summary" style="display:none;margin-top:10px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:13px;"></div>
           <div class="flex gap-3 mt-3">
-            <button class="btn btn-warning" onclick="saveCheckout()">🚪 تسجيل انصراف</button>
+            <button class="btn btn-warning" onclick="saveCheckout()">تسجيل انصراف</button>
           </div>
         </div>
 
@@ -368,8 +381,8 @@
           <div class="card-header">
             <div class="card-title">تقرير السلف</div>
             <div class="header-actions">
-              <button class="btn btn-outline btn-sm" id="btnAdvPrintA4" onclick="printAdvancesReport('a4')" style="display:none;">🖨️ طباعة A4</button>
-              <button class="btn btn-outline btn-sm" id="btnAdvPrintThermal" onclick="printAdvancesReport('thermal')" style="display:none;">🖨️ طباعة حراري</button>
+              <button class="btn btn-outline btn-sm" id="btnAdvPrintA4" onclick="printAdvancesReport('a4')" style="display:none;">طباعة A4</button>
+              <button class="btn btn-outline btn-sm" id="btnAdvPrintThermal" onclick="printAdvancesReport('thermal')" style="display:none;">طباعة حراري</button>
             </div>
           </div>
           <div class="flex gap-2 mb-3" style="align-items:flex-end;">
@@ -612,15 +625,15 @@
         </div>
         <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">تقسيم المبلغ على الخزائن:</div>
         <div class="form-group mb-2">
-          <label class="form-label">💵 الخزينة النقدية (جنيه)</label>
+          <label class="form-label">الخزينة النقدية (جنيه)</label>
           <input type="number" id="payCashAmount" class="form-control" min="0" step="0.01" value="0" oninput="syncPaySplit('cash')" />
         </div>
         <div class="form-group mb-2">
-          <label class="form-label">📱 فودافون كاش (جنيه)</label>
+          <label class="form-label">فودافون كاش (جنيه)</label>
           <input type="number" id="payVodafoneAmount" class="form-control" min="0" step="0.01" value="0" oninput="syncPaySplit('vodafone')" />
         </div>
         <div class="form-group">
-          <label class="form-label">🏦 إنستا باي (جنيه)</label>
+          <label class="form-label">إنستا باي (جنيه)</label>
           <input type="number" id="payInstapayAmount" class="form-control" min="0" step="0.01" value="0" oninput="syncPaySplit('instapay')" />
         </div>
         <div id="paySplitHint" style="font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
@@ -644,8 +657,8 @@
        <!-- content -->
     </div>
     <div class="modal-footer">
-      <button class="btn" style="background:var(--primary);color:#fff;" onclick="printEmpDetails('a4')">🖨️ طباعة A4</button>
-      <button class="btn btn-accent" onclick="printEmpDetails('thermal')">🧾 طباعة حرارية</button>
+      <button class="btn" style="background:var(--primary);color:#fff;" onclick="printEmpDetails('a4')">طباعة A4</button>
+      <button class="btn btn-accent" onclick="printEmpDetails('thermal')">طباعة حرارية</button>
       <button class="btn btn-outline" onclick="closeModal('empDetailsModal')">إغلاق</button>
     </div>
   </div>

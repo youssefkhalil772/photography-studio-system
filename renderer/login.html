@@ -257,7 +257,7 @@
 
   <!-- Logo -->
   <div class="login-logo">
-    <div class="login-logo-icon" id="logoIcon">📸</div>
+    <div class="login-logo-icon" id="logoIcon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
     <div class="login-title" id="loginTitle">استوديو التصوير</div>
     <div class="login-subtitle">نظام إدارة استوديو التصوير</div>
   </div>
@@ -448,7 +448,7 @@ async function checkActivation() {
       document.body.innerHTML = `
         <div style="position:fixed;inset:0;background:linear-gradient(135deg,#0F1729,#1B2A4A);display:flex;align-items:center;justify-content:center;font-family:'Cairo',sans-serif;">
           <div style="background:rgba(255,255,255,0.95);border-radius:20px;padding:48px 40px;max-width:460px;width:90%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.4);">
-            <div style="font-size:56px;margin-bottom:16px;">🔒</div>
+            <div style="margin-bottom:16px;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
             <h2 style="color:#1B2A4A;font-size:22px;margin-bottom:10px;font-weight:900;">النظام غير مفعل</h2>
             <p style="color:#64748B;font-size:14px;line-height:1.7;margin-bottom:24px;">
               لقد انتهت مدة الاشتراك أو أن النظام غير مفعل.<br>
@@ -466,7 +466,7 @@ async function checkActivation() {
     if (status.daysLeft <= 3) {
       const loginError = document.getElementById('loginError');
       if (loginError) {
-        loginError.textContent = `⚠️ الفترة التجريبية تنتهي خلال ${status.daysLeft} ${status.daysLeft === 1 ? 'يوم' : 'أيام'}`;
+        loginError.textContent = `الفترة التجريبية تنتهي خلال ${status.daysLeft} ${status.daysLeft === 1 ? 'يوم' : 'أيام'}`;
         loginError.style.display = 'block';
         loginError.style.background = '#fef3c7';
         loginError.style.color = '#92400e';

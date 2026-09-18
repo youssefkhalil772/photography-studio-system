@@ -9,12 +9,12 @@ async function doBackup() {
   try {
     const res = await window.backup.create('يدوي');
     if (res && res.success) {
-      showToast('✅ تم إنشاء النسخة الاحتياطية بنجاح', 'success');
+      showToast('تم إنشاء النسخة الاحتياطية بنجاح', 'success');
     } else {
-      showToast('❌ فشل إنشاء النسخة: ' + (res?.error || 'خطأ'), 'error');
+      showToast('فشل إنشاء النسخة: ' + (res?.error || 'خطأ'), 'error');
     }
   } catch(e) {
-    showToast('❌ خطأ: ' + e.message, 'error');
+    showToast('خطأ: ' + e.message, 'error');
   }
   if (btn) { btn.innerHTML = og; btn.disabled = false; }
 }
@@ -31,7 +31,7 @@ async function refreshSettings() {
   if (r && r.success) {
     companySettings = r.data;
     const shop = companySettings?.company_name || 'استوديو التصوير';
-    document.getElementById('rptTitle').textContent    = '📊 ' + shop + ' — التقرير اليومي';
+    document.getElementById('rptTitle').textContent    = '' + shop + ' — التقرير اليومي';
     document.getElementById('printTitle').textContent  = shop + ' — التقرير اليومي الشامل';
   }
 }
@@ -126,7 +126,7 @@ function renderInvoices(invoices) {
     totAll += total; totPaid += paid; totRem += rem;
     const remCell = rem > 0
       ? `<span class="badge badge-r">${fmt(rem)} ج</span>`
-      : `<span class="badge badge-g">✅ مكتمل</span>`;
+      : `<span class="badge badge-g">مكتمل</span>`;
     h += `<tr>
       <td>${i+1}</td>
       <td><strong>${inv.invoice_number||'—'}</strong></td>
@@ -141,7 +141,7 @@ function renderInvoices(invoices) {
     <td colspan="4">الإجمالي (${invoices.length} فاتورة)</td>
     <td>${fmt(totAll)} ج</td>
     <td>${fmt(totPaid)} ج</td>
-    <td>${totRem > 0 ? fmt(totRem) + ' ج' : '✅'}</td>
+    <td>${totRem > 0 ? fmt(totRem) + ' ج' : ''}</td>
   </tr></tbody></table>`;
   document.getElementById('invoicesList').innerHTML = h;
 }
@@ -278,7 +278,7 @@ async function savePDFReport(silent = false) {
   disablePrintMode(); // restore screen state
 
   if (r && r.success) {
-    if(!silent) showToast('✅ تم حفظ PDF: ' + savePath, 'success');
+    if(!silent) showToast('تم حفظ PDF: ' + savePath, 'success');
     return savePath;
   } else {
     if(!silent) showToast('خطأ في PDF: ' + (r ? r.error : 'غير معروف'), 'error');
@@ -340,7 +340,7 @@ async function savePDFAndSend() {
   const curInstapay = Number(bInsta?.data || 0);
   const totalCurrent = curCash + curVodafone + curInstapay;
 
-  const caption = `📊 ${shop} — تقرير يوم ${date}\n\n• إجمالي دخل اليوم: ${fmt(totInc)} ج\n• مصروفات اليوم: ${fmt(totExp)} ج\n• السلف والرواتب: ${fmt(totAdv)} ج\n*• صافي اليوم العام: ${fmt(net)} ج*\n• 💵 نقدية: ${fmt(netCash)} ج\n• 📱 فودافون كاش: ${fmt(netVodafone)} ج\n• 💳 إنستا باي: ${fmt(netInstapay)} ج\n\n*💰 الرصيد الفعلي بالخزائن الآن:*\n• 💵 كاش حالي: ${fmt(curCash)} ج\n• 📱 فودافون كاش حالي: ${fmt(curVodafone)} ج\n• 💳 إنستا باي حالي: ${fmt(curInstapay)} ج`;
+  const caption = `${shop} — تقرير يوم ${date}\n\n• إجمالي دخل اليوم: ${fmt(totInc)} ج\n• مصروفات اليوم: ${fmt(totExp)} ج\n• السلف والرواتب: ${fmt(totAdv)} ج\n*• صافي اليوم العام: ${fmt(net)} ج*\n• نقدية: ${fmt(netCash)} ج\n• فودافون كاش: ${fmt(netVodafone)} ج\n• إنستا باي: ${fmt(netInstapay)} ج\n\n*الرصيد الفعلي بالخزائن الآن:*\n• كاش حالي: ${fmt(curCash)} ج\n• فودافون كاش حالي: ${fmt(curVodafone)} ج\n• إنستا باي حالي: ${fmt(curInstapay)} ج`;
 
   const reportDetails = {
     shop,
@@ -368,7 +368,7 @@ async function savePDFAndSend() {
       const r = await Promise.race([sendPromise, timeoutPromise]);
       
       if (r && r.success) {
-        Swal.fire({ icon: 'success', title: 'تم الإرسال ✅', text: 'تم إرسال ملف PDF والتقرير للإدارة عبر واتساب' });
+        Swal.fire({ icon: 'success', title: 'تم الإرسال ', text: 'تم إرسال ملف PDF والتقرير للإدارة عبر واتساب' });
         btn.innerHTML = og; btn.disabled = false;
         return;
       } else if (r && r.error) {
@@ -386,7 +386,7 @@ async function savePDFAndSend() {
   let cleaned = (phone || '').replace(/\D/g, '');
   if (cleaned.startsWith('0')) cleaned = '2' + cleaned;
   if (!cleaned.startsWith('20')) cleaned = '20' + cleaned;
-  const msg = caption + `\n\n📁 PDF محفوظ في:\n${pdfPath}`;
+  const msg = caption + `\n\nPDF محفوظ في:\n${pdfPath}`;
   await window.electron.openExternal(`https://wa.me/${cleaned}?text=${encodeURIComponent(msg)}`);
   showToast('تم فتح wa.me | ملف PDF محفوظ على الجهاز', 'info');
 
@@ -419,7 +419,7 @@ function printThermalReport() {
   // ── Invoices section ──
   let invSection = '';
   if (d.invoices && d.invoices.length) {
-    invSection = dRow() + `<div class="sec-title">🧾 فواتير اليوم (${d.invoices.length})</div>` + dRow();
+    invSection = dRow() + `<div class="sec-title">فواتير اليوم (${d.invoices.length})</div>` + dRow();
     d.invoices.forEach((inv, i) => {
       const paid = Number(inv.amount_paid||inv.paid||0);
       const rem  = Number(inv.remaining||inv.remaining_amount||0);
@@ -433,7 +433,7 @@ function printThermalReport() {
   // ── Old payments section ──
   let oldSection = '';
   if (d.todayPaymentsOnOldInvoices && d.todayPaymentsOnOldInvoices.length) {
-    oldSection = dRow() + `<div class="sec-title">💰 تحصيلات قديمة (${d.todayPaymentsOnOldInvoices.length})</div>` + dRow();
+    oldSection = dRow() + `<div class="sec-title">تحصيلات قديمة (${d.todayPaymentsOnOldInvoices.length})</div>` + dRow();
     let oldTot = 0;
     d.todayPaymentsOnOldInvoices.forEach((p,i) => {
       const amt = Number(p.treasury_row?.amount||0);
@@ -446,7 +446,7 @@ function printThermalReport() {
   // ── Expenses section ──
   let expSection = '';
   if (d.expenses && d.expenses.length) {
-    expSection = dRow() + `<div class="sec-title">💸 المصروفات (${d.expenses.length})</div>` + dRow();
+    expSection = dRow() + `<div class="sec-title">المصروفات (${d.expenses.length})</div>` + dRow();
     let expTot = 0;
     d.expenses.forEach((e,i) => {
       expTot += Number(e.amount||0);
@@ -459,7 +459,7 @@ function printThermalReport() {
   // ── Advances section ──
   let advSection = '';
   if (d.advances && d.advances.length) {
-    advSection = dRow() + `<div class="sec-title">👤 السلف (${d.advances.length})</div>` + dRow();
+    advSection = dRow() + `<div class="sec-title">السلف (${d.advances.length})</div>` + dRow();
     let advTot = 0;
     d.advances.forEach((a,i) => {
       advTot += Number(a.amount||0);
@@ -474,7 +474,7 @@ function printThermalReport() {
   const net    = totInc - totExp;
 
   // ── Treasury balances ──
-  let trsSection = dRow() + `<div class="sec-title">💵 أرصدة الخزائن</div>` + dRow();
+  let trsSection = dRow() + `<div class="sec-title">أرصدة الخزائن</div>` + dRow();
   (d.treasuryBalances||[]).forEach(t => {
     trsSection += row(t.treasury_type, fmt2(t.balance) + ' ج');
   });
@@ -498,7 +498,7 @@ function printThermalReport() {
   <div class="center" style="font-size:13px;margin-bottom:2px;">التقرير اليومي الشامل</div>
   <div class="center" style="font-size:12px;margin-bottom:4px;">${date}</div>
   ${dRow()}
-  <div class="sec-title">📊 ملخص اليوم</div>
+  <div class="sec-title">ملخص اليوم</div>
   ${dRow()}
   <div class="summary-row"><span>إجمالي الدخل</span><span>${fmt2(totInc)} ج</span></div>
   <div class="summary-row"><span>إجمالي الصرف</span><span>${fmt2(totExp)} ج</span></div>

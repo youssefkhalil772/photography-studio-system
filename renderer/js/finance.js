@@ -312,7 +312,7 @@ async function deleteExpense(id){
     await window.db.run('DELETE FROM expenses WHERE id=?',[id]);
     loadExpenses();
     const src = refundTreasury === 'فودافون كاش' ? 'فودافون كاش' : (refundTreasury === 'إنستا باي' ? 'إنستا باي' : 'الخزينة');
-    showToast('تم الحذف واسترداد ' + fmt(exp.amount) + ' جنيه من ' + src + ' ✅','success');
+    showToast('تم الحذف واسترداد ' + fmt(exp.amount) + ' جنيه من ' + src + '','success');
   } else {
     showToast('حدث خطأ أثناء استرجاع بيانات المصروف', 'error');
   }
@@ -371,7 +371,7 @@ async function deleteRevenue(id){
     await window.db.addTreasuryEntry('مصروف', `استبعاد إيراد ملغي: ${rev.description||''}`, rev.amount, 'الخزينة');
     await window.db.run('DELETE FROM revenues WHERE id=?',[id]);
     loadRevenues();
-    showToast('تم حذف الإيراد وخصم ' + fmt(rev.amount) + ' جنيه من الخزينة بنجاح ✅', 'success');
+    showToast('تم حذف الإيراد وخصم ' + fmt(rev.amount) + ' جنيه من الخزينة بنجاح', 'success');
   } else {
     showToast('حدث خطأ أثناء استرجاع بيانات الإيراد', 'error');
   }
@@ -435,7 +435,7 @@ async function saveTreasuryManual(){
   if(!desc){ showToast('يرجى كتابة بيان العملية', 'error'); return; }
   await window.db.addTreasuryEntry(type, desc, amount, treasury);
   const label = type === 'إيراد' ? 'إيداع' : 'سحب';
-  showToast(`تم تسجيل ${label}: ${amount} جنيه من ${treasury} ✅`, 'success');
+  showToast(`تم تسجيل ${label}: ${amount} جنيه من ${treasury}`, 'success');
   document.getElementById('tr_amount').value = '';
   document.getElementById('tr_desc').value = '';
   loadTreasury(treasury);

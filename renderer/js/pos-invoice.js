@@ -402,20 +402,20 @@ function addServiceFromGrid(svcId) {
     if (targetQty > available) {
       if (behavior === 'block') {
         Swal.fire({
-          title: '⚠️ المخزون غير كافٍ!',
+          title: 'المخزون غير كافٍ!',
           text: `الكمية المتاحة في المخزن من "${svc.name}" هي (${available}) قطعة فقط!`,
           icon: 'error',
           confirmButtonText: 'حسناً'
         });
         return;
       } else {
-        showToast(`⚠️ تنبيه: الكمية المطلوبة (${targetQty}) تتجاوز رصيد المخزن (${available})`, 'warning');
+        showToast(`تنبيه: الكمية المطلوبة (${targetQty}) تتجاوز رصيد المخزن (${available})`, 'warning');
       }
     } else {
       const remainingStock = available - targetQty;
       const threshold = Number(svc.low_stock_threshold || 0);
       if (threshold > 0 && remainingStock <= threshold) {
-        showToast(`⚠️ انتبه: رصيد "${svc.name}" المتبقي (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
+        showToast(`انتبه: رصيد "${svc.name}" المتبقي (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
       }
     }
   }
@@ -485,7 +485,7 @@ function lookupBarcode() {
     if (targetQty > available) {
       if (behavior === 'block') {
         Swal.fire({
-          title: '⚠️ المخزون غير كافٍ!',
+          title: 'المخزون غير كافٍ!',
           text: `الكمية المتاحة في المخزن من "${svc.name}" هي (${available}) قطعة فقط!`,
           icon: 'error',
           confirmButtonText: 'حسناً'
@@ -493,13 +493,13 @@ function lookupBarcode() {
         document.getElementById('itemBarcode').value = '';
         return;
       } else {
-        showToast(`⚠️ تنبيه: الكمية المطلوبة (${targetQty}) تتجاوز رصيد المخزن (${available})`, 'warning');
+        showToast(`تنبيه: الكمية المطلوبة (${targetQty}) تتجاوز رصيد المخزن (${available})`, 'warning');
       }
     } else {
       const remainingStock = available - targetQty;
       const threshold = Number(svc.low_stock_threshold || 0);
       if (threshold > 0 && remainingStock <= threshold) {
-        showToast(`⚠️ انتبه: رصيد "${svc.name}" المتبقي (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
+        showToast(`انتبه: رصيد "${svc.name}" المتبقي (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
       }
     }
   }
@@ -551,20 +551,20 @@ function addItemToInvoice() {
       if(targetQty > available) {
         if(behavior === 'block') {
           Swal.fire({
-            title: '⚠️ المخزون غير كافٍ!',
+            title: 'المخزون غير كافٍ!',
             text: `الكمية المتوفرة بالمخزن من "${svc.name}" هي (${available}) فقط، لا يمكن بيع (${targetQty}) قطعة!`,
             icon: 'error',
             confirmButtonText: 'حسناً'
           });
           return;
         } else {
-          showToast(`⚠️ تنبيه: الكمية المطلوبة (${targetQty}) تتجاوز رصيد المخزن (${available})`, 'warning');
+          showToast(`تنبيه: الكمية المطلوبة (${targetQty}) تتجاوز رصيد المخزن (${available})`, 'warning');
         }
       } else {
         const remainingStock = available - targetQty;
         const threshold = Number(svc.low_stock_threshold || 0);
         if(threshold > 0 && remainingStock <= threshold) {
-          showToast(`⚠️ انتبه: رصيد "${svc.name}" المتبقي (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
+          showToast(`انتبه: رصيد "${svc.name}" المتبقي (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
         }
       }
     }
@@ -654,7 +654,7 @@ function updateQty(idx, val) {
     if (qty > available) {
       if (behavior === 'block') {
         Swal.fire({
-          title: '⚠️ الكمية غير متوفرة!',
+          title: 'الكمية غير متوفرة!',
           text: `الكمية المتوفرة بالمخزن من "${svc.name}" هي (${available}) فقط، لا يمكن بيع (${qty}) قطعة!`,
           icon: 'error',
           confirmButtonText: 'حسناً'
@@ -665,13 +665,13 @@ function updateQty(idx, val) {
         recalcTotals();
         return;
       } else {
-        showToast(`⚠️ تنبيه: الكمية المطلوبة (${qty}) تتجاوز رصيد المخزن (${available})!`, 'warning');
+        showToast(`تنبيه: الكمية المطلوبة (${qty}) تتجاوز رصيد المخزن (${available})!`, 'warning');
       }
     } else {
       const remainingStock = available - qty;
       const threshold = Number(svc.low_stock_threshold || 0);
       if (threshold > 0 && remainingStock <= threshold) {
-        showToast(`⚠️ انتبه: المتبقي بالمخزن من "${svc.name}" (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
+        showToast(`انتبه: المتبقي بالمخزن من "${svc.name}" (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
       }
     }
   }
@@ -811,7 +811,7 @@ async function openCheckoutModal(action) {
 
     if (behavior === 'block') {
       await Swal.fire({
-        title: '⚠️ كمية غير كافية!',
+        title: 'كمية غير كافية!',
         text: 'لا يمكن إتمام البيع لأن الكمية المطلوبة تتجاوز المخزون:\n\n' + issueLines,
         icon: 'error',
         confirmButtonText: 'حسناً'
@@ -820,7 +820,7 @@ async function openCheckoutModal(action) {
     } else {
       // warn — تحذير فقط
       const result = await Swal.fire({
-        title: '⚠️ تحذير: كمية غير كافية',
+        title: 'تحذير: كمية غير كافية',
         html: `<div style="text-align:right;direction:rtl;line-height:2;">${issueLines.replace(/\n/g,'<br/>')}</div><br/><b>هل تريد المتابعة بالبيع بالسالب؟</b>`,
         icon: 'warning',
         showCancelButton: true,
@@ -1000,9 +1000,9 @@ async function sendWhatsApp() {
   });
 
   if (res.success) {
-    showToast('✅ تم إرسال واتساب للعميل!', 'success');
+    showToast('تم إرسال واتساب للعميل!', 'success');
   } else {
-    showToast(`❌ فشل الإرسال: ${res.error}`, 'error');
+    showToast(`فشل الإرسال: ${res.error}`, 'error');
   }
 }
 
@@ -1034,9 +1034,9 @@ async function sendWhatsAppFromHistory(inv) {
   });
 
   if (res && res.success) {
-    showToast('✅ تم إرسال واتساب للعميل!', 'success');
+    showToast('تم إرسال واتساب للعميل!', 'success');
   } else {
-    showToast(`❌ فشل الإرسال: ${res?.error || 'خطأ غير معروف'}`, 'error');
+    showToast(`فشل الإرسال: ${res?.error || 'خطأ غير معروف'}`, 'error');
   }
 }
 
