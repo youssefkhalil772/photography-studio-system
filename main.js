@@ -145,7 +145,7 @@ function createWindow() {
       initWebhookAndTunnel(db, mainWindow).catch(err => {
         logError('[Main] ÙØ´Ù„ ØªØ´ØºÙŠÙ„ Webhook/Tunnel: ' + err.message);
       });
-    }, 5000);
+    }, 1500);
   });
 
   // â”€â”€â”€ Graceful Shutdown â€” Backup Confirmation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -174,6 +174,16 @@ function createWindow() {
     mainWindow = null;
   });
 }
+
+app.on('will-quit', async () => {
+  try {
+    const { getActiveProvider } = require('./whatsapp/whatsapp-manager');
+    const provider = getActiveProvider();
+    if (provider && typeof provider.destroy === 'function') {
+      await provider.destroy();
+    }
+  } catch (e) {}
+});
 
 // â”€â”€â”€ App Lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Ø¥Ø¹Ø§Ø¯Ø© ØªÙØ¹ÙŠÙ„ disableHardwareAcceleration Ù„Ù…Ù†Ø¹ Ø¸Ù‡ÙˆØ± ÙˆÙ…ÙŠØ¶ Ø§Ù„Ø¯ÙŠØ³ÙƒØªÙˆØ¨ Ø¹Ù†Ø¯ Ø§Ù„ØªÙ†Ù‚Ù„ ÙÙŠ ÙˆÙŠÙ†Ø¯ÙˆØ²

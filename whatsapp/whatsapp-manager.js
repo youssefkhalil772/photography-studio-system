@@ -45,6 +45,10 @@ async function initWhatsAppManager(db, mainWindow) {
 
     } else {
       // web_js هو الافتراضي (للعملاء الحاليين وعند عدم وجود إعدادات)
+      if (activeProvider && activeProvider instanceof WebJSProvider && (activeProvider.client || activeProvider.clientReady)) {
+        console.log('[Manager] ✅ Web.js Provider يعمل بالفعل');
+        return activeProvider;
+      }
       const newProvider = new WebJSProvider();
       await newProvider.initialize({
         mainWindow,
@@ -59,8 +63,6 @@ async function initWhatsAppManager(db, mainWindow) {
 
   } catch (err) {
     console.error('[Manager] ❌ فشل تشغيل المزوّد:', err.message);
-    // إذا كان Cloud API وفشل، لا نترك النظام بدون مزوّد
-    // نُسجّل الخطأ ونُبقي activeProvider = null — الـ handlers ستُعيد خطأ واضح
     activeProvider = null;
     sendToRenderer('whatsapp:error', `فشل تشغيل مزوّد الواتساب: ${err.message}`);
   }
@@ -92,6 +94,10 @@ async function initWhatsAppManagerWithApp(db, mainWindow, app) {
       console.log('[Manager] ✅ Cloud API Provider نشط');
 
     } else {
+      if (activeProvider && activeProvider instanceof WebJSProvider && (activeProvider.client || activeProvider.clientReady)) {
+        console.log('[Manager] ✅ Web.js Provider يعمل بالفعل');
+        return activeProvider;
+      }
       const newProvider = new WebJSProvider();
       await newProvider.initialize({
         mainWindow,
@@ -122,6 +128,16 @@ async function switchProvider(newProviderType, newConfig, db, app) {
 
   console.log(`[Manager] 🔄 التبديل من "${oldSettings.provider}" إلى "${newProviderType}"`);
 
+  // إيقاف المزوّد القديم أولاً لتفريغ المنافذ وقفل متصفح كروم
+  if (oldProvider) {
+    try {
+      await oldProvider.destroy();
+      console.log('[Manager] ✅ تم إيقاف المزوّد القديم بنجاح');
+    } catch (e) {
+      console.warn('[Manager] تحذير أثناء إيقاف المزوّد القديم:', e.message);
+    }
+  }
+
   let newProvider = null;
 
   try {
@@ -146,16 +162,6 @@ async function switchProvider(newProviderType, newConfig, db, app) {
 
     } else {
       throw new Error(`نوع مزوّد غير معروف: ${newProviderType}`);
-    }
-
-    // ✅ نجح التهيئة — نُوقف القديم ونُشغّل الجديد
-    if (oldProvider) {
-      try {
-        await oldProvider.destroy();
-        console.log('[Manager] ✅ تم إيقاف المزوّد القديم');
-      } catch (e) {
-        console.warn('[Manager] تحذير: فشل إيقاف المزوّد القديم:', e.message);
-      }
     }
 
     activeProvider = newProvider;

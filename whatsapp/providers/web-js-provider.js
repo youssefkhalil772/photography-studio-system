@@ -66,15 +66,21 @@ class WebJSProvider extends BaseWhatsAppProvider {
 
     this._log(`✅ المتصفح: ${browserPath}`);
 
+    const clientId = config.clientId || 'photostudio-whatsapp';
+    const sessionDir = path.join(userDataPath, 'whatsapp-sessions', 'session-' + clientId);
+    this._sessionDir = sessionDir;
+
+    // تنظيف أي عمليات سابقة معلقة أو ملفات قفل تمنع كروم من الفتح
+    this._cleanupOrphanedProcessesAndLocks(sessionDir);
+
     this.client = new Client({
       authStrategy: new LocalAuth({
-        clientId: config.clientId || 'photostudio-whatsapp',
+        clientId,
         dataPath: path.join(userDataPath, 'whatsapp-sessions'),
       }),
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       webVersionCache: {
-        type: 'remote',
-        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+        type: 'local',
       },
       puppeteer: {
         headless: false,  // المتصفح ظاهر دائماً أمام المستخدم لضمان أقصى سرعة واستقرار
@@ -336,6 +342,7 @@ class WebJSProvider extends BaseWhatsAppProvider {
     this.clientReady = false;
     this.currentQR = null;
     if (this.initTimeout) clearTimeout(this.initTimeout);
+    if (this._stateCheckInterval) clearInterval(this._stateCheckInterval);
 
     if (this.client) {
       try {
@@ -347,6 +354,42 @@ class WebJSProvider extends BaseWhatsAppProvider {
         try { await this.client.destroy(); } catch {}
       }
       this.client = null;
+    }
+
+    if (this._sessionDir) {
+      this._cleanupOrphanedProcessesAndLocks(this._sessionDir);
+    }
+  }
+
+  // ──────────────────────────────────────────────
+  // تنظيف العمليات المعلقة وملفات القفل
+  // ──────────────────────────────────────────────
+  _cleanupOrphanedProcessesAndLocks(sessionDir) {
+    try {
+      if (process.platform === 'win32') {
+        const { execSync } = require('child_process');
+        try {
+          execSync(
+            `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name = 'chrome.exe' OR Name = 'msedge.exe'\\" | Where-Object { \\$_.CommandLine -like '*session-photostudio-whatsapp*' } | ForEach-Object { Stop-Process -Id \\$_.ProcessId -Force }"`,
+            { stdio: 'ignore', timeout: 5000 }
+          );
+        } catch (e) {}
+      }
+
+      if (fs.existsSync(sessionDir)) {
+        const lockFiles = ['lockfile', 'SingletonLock', 'SingletonCookie', 'SingletonSocket', 'DevToolsActivePort'];
+        for (const file of lockFiles) {
+          const fullPath = path.join(sessionDir, file);
+          if (fs.existsSync(fullPath)) {
+            try {
+              fs.unlinkSync(fullPath);
+              this._log(`🧹 تم إزالة ملف القفل: ${file}`);
+            } catch (e) {}
+          }
+        }
+      }
+    } catch (e) {
+      this._log(`⚠️ تنبيه أثناء فحص الجلسة السابقة: ${e.message}`);
     }
   }
 
