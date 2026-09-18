@@ -79,29 +79,9 @@ async function loadStats() {
     if (elBal && balRes.success) {
       elBal.textContent = Number(balRes.data).toLocaleString('en-US');
     }
-
-    // ── Secondary KPI cards ──────────────────────────────────────────────────
-    const elDashBal = document.getElementById('dashTreasuryBalance');
-    if (elDashBal && balRes.success) {
-      elDashBal.textContent = Number(balRes.data).toLocaleString('en-US');
-    }
-
-    const elDashAdv = document.getElementById('dashTodayAdvances');
-    if (elDashAdv && advRes.success && advRes.data) {
-      elDashAdv.textContent = Number(advRes.data.total).toLocaleString('en-US');
-    }
-
-    const elDashCnt = document.getElementById('dashTodayInvoiceCount');
-    if (elDashCnt && salesRes.success && salesRes.data) {
-      elDashCnt.textContent = salesRes.data.cnt || 0;
-    }
-
   } catch (err) {
     console.error('Error loading dashboard stats:', err);
   }
-
-  // Load today's invoices feed (non-blocking)
-  loadTodayInvoices();
 }
 
 async function loadTodayInvoices() {

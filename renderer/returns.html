@@ -458,36 +458,39 @@ function toggleReturnsHistory() {
 async function searchInvoice() {
   const q = document.getElementById('searchQuery').value.trim();
   const container = document.getElementById('searchResults');
-  if(!q){
-    container.innerHTML = '<div class="table-empty" style="padding:24px 0; font-size:12px;">اكتب للبحث عن فاتورة</div>';
-    return;
-  }
   container.innerHTML = '<div class="table-empty" style="padding:16px 0; font-size:12px; color:#94A3B8;">جارٍ البحث...</div>';
 
-  const res = await window.db.query(
-    `SELECT id, invoice_number, customer_name, net_total, invoice_date, is_returned,
-            (SELECT treasury_type FROM treasury WHERE reference_id=i.id AND reference_type='invoice' LIMIT 1) as treasury_type
-     FROM invoices i
-     WHERE (invoice_number LIKE ? OR customer_name LIKE ? OR invoice_date LIKE ?)
-     ORDER BY id DESC LIMIT 30`,
-    [`%${q}%`, `%${q}%`, `%${q}%`]
-  );
+  const isRecent = !q;
+  const sql = isRecent
+    ? `SELECT i.id, i.invoice_number, i.net_total, i.amount_paid, i.invoice_date, i.is_returned, i.treasury_type,
+              c.name as customer_name, c.phone as customer_phone
+       FROM invoices i
+       LEFT JOIN customers c ON i.customer_id = c.id
+       ORDER BY i.id DESC LIMIT 20`
+    : `SELECT i.id, i.invoice_number, i.net_total, i.amount_paid, i.invoice_date, i.is_returned, i.treasury_type,
+              c.name as customer_name, c.phone as customer_phone
+       FROM invoices i
+       LEFT JOIN customers c ON i.customer_id = c.id
+       WHERE (i.invoice_number LIKE ? OR c.name LIKE ? OR c.phone LIKE ? OR i.invoice_date LIKE ?)
+       ORDER BY i.id DESC LIMIT 30`;
+  const params = isRecent ? [] : [`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`];
+
+  const res = await window.db.query(sql, params);
 
   if(!res.success || !res.data || !res.data.length){
-    container.innerHTML = '<div class="table-empty" style="padding:24px 0; font-size:12px;">لم يتم العثور على فواتير مطابقة</div>';
+    container.innerHTML = '<div class="table-empty" style="padding:24px 0; font-size:12px;">' + (isRecent ? 'لا توجد فواتير مسجلة في النظام' : 'لم يتم العثور على فواتير مطابقة') + '</div>';
     return;
   }
 
   const data = res.data;
-  const exactMatch = data.find(inv => inv.invoice_number && inv.invoice_number.toLowerCase() === q.toLowerCase());
-  if(exactMatch && data.length === 1) {
-    loadInvoice(exactMatch);
+  if(!isRecent && data.length === 1 && data[0].invoice_number && data[0].invoice_number.toLowerCase() === q.toLowerCase()) {
+    loadInvoice(data[0]);
   }
 
   container.innerHTML = data.map(inv => `
-    <div class="search-result-item" onclick="loadInvoice(${JSON.stringify(inv).replace(/"/g,'&quot;')})">
-      <div class="inv-num">${inv.invoice_number}</div>
-      <div class="inv-meta">${inv.customer_name || 'عميل نقدي'} | ${inv.invoice_date} | ${fmt(inv.net_total)} جنيه</div>
+    <div class="search-result-item" onclick="loadInvoice(${JSON.stringify(inv).replace(/"/g,'&quot;')})" style="${inv.is_returned == 1 ? 'opacity:0.65;' : ''}">
+      <div class="inv-num">${inv.invoice_number}${inv.is_returned == 1 ? ' <span style="font-size:10px; color:#EF4444; font-weight:700;">(مُسترجع)</span>' : ''}</div>
+      <div class="inv-meta">${inv.customer_name || 'عميل نقدي'}${inv.customer_phone ? ' (' + inv.customer_phone + ')' : ''} | ${inv.invoice_date || '—'} | <strong>${fmt(inv.net_total)} ج.م</strong></div>
     </div>
   `).join('');
 }
@@ -747,6 +750,7 @@ window.electron.onConfirmBackupBeforeQuit(() => {
 });
 
 loadReturnsHistory();
+searchInvoice();
 </script>
 </body>
 </html>
