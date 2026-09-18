@@ -10,6 +10,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.9.12",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.11.1",
     "jsbarcode": "^3.12.3",

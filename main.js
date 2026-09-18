@@ -1,20 +1,23 @@
 'use strict';
 const fs = require('fs');
 const os = require('os');
-const logPath = require('path').join(os.homedir(), 'Desktop', 'photostudio-error.txt');
+const path = require('path');
+// Error logging -> AppData (NOT Desktop)
+const _logDir = path.join(os.homedir(), 'AppData', 'Roaming', 'photography-studio-system', 'logs');
+try { fs.mkdirSync(_logDir, { recursive: true }); } catch(e){}
+const logPath = path.join(_logDir, 'app-error.log');
 function logError(msg) {
   try { fs.appendFileSync(logPath, `\n[${new Date().toISOString()}] ${msg}`); } catch(e){}
 }
 process.on('uncaughtException', (err) => {
-  logError('UNCAUGHT EXCEPTION: ' + err.stack);
+  logError('UNCAUGHT EXCEPTION: ' + (err ? err.stack || err.message : err));
 });
 process.on('unhandledRejection', (err) => {
-  logError('UNHANDLED REJECTION: ' + (err ? err.stack : err));
+  logError('UNHANDLED REJECTION: ' + (err ? err.stack || err.message : err));
 });
 logError('=== APP STARTING ===');
 
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
-const path = require('path');
 const JsBarcode = require('jsbarcode');
 const { DOMImplementation, XMLSerializer } = require('@xmldom/xmldom');
 const { setupIpcHandlers, createBackup, copyBackupToExternal, saveWhatsAppMessage, deleteWhatsAppConversation, deleteWhatsAppMessage } = require('./database/db');
