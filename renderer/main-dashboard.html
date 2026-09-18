@@ -453,10 +453,10 @@
 
     /* ── Zone 3: Focused Cashier Actions ── */
     .section-title-clean {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 800;
       color: #0F172A;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -464,46 +464,38 @@
 
     .action-deck {
       display: grid;
-      grid-template-columns: 2.2fr repeat(6, 1fr);
-      gap: 12px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
     }
 
-    @media (max-width: 1300px) {
-      .action-deck {
-        grid-template-columns: repeat(4, 1fr);
-      }
-      .hero-action-btn {
-        grid-column: span 2;
-      }
-    }
-
-    @media (max-width: 800px) {
+    @media (max-width: 1024px) {
       .action-deck {
         grid-template-columns: repeat(2, 1fr);
-      }
-      .hero-action-btn {
-        grid-column: span 2;
       }
     }
 
     /* Hero Action Button: New Sale Invoice [F1] */
     .hero-action-btn {
+      grid-column: span 2;
       background: var(--studio-red);
       border: 1px solid var(--studio-red);
-      border-radius: 8px;
+      border-radius: 12px;
       color: #FFFFFF;
-      padding: 16px 20px;
+      padding: 24px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
-      transition: background 0.15s ease, transform 0.1s ease;
+      transition: all 0.15s ease;
       text-align: right;
+      min-height: 145px;
+      box-shadow: 0 4px 14px rgba(228, 0, 43, 0.18);
     }
 
     .hero-action-btn:hover {
       background: var(--studio-red-hover);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(228, 0, 43, 0.28);
     }
 
     .hero-action-btn:active {
@@ -513,38 +505,40 @@
     .hero-action-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 18px;
     }
 
     .hero-action-icon {
-      width: 40px;
-      height: 40px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 8px;
+      width: 54px;
+      height: 54px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
 
     .hero-action-title {
-      font-size: 15px;
-      font-weight: 800;
+      font-size: 19px;
+      font-weight: 900;
       letter-spacing: -0.01em;
+      margin-bottom: 5px;
     }
 
     .hero-action-subtitle {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
       font-weight: 600;
     }
 
     .shortcut-tag {
       background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 900;
       font-family: monospace;
       letter-spacing: 0.05em;
     }
@@ -553,25 +547,27 @@
     .action-tile {
       background: #FFFFFF;
       border: 1px solid var(--studio-border);
-      border-radius: 8px;
-      padding: 22px 16px;
+      border-radius: 12px;
+      padding: 22px 18px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 10px;
       cursor: pointer;
-      transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+      transition: all 0.15s ease;
       color: var(--studio-text);
       text-decoration: none;
       position: relative;
-      min-height: 90px;
+      min-height: 145px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
     }
 
     .action-tile:hover {
       border-color: #CBD5E1;
       background: #F8FAFC;
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
     }
 
     .action-tile:active {
@@ -579,27 +575,43 @@
     }
 
     .action-tile-icon {
-      color: var(--studio-text-secondary);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
     .action-tile-label {
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 800;
       color: var(--studio-text);
-      white-space: nowrap;
+      text-align: center;
+    }
+
+    .action-tile-sub {
+      font-size: 11px;
+      color: #64748B;
+      font-weight: 500;
+      text-align: center;
     }
 
     .action-tile .tile-shortcut {
       position: absolute;
-      top: 6px;
-      left: 6px;
-      font-size: 10px;
+      top: 10px;
+      left: 10px;
+      font-size: 11px;
       font-family: monospace;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--studio-text-muted);
       background: #F1F5F9;
-      padding: 1px 4px;
-      border-radius: 3px;
+      border: 1px solid #E2E8F0;
+      padding: 2px 6px;
+      border-radius: 4px;
     }
 
     /* ── Zone 4: Recent Studio Invoices ── */
@@ -952,14 +964,14 @@
             <button class="hero-action-btn" onclick="navigate('pos-invoice.html')" title="فاتورة جديدة [F1]">
               <div class="hero-action-left">
                 <div class="hero-action-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                     <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
                   </svg>
                 </div>
                 <div>
                   <div class="hero-action-title">فاتورة استوديو جديدة</div>
-                  <div class="hero-action-subtitle">بدء جلسة تصوير أو بيع منتجات</div>
+                  <div class="hero-action-subtitle">بدء جلسة تصوير فوتوغرافي أو بيع منتجات فورية</div>
                 </div>
               </div>
               <span class="shortcut-tag">F1</span>
@@ -969,63 +981,69 @@
             <button class="action-tile" onclick="navigate('reports.html')" title="سجل الفواتير [F2]">
               <span class="tile-shortcut">F2</span>
               <div class="action-tile-icon" style="color:#0284C7;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
                 </svg>
               </div>
               <span class="action-tile-label">سجل الفواتير</span>
+              <span class="action-tile-sub">استعراض والبحث في الفواتير</span>
             </button>
 
             <!-- Expenses [F3] -->
             <button class="action-tile" onclick="navigate('finance.html')" title="المصروفات [F3]">
               <span class="tile-shortcut">F3</span>
               <div class="action-tile-icon" style="color:#DC2626;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>
                 </svg>
               </div>
               <span class="action-tile-label">المصروفات</span>
+              <span class="action-tile-sub">تسجيل سحب ومصاريف المحل</span>
             </button>
 
             <!-- Return Sale -->
             <button class="action-tile" onclick="navigate('returns.html')" title="مرتجع بيع">
               <div class="action-tile-icon" style="color:#D97706;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
                 </svg>
               </div>
               <span class="action-tile-label">مرتجع بيع</span>
+              <span class="action-tile-sub">استرجاع جزئي أو كلي لفاتورة</span>
             </button>
 
             <!-- New Customer -->
             <button class="action-tile" onclick="showNewCustomerModal()" title="عميل جديد">
               <div class="action-tile-icon" style="color:#059669;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
                 </svg>
               </div>
               <span class="action-tile-label">عميل جديد</span>
+              <span class="action-tile-sub">تسجيل بيانات عميل جديد</span>
             </button>
 
             <!-- Employee Advance [F4] -->
             <button class="action-tile" onclick="showAdvanceModal()" title="سلفة موظف [F4]">
               <span class="tile-shortcut">F4</span>
               <div class="action-tile-icon" style="color:#6366F1;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
                 </svg>
               </div>
               <span class="action-tile-label">سلفة موظف</span>
+              <span class="action-tile-sub">تسجيل سلفة نقدية للموظفين</span>
             </button>
 
             <!-- Quick Barcode Print -->
             <button class="action-tile" onclick="openPrintBarcodeModal()" title="طباعة باركود">
               <div class="action-tile-icon" style="color:#475569;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="3" y1="5" x2="3" y2="19"/><line x1="7" y1="5" x2="7" y2="19"/><line x1="11" y1="5" x2="11" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/><line x1="19" y1="5" x2="19" y2="19"/><line x1="21" y1="5" x2="21" y2="19"/>
                 </svg>
               </div>
               <span class="action-tile-label">طباعة باركود</span>
+              <span class="action-tile-sub">ملصقات الباركود للأصناف</span>
             </button>
           </div>
         </div>
