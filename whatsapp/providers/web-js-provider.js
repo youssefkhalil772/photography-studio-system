@@ -14,15 +14,15 @@ const fs = require('fs');
 
 // ── القوالب الافتراضية للرسائل النصية ──
 const DEFAULT_TEMPLATES = {
-  invoiceConfirm: `أهلاً {customerName} 🤍\n\nطلبك اتسجل عندنا في {shopName} ✂️\n📋 تفاصيل الفاتورة:\nرقم الفاتورة: {invoiceNumber}\nتاريخ الاستلام: {date} {time}\nالفني المنفذ: {tailorName}\nالإجمالي: {total} جنيه\nالمدفوع: {paid} جنيه\nالباقي: {remaining} جنيه\n🧵 ميعاد التسليم المتوقع للتصاليح: 48 ساعة من تاريخ الفاتورة\nكل غرزة بتشيلها عنينا، وكل قطعة بنسلمها وإحنا مطمنين إنها بأحسن صورة.\nفي انتظار إطلالتك الجديدة 🤍\n{shopName}\n📍 {address}\n📞 {contactPhone}`,
+  invoiceConfirm: `أهلاً {customerName} 🤍\n\nطلبك اتسجل عندنا في {shopName} 📸\n📋 تفاصيل الفاتورة:\nرقم الفاتورة: {invoiceNumber}\nتاريخ الاستلام: {date} {time}\nالمسؤول: {sellerName}\nالإجمالي: {total} جنيه\nالمدفوع: {paid} جنيه\nالباقي: {remaining} جنيه\n📸 ميعاد الاستلام المتوقع للصور/الألبومات: سيتم إشعاركم فور الجاهزية\nنتشرف بخدمتكم وتخليد أجمل لحظاتكم 🤍\n{shopName}\n📍 {address}\n📞 {contactPhone}`,
 
-  orderReady: `أهلاً {customerName} 🤍\n\nشغلك جاهز عندنا في {shopName} ✂️\nتم تجهيز طلبك بفاتورة رقم {invoiceNumber} وفي انتظار استلامك في أقرب فرصة.\nنتمنى نكون عند حسن ظنك 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`,
+  orderReady: `أهلاً {customerName} 🤍\n\nطلبك جاهز عندنا في {shopName} 📸\nتم تجهيز طلبك بفاتورة رقم {invoiceNumber} وفي انتظار استلامك في أقرب فرصة.\nنتمنى نكون عند حسن ظنك 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`,
 
-  delivered: `أهلاً {customerName} 🤍\n\nشكراً لاستلامك طلبك من {shopName} ✂️\nفاتورة رقم {invoiceNumber} — تم التسليم بنجاح ✅\n\nنتشرف بخدمتك دايماً وفي انتظار إطلالتك القادمة 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`,
+  delivered: `أهلاً {customerName} 🤍\n\nشكراً لاستلامك طلبك من {shopName} 📸\nفاتورة رقم {invoiceNumber} — تم التسليم بنجاح ✅\n\nنتشرف بخدمتك دايماً وفي انتظار زيارتك القادمة 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`,
 
   fullPayment: `أهلاً {customerName} 🤍\n\nتم استلام دفعتك، وفاتورتك رقم {invoiceNumber} مسددة بالكامل ✅\n💵 المبلغ المدفوع: {paid} جنيه\n💳 طريقة الدفع: {paymentMethod}\n\nشكرًا لثقتك في {shopName} 🤍 نتشرف بزيارتك دايمًا\n📞 {contactPhone}`,
 
-  partialPayment: `أهلاً {customerName} 🤍\n\nتم استلام دفعتك بنجاح في {shopName} ✂️\n🧾 فاتورة رقم {invoiceNumber}\n💵 المبلغ المدفوع الآن: {paidNow} جنيه\n💳 طريقة الدفع: {paymentMethod}\n📊 إجمالي المدفوع لحد دلوقتي: {totalPaid} جنيه\n📌 الباقي: {remaining} جنيه\n\nشكرًا لثقتك في {shopName} 🤍\n📞 {contactPhone}`,
+  partialPayment: `أهلاً {customerName} 🤍\n\nتم استلام دفعتك بنجاح في {shopName} 📸\n🧾 فاتورة رقم {invoiceNumber}\n💵 المبلغ المدفوع الآن: {paidNow} جنيه\n💳 طريقة الدفع: {paymentMethod}\n📊 إجمالي المدفوع لحد دلوقتي: {totalPaid} جنيه\n📌 الباقي: {remaining} جنيه\n\nشكرًا لثقتك في {shopName} 🤍\n📞 {contactPhone}`,
 };
 
 class WebJSProvider extends BaseWhatsAppProvider {
@@ -42,7 +42,7 @@ class WebJSProvider extends BaseWhatsAppProvider {
   _log(msg) {
     try {
       const os = require('os');
-      const logPath = require('path').join(os.homedir(), 'Desktop', 'eltarzy-error.txt');
+      const logPath = require('path').join(os.homedir(), 'Desktop', 'photostudio-error.txt');
       fs.appendFileSync(logPath, `\n[WebJS ${new Date().toISOString()}] ${msg}`);
     } catch (e) {}
     console.log('[WebJS]', msg);
@@ -68,7 +68,7 @@ class WebJSProvider extends BaseWhatsAppProvider {
 
     this.client = new Client({
       authStrategy: new LocalAuth({
-        clientId: config.clientId || 'el-tarzy-whatsapp',
+        clientId: config.clientId || 'photostudio-whatsapp',
         dataPath: path.join(userDataPath, 'whatsapp-sessions'),
       }),
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -384,7 +384,7 @@ class WebJSProvider extends BaseWhatsAppProvider {
           total:      payload.total ?? '',
           paid:       payload.paid ?? '',
           remaining:  payload.remaining ?? '',
-          tailorName: payload.tailorName || 'غير محدد',
+          sellerName: payload.sellerName || payload.employeeName || 'غير محدد',
           date:       payload.date || '',
           time:       payload.time || '',
         });

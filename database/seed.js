@@ -7,15 +7,14 @@ function seedData(db) {
   const settings = db.prepare('SELECT COUNT(*) as cnt FROM company_settings').get();
   if (settings.cnt === 0) {
     db.prepare(`
-      INSERT INTO company_settings (id, company_name, receipt_footer, receipt_notes, show_tailor_name, show_customer_phone, currency)
-      VALUES (1, 'اسم المحل', 'شكراً لزيارتكم', '', 1, 1, 'جنيه')
+      INSERT INTO company_settings (id, company_name, receipt_footer, receipt_notes, show_customer_phone, currency)
+      VALUES (1, 'استوديو التصوير', 'شكراً لزيارتكم', '', 1, 'جنيه')
     `).run();
   } else {
     try {
       db.prepare(`
         UPDATE company_settings
         SET receipt_notes       = COALESCE(receipt_notes, ''),
-            show_tailor_name    = COALESCE(show_tailor_name, 1),
             show_customer_phone = COALESCE(show_customer_phone, 1)
         WHERE id = 1
       `).run();

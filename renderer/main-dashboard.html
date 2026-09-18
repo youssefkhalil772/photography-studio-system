@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EL-TARZY — الشاشة الرئيسية</title>
+  <title>Photography Studio System — الشاشة الرئيسية</title>
   <link rel="stylesheet" href="../styles/global.css" />
   <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
   <style>
@@ -180,6 +180,12 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
         الخدمات والأصناف
       </div>
+
+      <div class="sidebar-nav-item" onclick="navigate('inventory.html')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><path d="M12 7v4"/><line x1="8" y1="7" x2="8" y2="7.01"/></svg>
+        المخزون
+        <span id="sidebarInventoryBadge" style="display:none; margin-right:auto; background:var(--danger); color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700;">0</span>
+      </div>
     </div>
 
     <div class="sidebar-section">
@@ -197,7 +203,7 @@
     </div>
 
     <div class="sidebar-footer">
-      <div>EL-TARZY v1.0</div>
+      <div>Photography Studio System v1.0</div>
       <div>Dev Blue Tech © 2026</div>
     </div>
   </aside>
@@ -208,10 +214,10 @@
     <header class="app-header">
       <div style="display:flex; align-items:center; gap:20px;">
         <div style="display:flex; align-items:center; gap:10px;" id="navbarLogoContainer">
-          <div class="logo-icon" id="navbarLogoIcon" style="width:40px; height:40px; background:var(--accent); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#fff;">T</div>
+          <div class="logo-icon" id="navbarLogoIcon" style="width:40px; height:40px; background:var(--accent); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#fff;">📸</div>
           <div>
-            <div class="logo-text" id="navbarLogoText" style="font-size:16px; font-weight:800; color:var(--primary);">EL-TARZY</div>
-            <div class="logo-sub" style="font-size:11px; color:var(--text-muted); font-weight:600;">نظام إدارة محل الترزي</div>
+            <div class="logo-text" id="navbarLogoText" style="font-size:16px; font-weight:800; color:var(--primary);">Photography Studio System</div>
+            <div class="logo-sub" style="font-size:11px; color:var(--text-muted); font-weight:600;">نظام إدارة استوديو التصوير</div>
           </div>
         </div>
         
@@ -358,12 +364,7 @@
           <div class="action-btn-label">الحسابات</div>
         </button>
 
-        <button class="action-btn green" onclick="showPartnersModal()">
-          <div class="action-btn-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div class="action-btn-label">إدارة الشركاء</div>
-        </button>
+
 
         <button class="action-btn red" id="btnCheckout" onclick="handleAttendance('out')">
           <div class="action-btn-icon">
@@ -399,6 +400,21 @@
           </div>
           <div class="action-btn-label">الخدمات</div>
         </button>
+
+        <button class="action-btn navy" onclick="navigate('inventory.html')" style="position:relative;">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+          </div>
+          <div class="action-btn-label">المخزون</div>
+          <span id="lowStockBadge" style="display:none; position:absolute; top:6px; left:6px; background:var(--danger); color:#fff; border-radius:50%; width:20px; height:20px; font-size:10px; font-weight:800; display:none; align-items:center; justify-content:center;">0</span>
+        </button>
+
+        <button class="action-btn purple" onclick="openPrintBarcodeModal()">
+          <div class="action-btn-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="3" height="16" rx="1"/><rect x="8" y="4" width="2" height="16" rx="0.5"/><rect x="12" y="4" width="3" height="16" rx="1"/><rect x="17" y="4" width="1" height="16" rx="0.5"/><rect x="20" y="4" width="2" height="16" rx="0.5"/></svg>
+          </div>
+          <div class="action-btn-label">طباعة باركود</div>
+        </button>
       </div>
 
     </div>
@@ -418,7 +434,7 @@
         <span class="key-badge">F4</span> سلفة
       </button>
       <div style="margin-right: auto; color: rgba(255,255,255,0.3); font-size: 11px;">
-        EL-TARZY — Dev Blue Tech © 2026
+        Photography Studio System — Dev Blue Tech © 2026
       </div>
     </footer>
   </div>
@@ -426,6 +442,56 @@
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- ─── Barcode Print Modal ─────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="printBarcodeModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title">🏷️ طباعة باركود</div>
+      <button class="modal-close" onclick="closeModal('printBarcodeModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">بحث عن صنف</label>
+        <input type="text" id="barcodeSearchInput" class="form-control" placeholder="اسم الصنف أو الباركود..." oninput="searchBarcodeItems()" />
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px;">
+        <span style="color:var(--text-muted); font-weight:600;">الأصناف المتاحة:</span>
+        <div style="display:flex; gap:10px;">
+          <a href="javascript:void(0)" onclick="selectAllBarcodeItems(true)" style="color:var(--primary); font-weight:700; text-decoration:none; cursor:pointer;">تحديد الكل</a>
+          <span style="color:var(--border);">|</span>
+          <a href="javascript:void(0)" onclick="selectAvailableBarcodeItems()" style="color:var(--success); font-weight:700; text-decoration:none; cursor:pointer;">المتوفر فقط</a>
+          <span style="color:var(--border);">|</span>
+          <a href="javascript:void(0)" onclick="selectAllBarcodeItems(false)" style="color:var(--danger); font-weight:700; text-decoration:none; cursor:pointer;">إلغاء التحديد</a>
+        </div>
+      </div>
+
+      <div id="barcodeItemsList" style="max-height:260px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; margin-bottom:12px;"></div>
+
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div id="barcodeSelectedCount" style="font-size:12px; font-weight:700; color:var(--primary);">لا توجد أصناف محددة</div>
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <!-- زر الطباعة بحسب كمية المخزن المتوفرة (بضغطة واحدة) -->
+          <button class="btn btn-success" onclick="doPrintBarcodeByStock()" style="flex:1.2; min-width:200px; height:42px; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(22,163,74,0.25);" title="طباعة باركود لكل صنف محدد بعدد الكمية المتوفرة في المخزن">
+            <span>📦</span> طباعة بعدد الكمية المتاحة لكل صنف
+          </button>
+
+          <!-- خيار طباعة بعدد نسخ ثابت -->
+          <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:160px;">
+            <input type="number" id="barcodeCopiesInput" class="form-control" value="1" min="1" max="100" style="width:60px; height:42px; text-align:center; font-weight:700;" title="عدد النسخ الثابت" />
+            <button class="btn btn-outline" onclick="doPrintBarcodeLabels()" style="height:42px; white-space:nowrap; font-size:12px; font-weight:600; flex:1;" title="طباعة عدد نسخ ثابت لكل صنف محدد">
+              🖨️ طباعة نسخ محددة
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- New Customer Modal -->
 <div class="modal-overlay" id="newCustomerModal">
@@ -541,53 +607,7 @@
   </div>
 </div>
 
-<!-- Partners Modal -->
-<div class="modal-overlay" id="partnersModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">إدارة الشركاء</div>
-      <button class="modal-close" onclick="closeModal('partnersModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="flex gap-3 mb-4">
-        <div class="form-group flex-1">
-          <label class="form-label">الاسم</label>
-          <input type="text" id="partnerName" class="form-control" placeholder="اسم الشريك" />
-        </div>
-        <div class="form-group" style="width:120px">
-          <label class="form-label">النسبة %</label>
-          <input type="number" id="partnerPercent" class="form-control" placeholder="0" />
-        </div>
-        <div class="form-group flex-1">
-          <label class="form-label">التليفون</label>
-          <input type="text" id="partnerPhone" class="form-control" placeholder="01xxxxxxxxx" />
-        </div>
-        <div style="display:flex; align-items:flex-end;">
-          <button class="btn btn-accent" onclick="addPartner()">+ إضافة</button>
-        </div>
-      </div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>الاسم</th>
-              <th>النسبة %</th>
-              <th>التليفون</th>
-              <th>الرصيد</th>
-              <th>حذف</th>
-            </tr>
-          </thead>
-          <tbody id="partnersTableBody">
-            <tr><td colspan="5" class="table-empty">لا توجد شركاء</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('partnersModal')">إغلاق</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- Quit confirmation overlay -->
 <div class="modal-overlay" id="quitModal">
@@ -617,7 +637,7 @@
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label class="form-label">الموظف/الصنايعي</label>
+        <label class="form-label">الموظف</label>
         <select class="form-control" id="attEmpSelect"></select>
       </div>
       <div class="form-group">

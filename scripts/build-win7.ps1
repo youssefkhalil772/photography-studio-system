@@ -3,7 +3,7 @@
 # =============================================================================
 
 $ErrorActionPreference = "Stop"
-$ProjectPath = "d:\الترزي"
+$ProjectPath = Split-Path -Parent $PSScriptRoot
 Set-Location $ProjectPath
 
 Write-Host ""

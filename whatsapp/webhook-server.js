@@ -5,7 +5,7 @@ const url = require('url');
 
 let server = null;
 let currentPort = 3000;
-let currentVerifyToken = 'eltarzy_wa_token';
+let currentVerifyToken = 'photostudio_wa_token';
 let mainWindowRef = null;
 let dbSaveFn = null;
 let isRunning = false;
@@ -13,7 +13,7 @@ let isRunning = false;
 /**
  * بدء خادم الـ Webhook
  */
-function startWebhookServer({ port = 3000, verifyToken = 'eltarzy_wa_token', mainWindow, saveMessageFn }) {
+function startWebhookServer({ port = 3000, verifyToken = 'photostudio_wa_token', mainWindow, saveMessageFn }) {
   if (isRunning && server) {
     if (currentPort === port && currentVerifyToken === verifyToken) {
       console.log('[WebhookServer] الخادم يعمل بالفعل على المنفذ ' + port);
@@ -23,7 +23,7 @@ function startWebhookServer({ port = 3000, verifyToken = 'eltarzy_wa_token', mai
   }
 
   currentPort = Number(port) || 3000;
-  currentVerifyToken = verifyToken || 'eltarzy_wa_token';
+  currentVerifyToken = verifyToken || 'photostudio_wa_token';
   mainWindowRef = mainWindow || null;
   dbSaveFn = saveMessageFn || null;
 
@@ -95,8 +95,8 @@ function handleRequest(req, res) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       status: 'online',
-      app: 'EL-TARZY WhatsApp Webhook Server',
-      version: '2.2.3',
+      app: 'Photography Studio System WhatsApp Webhook Server',
+      version: '1.0.0',
       timestamp: new Date().toISOString()
     }));
     return;

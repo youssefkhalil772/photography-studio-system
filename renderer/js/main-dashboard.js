@@ -124,11 +124,11 @@ async function loadCurrentUser() {
     document.getElementById('userRoleBadge').textContent = s.role === 'admin' ? 'أدمن' : 'كاشير';
 
     // Store in sessionStorage for other pages
-    sessionStorage.setItem('elTarzy_userId', s.userId);
-    sessionStorage.setItem('elTarzy_employeeId', s.employeeId);
-    sessionStorage.setItem('elTarzy_employeeName', s.employeeName);
-    sessionStorage.setItem('elTarzy_role', s.role);
-    sessionStorage.setItem('elTarzy_shiftId', s.shiftId || '');
+    sessionStorage.setItem('photoStudio_userId', s.userId);
+    sessionStorage.setItem('photoStudio_employeeId', s.employeeId);
+    sessionStorage.setItem('photoStudio_employeeName', s.employeeName);
+    sessionStorage.setItem('photoStudio_role', s.role);
+    sessionStorage.setItem('photoStudio_shiftId', s.shiftId || '');
 
     // Apply role-based visibility
     applyRoleVisibility(s.role);
@@ -139,15 +139,15 @@ async function loadCurrentUser() {
     }
   } else {
     // Not logged in — fallback (check sessionStorage)
-    const role = sessionStorage.getItem('elTarzy_role');
+    const role = sessionStorage.getItem('photoStudio_role');
     if (!role) {
       // Redirect to login
       window.electron.navigate('login.html');
       return;
     }
     currentUser = {
-      id: parseInt(sessionStorage.getItem('elTarzy_employeeId')) || 1,
-      name: sessionStorage.getItem('elTarzy_employeeName') || 'مستخدم',
+      id: parseInt(sessionStorage.getItem('photoStudio_employeeId')) || 1,
+      name: sessionStorage.getItem('photoStudio_employeeName') || 'مستخدم',
       role: role
     };
     document.getElementById('currentUserName').textContent = currentUser.name;
@@ -155,7 +155,7 @@ async function loadCurrentUser() {
     document.getElementById('userRoleBadge').textContent = role === 'admin' ? 'أدمن' : 'كاشير';
     applyRoleVisibility(role);
 
-    if (sessionStorage.getItem('elTarzy_shiftId')) {
+    if (sessionStorage.getItem('photoStudio_shiftId')) {
       document.getElementById('shiftIndicator').style.display = 'flex';
     }
   }
@@ -265,7 +265,7 @@ async function handleAttendance(type) { // type = 'in' or 'out'
 
   // Load active employees
   const sel = document.getElementById('attEmpSelect');
-  sel.innerHTML = '<option value="">-- اختر الموظف / الصنايعي --</option>';
+  sel.innerHTML = '<option value="">-- اختر الموظف --</option>';
   const res = await window.db.query('SELECT id, name FROM employees WHERE is_active=1 ORDER BY name', []);
   if (res.success) {
     res.data.forEach(e => {
@@ -427,7 +427,7 @@ setTimeout(autoCheckoutMissing, 2000);
 
 // ─── End Shift — Navigate to end-shift screen (cashier only) ────────────────────
 function endShift() {
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   if (role === 'admin') {
     showToast('إنهاء الشيفت مخصص للكاشير فقط وليس لمدير النظام', 'warning');
     return;
@@ -527,62 +527,6 @@ async function saveAdvance() {
   }
 }
 
-// ─── Partners ─────────────────────────────────────────────────────────────────
-async function showPartnersModal() {
-  openModal('partnersModal');
-  loadPartners();
-}
-
-async function loadPartners() {
-  const res = await window.db.query(`SELECT * FROM partners ORDER BY id`, []);
-  const tbody = document.getElementById('partnersTableBody');
-  if (!res.success || !res.data.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="table-empty">لا توجد شركاء</td></tr>';
-    return;
-  }
-  tbody.innerHTML = res.data.map(p => `
-    <tr>
-      <td>${p.name}</td>
-      <td>${p.share_percent}%</td>
-      <td>${p.phone || '—'}</td>
-      <td>${Number(p.opening_balance).toLocaleString('en-US')} جنيه</td>
-      <td><button class="btn btn-sm btn-danger" onclick="deletePartner(${p.id})">حذف</button></td>
-    </tr>
-  `).join('');
-}
-
-async function addPartner() {
-  const name = document.getElementById('partnerName').value.trim();
-  const percent = parseFloat(document.getElementById('partnerPercent').value) || 0;
-  const phone = document.getElementById('partnerPhone').value.trim();
-  if (!name) { showToast('يرجى إدخال اسم الشريك', 'error'); return; }
-  const res = await window.db.run(
-    `INSERT INTO partners (name, share_percent, phone) VALUES (?,?,?)`, [name, percent, phone]
-  );
-  if (res.success) {
-    document.getElementById('partnerName').value = '';
-    document.getElementById('partnerPercent').value = '';
-    document.getElementById('partnerPhone').value = '';
-    loadPartners();
-    showToast('تم إضافة الشريك ', 'success');
-  }
-}
-
-async function deletePartner(id) {
-  const r = await Swal.fire({
-    title: 'حذف الشريك',
-    text: 'هل تريد بالتأكيد حذف هذا الشريك؟',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#E05252',
-    cancelButtonColor: '#94A3B8',
-    confirmButtonText: 'نعم، احذف',
-    cancelButtonText: 'إلغاء'
-  });
-  if (!r.isConfirmed) return;
-  await window.db.run(`DELETE FROM partners WHERE id=?`, [id]);
-  loadPartners();
-}
 
 // ─── Keyboard Shortcuts ───────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
@@ -717,6 +661,174 @@ loadCurrentUser();
 loadSystemLogo();
 loadStats();
 updateWhatsAppUnreadBadge();
+updateLowStockBadge();
 setInterval(loadStats, 3000); // Refresh stats every 3 seconds
 setInterval(updateWhatsAppUnreadBadge, 10000); // Refresh unread count every 10 seconds
+setInterval(updateLowStockBadge, 60000); // Refresh low-stock badge every minute
 checkTrialStatus(); // ← فحص حالة التجربة
+
+// ─── Low Stock Badge ──────────────────────────────────────────────────────────
+async function updateLowStockBadge() {
+  try {
+    if (!window.inventory) return;
+    const res = await window.inventory.getLowStock();
+    const count = (res.success && res.data) ? res.data.length : 0;
+    const sideBadge = document.getElementById('sidebarInventoryBadge');
+    const btnBadge  = document.getElementById('lowStockBadge');
+    if (count > 0) {
+      if (sideBadge) { sideBadge.textContent = count; sideBadge.style.display = 'inline-block'; }
+      if (btnBadge)  { btnBadge.textContent = count;  btnBadge.style.display = 'flex'; }
+    } else {
+      if (sideBadge) sideBadge.style.display = 'none';
+      if (btnBadge)  btnBadge.style.display  = 'none';
+    }
+  } catch (e) {}
+}
+
+// ─── Barcode Print Modal ──────────────────────────────────────────────────────
+let _allBarcodeItems = [];
+let _selectedBarcodeIds = new Set();
+
+async function openPrintBarcodeModal() {
+  _selectedBarcodeIds.clear();
+  document.getElementById('barcodeSearchInput').value = '';
+  document.getElementById('barcodeCopiesInput').value = '1';
+  openModal('printBarcodeModal');
+  const res = await window.inventory.list({ trackedOnly: false });
+  _allBarcodeItems = (res.success && res.data) ? res.data.filter(i => i.barcode) : [];
+  searchBarcodeItems();
+}
+
+function searchBarcodeItems() {
+  const q = (document.getElementById('barcodeSearchInput').value || '').toLowerCase();
+  const filtered = _allBarcodeItems.filter(i =>
+    i.name.toLowerCase().includes(q) || (i.barcode||'').toLowerCase().includes(q)
+  );
+  const list = document.getElementById('barcodeItemsList');
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:13px;">لا توجد أصناف مطابقة</div>';
+    updateBarcodeSelectedCount();
+    return;
+  }
+  list.innerHTML = filtered.map(i => {
+    const qty = i.quantity != null ? Number(i.quantity) : 0;
+    const isAvailable = qty > 0;
+    const isChecked = _selectedBarcodeIds.has(i.id);
+    return `
+    <label style="display:flex; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s; background:${isChecked ? 'rgba(37,99,235,0.04)' : ''};"
+           onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='${isChecked ? 'rgba(37,99,235,0.04)' : ''}'">
+      <input type="checkbox" ${isChecked ? 'checked' : ''}
+             onchange="toggleBarcodeItem(${i.id}, this.checked)" style="width:17px;height:17px;cursor:pointer;accent-color:var(--primary);" />
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:700; font-size:13px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</div>
+        <div style="font-size:11px; color:var(--text-muted); display:flex; gap:8px; align-items:center; margin-top:2px;">
+          <span>🔢 ${i.barcode}</span>
+          ${i.category_name ? `<span style="color:var(--border);">•</span><span>${i.category_name}</span>` : ''}
+        </div>
+      </div>
+      <div style="text-align:left; display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0;">
+        <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; ${isAvailable ? 'background:#e6f4ea; color:#137333;' : 'background:#fce8e6; color:#c5221f;'}">
+          المتوفر: ${qty}
+        </span>
+        <span style="font-size:12px; color:var(--success); font-weight:700;">${Number(i.sell_price||0).toFixed(2)} ج.م</span>
+      </div>
+    </label>
+    `;
+  }).join('');
+  updateBarcodeSelectedCount();
+}
+
+function toggleBarcodeItem(id, checked) {
+  if (checked) _selectedBarcodeIds.add(id);
+  else _selectedBarcodeIds.delete(id);
+  updateBarcodeSelectedCount();
+}
+
+function selectAllBarcodeItems(check) {
+  const q = (document.getElementById('barcodeSearchInput').value || '').toLowerCase();
+  const currentList = _allBarcodeItems.filter(i =>
+    !q || i.name.toLowerCase().includes(q) || (i.barcode||'').toLowerCase().includes(q)
+  );
+  currentList.forEach(i => {
+    if (check) _selectedBarcodeIds.add(i.id);
+    else _selectedBarcodeIds.delete(i.id);
+  });
+  searchBarcodeItems();
+}
+
+function selectAvailableBarcodeItems() {
+  const q = (document.getElementById('barcodeSearchInput').value || '').toLowerCase();
+  const currentList = _allBarcodeItems.filter(i =>
+    !q || i.name.toLowerCase().includes(q) || (i.barcode||'').toLowerCase().includes(q)
+  );
+  _selectedBarcodeIds.clear();
+  currentList.forEach(i => {
+    if ((Number(i.quantity) || 0) > 0) {
+      _selectedBarcodeIds.add(i.id);
+    }
+  });
+  searchBarcodeItems();
+}
+
+function updateBarcodeSelectedCount() {
+  const el = document.getElementById('barcodeSelectedCount');
+  if (!el) return;
+  const n = _selectedBarcodeIds.size;
+  if (n === 0) {
+    el.innerHTML = '<span style="color:var(--text-muted); font-weight:normal;">لا توجد أصناف محددة</span>';
+    return;
+  }
+  let totalStock = 0;
+  _allBarcodeItems.forEach(i => {
+    if (_selectedBarcodeIds.has(i.id)) {
+      totalStock += Math.max(0, parseInt(i.quantity) || 0);
+    }
+  });
+  el.innerHTML = `تم تحديد <strong style="color:var(--primary);">${n}</strong> صنف &nbsp;|&nbsp; إجمالي الرصيد بالمخزن: <strong style="color:var(--success); font-size:13px;">${totalStock}</strong> قطعة`;
+}
+
+// طباعة بعدد نسخ ثابت لكل صنف محدد
+async function doPrintBarcodeLabels() {
+  if (_selectedBarcodeIds.size === 0) { showToast('يرجى تحديد صنف واحد على الأقل', 'warning'); return; }
+  const copies = parseInt(document.getElementById('barcodeCopiesInput').value) || 1;
+  const items = _allBarcodeItems.filter(i => _selectedBarcodeIds.has(i.id)).map(i => ({
+    id: i.id, name: i.name, barcode: i.barcode, sell_price: i.sell_price, copies
+  }));
+  showToast(`جارٍ طباعة ${items.length * copies} ملصق...`, 'info');
+  const res = await window.inventory.printBarcodeLabels(items, copies);
+  if (res.success) showToast('تمت الطباعة بنجاح ✓', 'success');
+  else showToast('خطأ في الطباعة: ' + (res.error || ''), 'error');
+}
+
+// طباعة بعدد الكمية المتاحة في المخزن لكل صنف محدد بضغطة واحدة
+async function doPrintBarcodeByStock() {
+  if (_selectedBarcodeIds.size === 0) {
+    showToast('يرجى تحديد الأصناف المراد طباعتها أولاً', 'warning');
+    return;
+  }
+  const selectedItems = _allBarcodeItems.filter(i => _selectedBarcodeIds.has(i.id));
+  const availableItems = selectedItems.filter(i => (parseInt(i.quantity) || 0) > 0);
+
+  if (availableItems.length === 0) {
+    showToast('الأصناف المحددة رصيدها 0 في المخزن، لا توجد كمية متاحة للطباعة', 'warning');
+    return;
+  }
+
+  const itemsToPrint = availableItems.map(i => ({
+    id: i.id,
+    name: i.name,
+    barcode: i.barcode,
+    sell_price: i.sell_price,
+    copies: parseInt(i.quantity)
+  }));
+
+  const totalLabels = itemsToPrint.reduce((s, it) => s + it.copies, 0);
+  showToast(`جارٍ طباعة ${totalLabels} ملصق بعدد الكمية المتاحة...`, 'info');
+
+  const res = await window.inventory.printBarcodeLabels(itemsToPrint, 1);
+  if (res.success) {
+    showToast(`تمت طباعة ${totalLabels} ملصق باركود بنجاح ✓`, 'success');
+  } else {
+    showToast('خطأ في الطباعة: ' + (res.error || ''), 'error');
+  }
+}

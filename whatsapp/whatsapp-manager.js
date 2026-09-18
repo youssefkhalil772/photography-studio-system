@@ -51,7 +51,7 @@ async function initWhatsAppManager(db, mainWindow) {
         sessionPath: mainWindow.webContents.getOwnerBrowserWindow()
           ? require('electron').app.getPath('userData')
           : settings.web_session_path,
-        clientId: settings.web_session_client_id || 'el-tarzy-whatsapp',
+        clientId: settings.web_session_client_id || 'photostudio-whatsapp',
       });
       activeProvider = newProvider;
       console.log('[Manager] ✅ تم تشغيل Web.js Provider');
@@ -96,7 +96,7 @@ async function initWhatsAppManagerWithApp(db, mainWindow, app) {
       await newProvider.initialize({
         mainWindow,
         sessionPath: app.getPath('userData'),
-        clientId:    settings.web_session_client_id || 'el-tarzy-whatsapp',
+        clientId:    settings.web_session_client_id || 'photostudio-whatsapp',
       });
       activeProvider = newProvider;
       console.log('[Manager] ✅ Web.js Provider نشط');
@@ -141,7 +141,7 @@ async function switchProvider(newProviderType, newConfig, db, app) {
       await newProvider.initialize({
         mainWindow: mainWindowRef,
         sessionPath: app ? app.getPath('userData') : newConfig.web_session_path,
-        clientId:    newConfig.web_session_client_id || 'el-tarzy-whatsapp',
+        clientId:    newConfig.web_session_client_id || 'photostudio-whatsapp',
       });
 
     } else {
@@ -258,7 +258,7 @@ function getWhatsAppSettings(db) {
 
     if (!row) {
       // قيمة افتراضية: web_js
-      return { provider: 'web_js', web_session_client_id: 'el-tarzy-whatsapp' };
+      return { provider: 'web_js', web_session_client_id: 'photostudio-whatsapp' };
     }
 
     // فكّ تشفير الـ Access Token إن كان موجوداً
@@ -278,7 +278,7 @@ function getWhatsAppSettings(db) {
     return { ...row, wa_access_token_plain: accessTokenPlain };
   } catch (e) {
     console.error('[Manager] خطأ في قراءة إعدادات الواتساب:', e.message);
-    return { provider: 'web_js', web_session_client_id: 'el-tarzy-whatsapp' };
+    return { provider: 'web_js', web_session_client_id: 'photostudio-whatsapp' };
   }
 }
 
@@ -308,10 +308,10 @@ function saveWhatsAppSettings(db, settings) {
     wa_access_token:        encryptedToken,
     wa_business_account_id: settings.wa_business_account_id || null,
     wa_api_version:         settings.wa_api_version || 'v20.0',
-    web_session_client_id:  settings.web_session_client_id || 'el-tarzy-whatsapp',
+    web_session_client_id:  settings.web_session_client_id || 'photostudio-whatsapp',
     web_session_path:       settings.web_session_path || null,
     webhook_port:           settings.webhook_port !== undefined ? Number(settings.webhook_port) : 3000,
-    webhook_verify_token:   settings.webhook_verify_token || 'eltarzy_wa_token',
+    webhook_verify_token:   settings.webhook_verify_token || 'photostudio_wa_token',
     webhook_custom_url:     settings.webhook_custom_url || '',
     webhook_auto_tunnel:    settings.webhook_auto_tunnel !== undefined ? (settings.webhook_auto_tunnel ? 1 : 0) : 1
   };
@@ -437,7 +437,7 @@ async function syncTunnelUrlWithMeta(webhookUrl) {
     } catch(e){}
   }
   const settings = dbRef ? getWhatsAppSettings(dbRef) : {};
-  const verifyToken = settings.webhook_verify_token || 'eltarzy_wa_token';
+  const verifyToken = settings.webhook_verify_token || 'photostudio_wa_token';
 
   // أولاً: التأكد من انتشار رابط النفق في خوادم Cloudflare واستجابته
   await waitForTunnelReady(webhookUrl, verifyToken);

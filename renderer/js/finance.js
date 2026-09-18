@@ -144,7 +144,7 @@ function printCurrentSection(mode) {
       .total-row td { font-weight:900; background:#fef3c7; font-size:13px; }
       .footer { text-align:center; margin-top:20px; font-size:10px; color:#888; border-top:1px solid #ddd; padding-top:8px; }
     </style></head><body>
-    <h1>EL-Tarzy — الترزي</h1>
+    <h1>Photography Studio System — نظام إدارة استوديو التصوير</h1>
     <div class="sub">${title} — ${period}</div>
     <table>
       <thead><tr>${thHtml}</tr></thead>
@@ -153,7 +153,7 @@ function printCurrentSection(mode) {
         ${totalHtmlFn()}
       </tbody>
     </table>
-    <div class="footer">طُبع من نظام إدارة الترزي — ${new Date().toLocaleDateString('ar-EG-u-nu-latn')}</div>
+    <div class="footer">طُبع من نظام إدارة استوديو التصوير — ${new Date().toLocaleDateString('ar-EG-u-nu-latn')}</div>
     </body></html>`;
   } else {
     html = `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>${title}</title>
@@ -168,14 +168,14 @@ function printCurrentSection(mode) {
       .desc { font-size:11px; color:#444; padding-right:4px; margin-bottom:3px; }
       .total { font-size:16px; font-weight:900; text-align:center; margin:6px 0; }
     </style></head><body>
-    <div class="center bold" style="font-size:18px;margin-bottom:3px;">EL-Tarzy</div>
+    <div class="center bold" style="font-size:18px;margin-bottom:3px;">استوديو التصوير</div>
     <div class="center" style="font-size:13px;">${title}</div>
     <div class="center" style="font-size:12px;margin-bottom:4px;">${period}</div>
     <div class="line"></div>
     ${data.map(r=>thermalRowFn(r)).join('')}
     <div class="line"></div>
     ${totalLabel ? `<div class="total">${totalLabel}</div><div class="line"></div>` : ''}
-    <div class="center" style="font-size:11px;margin-top:4px;">نظام الترزي — ${new Date().toLocaleDateString('ar-EG-u-nu-latn')}</div>
+    <div class="center" style="font-size:11px;margin-top:4px;">نظام إدارة استوديو التصوير — ${new Date().toLocaleDateString('ar-EG-u-nu-latn')}</div>
     </body></html>`;
   }
 
@@ -245,7 +245,7 @@ async function saveExpense(){
   const desc=document.getElementById('exp_desc').value.trim();const empId=document.getElementById('exp_emp').value;
   const source=document.getElementById('exp_source').value;
   const today=getLocalISODate();const time=new Date().toTimeString().slice(0,5);
-  const shiftId=sessionStorage.getItem('elTarzy_shiftId');
+  const shiftId=sessionStorage.getItem('photoStudio_shiftId');
   const res=await window.db.run('INSERT INTO expenses (type_id,type_name,amount,description,employee_id,payment_source,date,time,shift_id) VALUES (?,?,?,?,?,?,?,?,?)',
     [typeId,typeName,amt,desc,empId||null,source,today,time,shiftId?parseInt(shiftId):null]);
   if(res.success){
@@ -269,7 +269,7 @@ async function loadExpenses(){
   sql+=' ORDER BY e.id DESC LIMIT 200';
   const res=await window.db.query(sql,params);
   const tbody=document.getElementById('expensesBody');
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   const isAdmin = role === 'admin';
   if(!res.success||!res.data.length){tbody.innerHTML='<tr><td colspan="8" class="table-empty">لا توجد مصروفات</td></tr>';document.getElementById('expensesFoot').style.display='none';return;}
   // Save current data for printing
@@ -288,7 +288,7 @@ async function loadExpenses(){
 }
 async function deleteExpense(id){
   // Only admin can delete
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   if(role !== 'admin'){ showToast('الحذف متاح للمدير فقط','error'); return; }
   const result = await Swal.fire({
     title: 'حذف المصروف',
@@ -352,7 +352,7 @@ async function loadRevenues(){
   </tr>`).join('');
 }
 async function deleteRevenue(id){
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   if(role !== 'admin'){ showToast('الحذف متاح للمدير فقط','error'); return; }
   const result = await Swal.fire({
     title: 'حذف الإيراد',
@@ -507,7 +507,7 @@ async function loadStats(){
 
 // ─── Admin Check & Quit ───────────────────────────────────────────────────────
 async function checkAdmin() {
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   if (role !== 'admin') {
     // Hide all tabs except Expenses
     const tabs = document.querySelectorAll('.fin-nav-btn');

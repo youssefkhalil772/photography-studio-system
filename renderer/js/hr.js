@@ -183,8 +183,8 @@ async function openEmpDetails(id) {
   const dedRes    = await window.db.queryOne(`SELECT COALESCE(SUM(amount),0) as total FROM deductions WHERE employee_id=? AND strftime('%Y-%m',date)=?`, [id, month]);
   const incRes    = await window.db.queryOne(`SELECT COALESCE(SUM(amount),0) as total FROM incentives WHERE employee_id=? AND strftime('%Y-%m',date)=?`, [id, month]);
   const paidRes   = await window.db.queryOne(`SELECT COALESCE(SUM(net_salary),0) as total_paid, COALESCE(SUM(total_advances),0) as paid_advances FROM salary_payments WHERE employee_id=? AND month=?`, [id, month]);
-  const commRes   = await window.db.queryOne(`SELECT COALESCE(SUM(net_total),0) as total_sales FROM invoices WHERE tailor_id=? AND strftime('%Y-%m',invoice_date)=?`, [id, month]);
-  const retRes    = await window.db.queryOne(`SELECT COALESCE(SUM(r.total_returned),0) as total_returned FROM returns r JOIN invoices i ON r.original_invoice_id=i.id WHERE i.tailor_id=? AND strftime('%Y-%m',i.invoice_date)=?`, [id, month]);
+  const commRes   = await window.db.queryOne(`SELECT COALESCE(SUM(net_total),0) as total_sales FROM invoices WHERE employee_id=? AND strftime('%Y-%m',invoice_date)=?`, [id, month]);
+  const retRes    = await window.db.queryOne(`SELECT COALESCE(SUM(r.total_returned),0) as total_returned FROM returns r JOIN invoices i ON r.original_invoice_id=i.id WHERE i.employee_id=? AND strftime('%Y-%m',i.invoice_date)=?`, [id, month]);
   const lvRes     = await window.db.queryOne(`SELECT COUNT(*) as count FROM leaves WHERE employee_id=? AND strftime('%Y-%m',leave_date)=?`, [id, month]);
   const attRes    = await window.db.queryOne(`SELECT COUNT(DISTINCT date) as days, SUM(late_minutes) as late FROM attendance WHERE employee_id=? AND strftime('%Y-%m',date)=?`, [id, month]);
 
@@ -249,7 +249,7 @@ async function openEmpDetails(id) {
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
       <tbody>
         <tr style="background:var(--bg);">
-          <td style="padding:8px 12px;font-weight:700;border-bottom:1px solid var(--border);">إجمالي فواتير الخياط (أساس الحساب)</td>
+          <td style="padding:8px 12px;font-weight:700;border-bottom:1px solid var(--border);">إجمالي فواتير البائع (أساس الحساب)</td>
           <td style="padding:8px 12px;text-align:left;font-weight:700;color:var(--accent);border-bottom:1px solid var(--border);">${fmt(netSales)} ج</td>
         </tr>
         <tr>
@@ -257,7 +257,7 @@ async function openEmpDetails(id) {
           <td style="padding:8px 12px;text-align:left;font-weight:700;border-bottom:1px solid var(--border);">${fmt(gross)} ج</td>
         </tr>
         <tr style="background:var(--bg);">
-          <td style="padding:8px 12px;border-bottom:1px solid var(--border);">عمولة الخياط (${commPct}% من الفواتير)</td>
+          <td style="padding:8px 12px;border-bottom:1px solid var(--border);">عمولة البائع (${commPct}% من الفواتير)</td>
           <td style="padding:8px 12px;text-align:left;font-weight:700;color:#8b5cf6;border-bottom:1px solid var(--border);">+${fmt(commission)} ج</td>
         </tr>
         <tr>
@@ -310,7 +310,7 @@ function buildEmpPrintHTML(mode) {
   const emp = d.emp;
   const isA4 = mode === 'a4';
   const settings = window._hrSettings || {};
-  const companyName = settings.company_name || 'EL-Tarzy';
+  const companyName = settings.company_name || 'استوديو التصوير';
 
   if (isA4) {
     return `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير راتب ${emp.name}</title>
@@ -339,9 +339,9 @@ function buildEmpPrintHTML(mode) {
     </table>
     <table>
       <tr><th colspan="2">تفاصيل الراتب</th></tr>
-      <tr><td class="lbl">إجمالي فواتير الخياط (أساس الحساب)</td><td class="val-warn">${d.fmt(d.netSales)} جنيه</td></tr>
+      <tr><td class="lbl">إجمالي فواتير البائع (أساس الحساب)</td><td class="val-warn">${d.fmt(d.netSales)} جنيه</td></tr>
       <tr><td class="lbl">الراتب الأساسي</td><td>${d.fmt(d.gross)} جنيه</td></tr>
-      <tr><td class="lbl">عمولة الخياط (${d.commPct}% من الفواتير)</td><td class="val-purple">+${d.fmt(d.commission)} جنيه</td></tr>
+      <tr><td class="lbl">عمولة البائع (${d.commPct}% من الفواتير)</td><td class="val-purple">+${d.fmt(d.commission)} جنيه</td></tr>
       <tr><td class="lbl">إجمالي السلف المخصومة</td><td class="val-warn">-${d.fmt(d.manualAdv)} جنيه</td></tr>
       <tr><td class="lbl">الخصومات اليدوية</td><td class="val-neg">-${d.fmt(d.manualDed)} جنيه</td></tr>
       <tr><td class="lbl">خصم غياب زائد (${d.excessLeaves} يوم)</td><td class="val-neg">-${d.fmt(d.leaveDeduction)} جنيه</td></tr>
@@ -356,7 +356,7 @@ function buildEmpPrintHTML(mode) {
       <tr><td>أيام الحضور</td><td>دقائق التأخير</td><td>أيام الإجازة (مسجل/مسموح)</td></tr>
       <tr><td>${d.attDays} يوم</td><td>${d.lateMin} دقيقة</td><td>${d.takenLeaves}/${d.allowance} يوم</td></tr>
     </table>
-    <div class="footer">تم طباعة هذا التقرير من نظام إدارة الترزي — ${new Date().toLocaleDateString('ar-EG')}</div>
+    <div class="footer">تم طباعة هذا التقرير من نظام إدارة استوديو التصوير — ${new Date().toLocaleDateString('ar-EG')}</div>
     </body></html>`;
   } else {
     // Thermal 80mm
@@ -376,7 +376,7 @@ function buildEmpPrintHTML(mode) {
     <div class="row"><span>الموظف:</span><span class="bold">${emp.name}</span></div>
     <div class="row"><span>الشهر:</span><span>${d.month}</span></div>
     <div class="line"></div>
-    <div class="row"><span>فواتير الخياط:</span><span>${d.fmt(d.netSales)} ج</span></div>
+    <div class="row"><span>فواتير البائع:</span><span>${d.fmt(d.netSales)} ج</span></div>
     <div class="row"><span>الراتب الأساسي:</span><span class="bold">${d.fmt(d.gross)} ج</span></div>
     <div class="row"><span>عمولة (${d.commPct}%):</span><span>+${d.fmt(d.commission)} ج</span></div>
     <div class="line"></div>
@@ -391,7 +391,7 @@ function buildEmpPrintHTML(mode) {
     <div class="line"></div>
     <div class="net">الصافي: ${d.fmt(d.netDue)} جنيه</div>
     <div class="line"></div>
-    <div class="center" style="font-size:9px;margin-top:5px;">نظام الترزي — ${new Date().toLocaleDateString('ar-EG')}</div>
+    <div class="center" style="font-size:9px;margin-top:5px;">نظام إدارة استوديو التصوير — ${new Date().toLocaleDateString('ar-EG')}</div>
     </body></html>`;
   }
 }
@@ -760,7 +760,7 @@ async function printAdvancesReport(mode) {
   }).join('');
   
   const settRes = await window.db.getSettings();
-  const companyName = settRes.success && settRes.data ? settRes.data.company_name : 'EL-Tarzy';
+  const companyName = settRes.success && settRes.data ? settRes.data.company_name : 'استوديو التصوير';
   
   let html = '';
   if (mode === 'a4') {
@@ -789,7 +789,7 @@ async function printAdvancesReport(mode) {
       <tbody>${rowsHtml}</tbody>
       <tfoot><tr class="total-row"><td colspan="3">الإجمالي</td><td>${fmt(total)} جنيه</td></tr></tfoot>
     </table>
-    <div class="footer">طُبع بواسطة نظام الترزي — ${new Date().toLocaleDateString('ar-EG-u-nu-latn')}</div>
+    <div class="footer">طُبع بواسطة نظام إدارة استوديو التصوير — ${new Date().toLocaleDateString('ar-EG-u-nu-latn')}</div>
     </body></html>`;
   } else {
     // Thermal
@@ -819,7 +819,7 @@ async function printAdvancesReport(mode) {
     </table>
     <div class="total">الإجمالي: ${fmt(total)} ج</div>
     <div class="line"></div>
-    <div class="center" style="font-size:9px;">نظام الترزي — ${new Date().toLocaleDateString('ar-EG-u-nu-latn')}</div>
+    <div class="center" style="font-size:9px;">نظام إدارة استوديو التصوير — ${new Date().toLocaleDateString('ar-EG-u-nu-latn')}</div>
     </body></html>`;
   }
   
@@ -930,8 +930,8 @@ async function loadSalaryReport(){
     const incRes=await window.db.queryOne(`SELECT COALESCE(SUM(amount),0) as total FROM incentives WHERE employee_id=? AND strftime('%Y-%m',date)=?`,[emp.id,month]);
     const paidRes=await window.db.queryOne(`SELECT COALESCE(SUM(net_salary),0) as total_paid, COALESCE(SUM(total_advances),0) as paid_advances FROM salary_payments WHERE employee_id=? AND month=?`,[emp.id,month]);
     
-    const commRes = await window.db.queryOne(`SELECT COALESCE(SUM(net_total), 0) as total_sales FROM invoices WHERE tailor_id=? AND strftime('%Y-%m', invoice_date)=?`, [emp.id, month]);
-    const returnsRes = await window.db.queryOne(`SELECT COALESCE(SUM(r.total_returned), 0) as total_returned FROM returns r JOIN invoices i ON r.original_invoice_id = i.id WHERE i.tailor_id=? AND strftime('%Y-%m', i.invoice_date)=?`, [emp.id, month]);
+    const commRes = await window.db.queryOne(`SELECT COALESCE(SUM(net_total), 0) as total_sales FROM invoices WHERE employee_id=? AND strftime('%Y-%m', invoice_date)=?`, [emp.id, month]);
+    const returnsRes = await window.db.queryOne(`SELECT COALESCE(SUM(r.total_returned), 0) as total_returned FROM returns r JOIN invoices i ON r.original_invoice_id = i.id WHERE i.employee_id=? AND strftime('%Y-%m', i.invoice_date)=?`, [emp.id, month]);
     
     const netSales = (commRes.data?.total_sales || 0) - (returnsRes.data?.total_returned || 0);
     const commissionPercent = emp.commission_percent || 0;
@@ -1164,7 +1164,7 @@ async function loadEmpSales(){
            (i.net_total - COALESCE((SELECT SUM(total_returned) FROM returns WHERE original_invoice_id = i.id), 0)) as dynamic_net_total
            FROM invoices i LEFT JOIN customers c ON i.customer_id=c.id WHERE i.invoice_date BETWEEN ? AND ?`;
   let params=[from||'2000-01-01',to||'2099-12-31'];
-  if(empId){sql+=' AND (i.employee_id=? OR i.tailor_id=?)';params.push(empId, empId);}
+  if(empId){sql+=' AND i.employee_id=?';params.push(empId);}
   sql+=' ORDER BY i.id DESC';
   
   const res=await window.db.query(sql,params);
@@ -1176,7 +1176,7 @@ async function loadEmpSales(){
                 LEFT JOIN customers c ON i.customer_id = c.id 
                 WHERE r.return_date BETWEEN ? AND ?`;
   let retParams = [from||'2000-01-01',to||'2099-12-31'];
-  if(empId){retSql+=' AND (i.employee_id=? OR i.tailor_id=?)';retParams.push(empId, empId);}
+  if(empId){retSql+=' AND i.employee_id=?';retParams.push(empId);}
   retSql+=' ORDER BY r.id DESC';
   
   const retRes = await window.db.query(retSql, retParams);
@@ -1234,7 +1234,7 @@ async function loadEmpSales(){
 
 // ─── Admin Check & Quit ───────────────────────────────────────────────────────
 async function checkAdmin() {
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   if (role !== 'admin') {
     showToast('هذه الصفحة متاحة للمدير فقط', 'error');
     setTimeout(() => goBack(), 1000);

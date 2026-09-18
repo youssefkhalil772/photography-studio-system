@@ -1,5 +1,5 @@
 -- ============================================================
--- EL-TARZY — نظام إدارة محل الترزي
+-- Photography Studio System — نظام إدارة استوديو التصوير
 -- SQLite Schema — Full Database Definition
 -- ============================================================
 
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS employees (
   work_hours_per_day REAL DEFAULT 8,
   job_title TEXT,
   hire_date TEXT,
-  employee_type TEXT DEFAULT 'موظف عادي',
+  employee_type TEXT DEFAULT 'بائع',
   username TEXT UNIQUE,
   password TEXT,
   is_active INTEGER DEFAULT 1,
@@ -63,6 +63,9 @@ CREATE TABLE IF NOT EXISTS services (
   barcode TEXT UNIQUE,
   sell_price REAL DEFAULT 0,
   cost_price REAL DEFAULT 0,
+  track_inventory INTEGER DEFAULT 0,
+  quantity REAL DEFAULT 0,
+  low_stock_threshold REAL DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -127,7 +130,6 @@ CREATE TABLE IF NOT EXISTS invoices (
   invoice_number TEXT UNIQUE,
   customer_id INTEGER REFERENCES customers(id),
   employee_id INTEGER REFERENCES employees(id),
-  tailor_id INTEGER REFERENCES employees(id),
   invoice_date TEXT DEFAULT (date('now')),
   payment_method TEXT DEFAULT 'نقدي',
   invoice_type TEXT,
@@ -323,29 +325,28 @@ CREATE TABLE IF NOT EXISTS purchase_items (
   total REAL
 );
 
--- الشركاء
-CREATE TABLE IF NOT EXISTS partners (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  share_percent REAL DEFAULT 0,
-  phone TEXT,
-  opening_balance REAL DEFAULT 0,
-  notes TEXT
-);
+
 
 -- إعدادات الشركة (كاملة — كل حقل يُطبع على الفاتورة ديناميكياً)
 CREATE TABLE IF NOT EXISTS company_settings (
   id INTEGER PRIMARY KEY DEFAULT 1,
-  company_name TEXT DEFAULT 'EL-Tarzy',
+  company_name TEXT DEFAULT 'استوديو التصوير',
   address TEXT,
   phone TEXT,
   logo_path TEXT,
   tax_number TEXT,
   receipt_footer TEXT DEFAULT 'شكراً لزيارتكم',
   receipt_notes TEXT,
-  show_tailor_name INTEGER DEFAULT 1,
   show_customer_phone INTEGER DEFAULT 1,
   currency TEXT DEFAULT 'جنيه',
+  printer_receipt TEXT DEFAULT '',
+  printer_barcode TEXT DEFAULT '',
+  printer_reports TEXT DEFAULT '',
+  barcode_width REAL DEFAULT 38,
+  barcode_height REAL DEFAULT 25,
+  barcode_show_price INTEGER DEFAULT 1,
+  barcode_show_name INTEGER DEFAULT 1,
+  barcode_show_studio INTEGER DEFAULT 1,
   prevent_cashier_price_edit INTEGER DEFAULT 0,
   cashier_hide_reports INTEGER DEFAULT 0,
   cashier_hide_hr INTEGER DEFAULT 0,
@@ -387,7 +388,7 @@ CREATE TABLE IF NOT EXISTS whatsapp_settings (
   wa_access_token TEXT,
   wa_business_account_id TEXT,
   wa_api_version TEXT DEFAULT 'v20.0',
-  web_session_client_id TEXT DEFAULT 'el-tarzy-whatsapp',
+  web_session_client_id TEXT DEFAULT 'photostudio-whatsapp',
   web_session_path TEXT,
   is_active INTEGER DEFAULT 1,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -405,3 +406,53 @@ CREATE TABLE IF NOT EXISTS whatsapp_template_map (
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version INTEGER PRIMARY KEY
 );
+
+-- فهارس الأداء العالي
+CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(invoice_date);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+CREATE INDEX IF NOT EXISTS idx_invoices_number ON invoices(invoice_number);
+CREATE INDEX IF NOT EXISTS idx_invoices_employee_id ON invoices(employee_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_customer_id ON invoices(customer_id);
+CREATE INDEX IF NOT EXISTS idx_returns_orig_inv ON returns(original_invoice_id);
+CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name);
+CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
+
+-- حركات وسجل المخزون
+CREATE TABLE IF NOT EXISTS inventory_movements (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  service_id INTEGER REFERENCES services(id),
+  movement_type TEXT NOT NULL,     -- 'restock' | 'sale' | 'return' | 'stocktake_adjustment' | 'manual_edit'
+  quantity_change REAL NOT NULL,   -- positive or negative
+  quantity_after REAL NOT NULL,    -- resulting quantity
+  reference_type TEXT,             -- 'invoice' | 'return' | 'stocktake' | 'manual'
+  reference_id INTEGER,            -- invoice id / return id / stocktake session id
+  notes TEXT,
+  employee_id INTEGER REFERENCES employees(id),
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+-- جلسات الجرد
+CREATE TABLE IF NOT EXISTS stocktake_sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  started_at TEXT DEFAULT (datetime('now')),
+  completed_at TEXT,
+  status TEXT DEFAULT 'مفتوح',     -- 'مفتوح' | 'مكتمل'
+  employee_id INTEGER REFERENCES employees(id),
+  notes TEXT
+);
+
+-- بنود الجرد
+CREATE TABLE IF NOT EXISTS stocktake_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  stocktake_id INTEGER REFERENCES stocktake_sessions(id) ON DELETE CASCADE,
+  service_id INTEGER REFERENCES services(id),
+  system_quantity REAL NOT NULL,
+  counted_quantity REAL,
+  variance REAL
+);
+
+-- فهارس المخزون
+CREATE INDEX IF NOT EXISTS idx_services_track_inventory ON services(track_inventory);
+CREATE INDEX IF NOT EXISTS idx_inventory_movements_service ON inventory_movements(service_id);
+CREATE INDEX IF NOT EXISTS idx_stocktake_items_session ON stocktake_items(stocktake_id);
+

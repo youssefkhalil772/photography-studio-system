@@ -50,8 +50,6 @@ contextBridge.exposeInMainWorld('db', {
   generateInvoiceNumber: () => ipcRenderer.invoke('db:previewInvoiceNumber'),
   saveInvoice: (invoiceData, items) => ipcRenderer.invoke('db:saveInvoice', invoiceData, items),
   updateInvoiceStatus: (invoiceId, status) => ipcRenderer.invoke('db:updateInvoiceStatus', invoiceId, status),
-  updateInvoiceTailor: (data) => ipcRenderer.invoke('db:updateInvoiceTailor', data),
-  saveTailorChangePin: (pin) => ipcRenderer.invoke('db:saveTailorChangePin', pin),
   payInvoiceRemaining: (invoiceId, amount, safeType) => ipcRenderer.invoke('db:payInvoiceRemaining', invoiceId, amount, safeType),
   reversePayment: (invoiceId, amount) => ipcRenderer.invoke('db:reversePayment', invoiceId, amount),
 
@@ -96,6 +94,7 @@ contextBridge.exposeInMainWorld('electron', {
 
   // Printing
   print: (options) => ipcRenderer.invoke('print', options),
+  getPrinters: () => ipcRenderer.invoke('printers:list'),
 
   // Dialogs
   showSaveDialog: (options) => ipcRenderer.invoke('dialog:showSaveDialog', options),
@@ -200,4 +199,24 @@ contextBridge.exposeInMainWorld('activation', {
   activate:      (serial) => ipcRenderer.invoke('activation:activate', serial),
   getHwId:       ()       => ipcRenderer.invoke('activation:getHwId'),
   getInstallId:  ()       => ipcRenderer.invoke('activation:getInstallId'),
+});
+
+// ─── Inventory & Stocktake API ─────────────────────────────────────────────────
+contextBridge.exposeInMainWorld('inventory', {
+  // Items
+  list:           (opts)                    => ipcRenderer.invoke('inventory:list', opts),
+  update:         (serviceId, fields)       => ipcRenderer.invoke('inventory:update', serviceId, fields),
+  restock:        (serviceId, qty, notes)   => ipcRenderer.invoke('inventory:restock', serviceId, qty, notes),
+  setQuantity:    (serviceId, qty, notes)   => ipcRenderer.invoke('inventory:setQuantity', serviceId, qty, notes),
+  getLowStock:    ()                        => ipcRenderer.invoke('inventory:getLowStock'),
+  getMovements:   (serviceId, opts)         => ipcRenderer.invoke('inventory:getMovements', serviceId, opts),
+  getLiveReport:  ()                        => ipcRenderer.invoke('inventory:getLiveReport'),
+  printBarcodeLabels: (items, copies)       => ipcRenderer.invoke('inventory:printBarcodeLabels', items, copies),
+
+  // Stocktake
+  stocktakeStart:      (notes)              => ipcRenderer.invoke('stocktake:start', notes),
+  stocktakeSaveCount:  (sessionId, svcId, qty) => ipcRenderer.invoke('stocktake:saveCount', sessionId, svcId, qty),
+  stocktakeComplete:   (sessionId)          => ipcRenderer.invoke('stocktake:complete', sessionId),
+  stocktakeList:       ()                   => ipcRenderer.invoke('stocktake:list'),
+  stocktakeGetReport:  (sessionId)          => ipcRenderer.invoke('stocktake:getReport', sessionId),
 });

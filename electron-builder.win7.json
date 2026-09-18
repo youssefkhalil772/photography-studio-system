@@ -1,6 +1,6 @@
 {
-  "appId": "com.deltatech.eltarzy",
-  "productName": "El-Tarzy",
+  "appId": "com.deltatech.photostudiosystem",
+  "productName": "Photography Studio System",
   "electronVersion": "22.3.27",
   "asar": true,
   "compression": "maximum",
@@ -36,7 +36,7 @@
     "allowToChangeInstallationDirectory": true,
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "El-Tarzy"
+    "shortcutName": "نظام الاستوديو"
   },
   "directories": {
     "output": "dist-win7"

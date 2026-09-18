@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EL-TARZY — بدء الشيفت</title>
+  <title>نظام إدارة استوديو التصوير — بدء الشيفت</title>
   <link rel="stylesheet" href="../styles/global.css" />
   <style>
     body {
@@ -293,11 +293,11 @@ async function loadUser() {
   document.getElementById('userAvatar').textContent = (user.employeeName || user.username).charAt(0);
 
   // Update sessionStorage
-  sessionStorage.setItem('elTarzy_userId', user.userId);
-  sessionStorage.setItem('elTarzy_employeeId', user.employeeId);
-  sessionStorage.setItem('elTarzy_employeeName', user.employeeName);
-  sessionStorage.setItem('elTarzy_username', user.username);
-  sessionStorage.setItem('elTarzy_role', user.role);
+  sessionStorage.setItem('photoStudio_userId', user.userId);
+  sessionStorage.setItem('photoStudio_employeeId', user.employeeId);
+  sessionStorage.setItem('photoStudio_employeeName', user.employeeName);
+  sessionStorage.setItem('photoStudio_username', user.username);
+  sessionStorage.setItem('photoStudio_role', user.role);
 }
 
 // ─── Start shift ──────────────────────────────────────────────────────────────
@@ -316,7 +316,7 @@ async function startShift() {
       return;
     }
 
-    sessionStorage.setItem('elTarzy_shiftId', result.data.shiftId);
+    sessionStorage.setItem('photoStudio_shiftId', result.data.shiftId);
 
     if (result.data.alreadyOpen) {
       showToast('يوجد شيفت مفتوح بالفعل — تم الاستمرار', 'info');
@@ -392,7 +392,7 @@ document.addEventListener('keydown', (e) => {
 loadUser();
 // Check if admin is trying to access start-shift
 (async () => {
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   if (role === 'admin') {
     showToast('بدء الشيفت مخصص للكاشير فقط', 'warning');
     setTimeout(() => window.electron.navigate('main-dashboard.html'), 1500);

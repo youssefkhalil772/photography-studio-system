@@ -39,7 +39,7 @@ async function runTests() {
   // تطبيق التعديلات يدوياً
   testDb.exec(`
     ALTER TABLE whatsapp_settings ADD COLUMN webhook_port INTEGER DEFAULT 3000;
-    ALTER TABLE whatsapp_settings ADD COLUMN webhook_verify_token TEXT DEFAULT 'eltarzy_wa_token';
+    ALTER TABLE whatsapp_settings ADD COLUMN webhook_verify_token TEXT DEFAULT 'photostudio_wa_token';
     ALTER TABLE whatsapp_settings ADD COLUMN webhook_custom_url TEXT DEFAULT '';
     ALTER TABLE whatsapp_settings ADD COLUMN webhook_auto_tunnel INTEGER DEFAULT 1;
 

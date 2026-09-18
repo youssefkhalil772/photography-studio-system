@@ -39,9 +39,9 @@ const PAYMENT_METHODS = {
 };
 
 const EMPLOYEE_TYPES = {
-  REGULAR: 'موظف عادي',
   MANAGER: 'مدير',
-  TAILOR: 'خياط',
+  CASHIER: 'كاشير',
+  SELLER: 'بائع',
 };
 
 const SALARY_TYPES = {

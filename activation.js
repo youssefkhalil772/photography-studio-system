@@ -11,8 +11,12 @@ const fs     = require('fs');
 const path   = require('path');
 
 // ─── المفتاح السري (مقسم لمنع الاستخراج المباشر) ────────────────────────────
-const _k = ['EL-TARZY', 'DEVBLUETECH', '2024', 'SECRET', 'X9K3M7P2'];
+const _k = ['PHOTOGRAPHY-STUDIO', 'DEVBLUETECH', '2026', 'SECRET', 'X9K3M7P2'];
 const SECRET_KEY = _k.join('-');
+
+// المفتاح السري السابق (للتوافق مع مولد المفاتيح القديم EL-TARZY Keygen)
+const _legacyK = ['EL-TARZY', 'DEVBLUETECH', '2024', 'SECRET', 'X9K3M7P2'];
+const LEGACY_SECRET_KEY = _legacyK.join('-');
 
 // ─── مدة التجربة المجانية (بالأيام) ──────────────────────────────────────────
 const TRIAL_DAYS = 0;
@@ -28,7 +32,7 @@ function setAppDataPath(p, app) {
 
 // ─── مسار ملف حالة التفعيل (AppData) ────────────────────────────────────────
 function getActivationFilePath() {
-  const dir = path.join(_appDataPath || os.tmpdir(), '.eltarzy');
+  const dir = path.join(_appDataPath || os.tmpdir(), '.photostudio');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   return path.join(dir, '.lic');
 }
@@ -227,12 +231,28 @@ function activateWithSerial(serial) {
     let activatedDays = 0;   // 0 = دائم
     let expiresAt    = null;
 
+    // قائمة المفاتيح للتجربة: المفتاح الجديد أولاً ثم المفتاح القديم (للتوافق مع keygen القديم)
+    const secretKeys = [SECRET_KEY, LEGACY_SECRET_KEY];
+
     if (parts.length === 4) {
       // ─── Format قديم: تفعيل دائم ─────────────────────────────────────────
-      const expected      = generateSerial(hwId, installId);
-      const cleanInput    = cleanSerial.replace(/[^A-Z0-9]/g, '');
-      const cleanExpected = expected.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      isValid = (cleanInput === cleanExpected);
+      const cleanInput = cleanSerial.replace(/[^A-Z0-9]/g, '');
+      for (const key of secretKeys) {
+        // فحص مع كود التثبيت
+        const expected = generateSerial(hwId, installId, key);
+        if (cleanInput === expected.toUpperCase().replace(/[^A-Z0-9]/g, '')) {
+          isValid = true;
+          console.log('[Activation] Serial validated with key:', key === SECRET_KEY ? 'NEW' : 'LEGACY');
+          break;
+        }
+        // فحص بدون كود التثبيت (لو برنامج الـ keygen القديم يطلب كود الجهاز فقط)
+        const expectedHwOnly = generateSerial(hwId, '', key);
+        if (cleanInput === expectedHwOnly.toUpperCase().replace(/[^A-Z0-9]/g, '')) {
+          isValid = true;
+          console.log('[Activation] Serial validated (HW only) with key:', key === SECRET_KEY ? 'NEW' : 'LEGACY');
+          break;
+        }
+      }
 
     } else if (parts.length === 5) {
       // ─── Format جديد: تفعيل مؤقت ─────────────────────────────────────────
@@ -241,12 +261,23 @@ function activateWithSerial(serial) {
       if (isNaN(days) || days <= 0) {
         return { success: false, error: 'عدد أيام التفعيل غير صحيح في الكود' };
       }
-      const expectedFull  = generateTimedSerial(hwId, installId, days);
-      const cleanInput    = cleanSerial.replace(/[^A-Z0-9]/g, '');
-      const cleanExpected = expectedFull.replace(/[^A-Z0-9]/g, '');
-      isValid       = (cleanInput === cleanExpected);
+      const cleanInput = cleanSerial.replace(/[^A-Z0-9]/g, '');
+      for (const key of secretKeys) {
+        const expectedFull = generateTimedSerial(hwId, installId, days, key);
+        if (cleanInput === expectedFull.replace(/[^A-Z0-9]/g, '')) {
+          isValid = true;
+          console.log('[Activation] Timed serial validated with key:', key === SECRET_KEY ? 'NEW' : 'LEGACY');
+          break;
+        }
+        const expectedHwOnly = generateTimedSerial(hwId, '', days, key);
+        if (cleanInput === expectedHwOnly.replace(/[^A-Z0-9]/g, '')) {
+          isValid = true;
+          console.log('[Activation] Timed serial validated (HW only) with key:', key === SECRET_KEY ? 'NEW' : 'LEGACY');
+          break;
+        }
+      }
       activatedDays = days;
-      expiresAt     = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      expiresAt     = isValid ? new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString() : null;
 
     } else {
       return { success: false, error: 'صيغة مفتاح التفعيل غير صحيحة' };
@@ -274,12 +305,13 @@ function activateWithSerial(serial) {
 }
 
 // ─── توليد السيريال الدائم من كود الجهاز + كود التثبيت ──────────────────────
-function generateSerial(hwId, installId) {
+function generateSerial(hwId, installId, secretKey) {
+  const key          = secretKey || SECRET_KEY;
   const cleanHw      = hwId.replace(/-/g, '').toUpperCase();
   const cleanInstall = installId.replace(/-/g, '').toUpperCase();
   const combined     = cleanHw + cleanInstall;
 
-  const hmac = crypto.createHmac('sha256', SECRET_KEY)
+  const hmac = crypto.createHmac('sha256', key)
                      .update(combined)
                      .digest('hex')
                      .toUpperCase();
@@ -289,13 +321,14 @@ function generateSerial(hwId, installId) {
 }
 
 // ─── توليد السيريال المؤقت (hwId + installId + days) ────────────────────────
-function generateTimedSerial(hwId, installId, days) {
+function generateTimedSerial(hwId, installId, days, secretKey) {
+  const key          = secretKey || SECRET_KEY;
   const cleanHw      = hwId.replace(/-/g, '').toUpperCase();
   const cleanInstall = installId.replace(/-/g, '').toUpperCase();
   const daysStr      = String(parseInt(days, 10)).padStart(5, '0');
   const combined     = cleanHw + cleanInstall + ':' + daysStr;
 
-  const hmac = crypto.createHmac('sha256', SECRET_KEY)
+  const hmac = crypto.createHmac('sha256', key)
                      .update(combined)
                      .digest('hex')
                      .toUpperCase();

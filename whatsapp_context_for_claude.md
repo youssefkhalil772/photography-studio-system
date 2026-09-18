@@ -1,13 +1,13 @@
-هذا الملف يحتوي على السياق البرمجي (Context) الخاص بنظام "الترزي"، وهو تطبيق Desktop مبني بـ Electron.js.
+هذا الملف يحتوي على السياق البرمجي (Context) الخاص بنظام "إدارة استوديو التصوير" (Photography Studio System)، وهو تطبيق Desktop مبني بـ Electron.js.
 يمكنك إرسال هذا الملف بالكامل إلى Claude أو ChatGPT لسؤاله عن أي شيء يخص الـ API أو خدمة الواتساب.
 
 ---
 
 ### **مقدمة عن النظام (System Overview)**
 - **نوع التطبيق**: Electron.js Desktop Application.
-- **الهدف**: نظام لإدارة محل ترزي (خياطة)، يشمل فواتير، عملاء، نقدية، وإرسال إشعارات واتساب للعملاء.
+- **الهدف**: نظام لإدارة استوديو التصوير الفوتوغرافي، يشمل فواتير الجلسات، العملاء، النقدية، وإرسال إشعارات واتساب للعملاء.
 - **البنية (Architecture)**:
-  - **Main Process**: يحتوي على الاتصال بقاعدة البيانات (SQLite)، وخدمة الواتساب (`whatsapp-web.js` & Puppeteer)، ويتعامل مع أحداث النظام.
+  - **Main Process**: يحتوي على الاتصال بقاعدة البيانات (SQLite)، وخدمة الواتساب (`whatsapp-web.js` & Cloud API)، ويتعامل مع أحداث النظام.
   - **Preload Script**: يستخدم `contextBridge` لتعريض (Expose) الـ APIs المسموح بها من الـ Main للـ Renderer بأمان عبر قنوات الـ IPC (`ipcMain` & `ipcRenderer`).
   - **Renderer Process**: الواجهة الأمامية التي تستخدم `window.whatsapp` و `window.db` وغيرها للتعامل مع النظام.
 
@@ -36,7 +36,7 @@ function initWhatsApp(mainWindow, userDataPath) {
     mainWindowRef = mainWindow;
     client = new Client({
         authStrategy: new LocalAuth({
-            clientId: 'el-tarzy-whatsapp',
+            clientId: 'photostudio-whatsapp',
             dataPath: path.join(userDataPath, 'whatsapp-sessions'),
         }),
         puppeteer: { headless: false, /* إعدادات المتصفح */ }
@@ -72,7 +72,7 @@ async function sendWhatsApp(phone, message) {
 
 // قوالب الرسائل الديناميكية
 const MESSAGES = {
-  invoiceConfirm: ({ customerName, invoiceNumber, total, paid, remaining, shopName }) => {
+  invoiceConfirm: ({ customerName, invoiceNumber, total, paid, remaining, shopName, sellerName }) => {
     // بناء الرسالة واستبدال المتغيرات
   },
   // قوالب أخرى: orderReady, delivered, fullPayment, partialPayment...
@@ -84,15 +84,12 @@ module.exports = { initWhatsApp, sendWhatsApp, MESSAGES, /* ... */ };
 ---
 
 ### **ثانياً: ملف الـ Main (main.js) والـ IPC Handlers**
-يقوم الـ Main Process باستقبال طلبات الـ API من الواجهة الأمامية وإرسالها لخدمة الواتساب، كما يقوم بجلب إعدادات المحل (مثل اسم المحل) من قاعدة البيانات لتضمينها في الرسائل.
+يقوم الـ Main Process باستقبال طلبات الـ API من الواجهة الأمامية وإرسالها لخدمة الواتساب، كما يقوم بجلب إعدادات الاستوديو (مثل اسم الاستوديو) من قاعدة البيانات لتضمينها في الرسائل.
 
 ```javascript
 // main.js (مختصر - جزء الـ IPC الخاص بالواتساب)
 const { ipcMain } = require('electron');
 const { initWhatsApp, sendWhatsApp, MESSAGES } = require('./whatsapp/whatsapp-service');
-
-// تهيئة الواتساب بعد ظهور النافذة
-// initWhatsApp(mainWindow, app.getPath('userData'));
 
 ipcMain.handle('whatsapp:getStatus', () => {
   return { ready: isReady(), hasQR: !!getCurrentQR() };
@@ -107,12 +104,10 @@ ipcMain.handle('whatsapp:sendInvoiceConfirm', async (_, data) => {
   const shopSettings = getShopSettings(); // يجلب من قاعدة البيانات
   const msg = MESSAGES.invoiceConfirm({
     ...data,
-    shopName: shopSettings.company_name || 'المحل',
+    shopName: shopSettings.company_name || 'استوديو التصوير',
   });
   return await sendWhatsApp(data.phone, msg);
 });
-
-// APIs أخرى مشابهة: sendOrderReady, sendDelivered, sendPartialPayment
 ```
 
 ---
@@ -134,8 +129,6 @@ contextBridge.exposeInMainWorld('whatsapp', {
   onReady: (cb) => ipcRenderer.on('whatsapp:ready', () => cb()),
   onError: (cb) => ipcRenderer.on('whatsapp:error', (_, msg) => cb(msg)),
 });
-
-// هناك أيضاً APIs أخرى لـ (db, auth, shift, users) بنفس الطريقة
 ```
 
 ---
@@ -144,7 +137,7 @@ contextBridge.exposeInMainWorld('whatsapp', {
 بفضل الـ Preload، يمكن للواجهة استخدام الكود التالي لإرسال رسالة:
 
 ```javascript
-// في أي ملف واجهة (مثل invoice.js)
+// في أي ملف واجهة (مثل pos-invoice.js)
 async function notifyCustomer(phone, invoiceData) {
     const result = await window.whatsapp.sendInvoiceConfirm({
         phone: phone,
@@ -152,7 +145,8 @@ async function notifyCustomer(phone, invoiceData) {
         invoiceNumber: invoiceData.id,
         total: invoiceData.total,
         paid: invoiceData.paid,
-        remaining: invoiceData.remaining
+        remaining: invoiceData.remaining,
+        sellerName: invoiceData.sellerName
     });
     
     if(result.success) {
@@ -165,4 +159,4 @@ async function notifyCustomer(phone, invoiceData) {
 
 ### **سؤال المستخدم لـ Claude (يمكنك كتابة سؤالك هنا):**
 "بناءً على الكود والبنية السابقة الموضحة للـ Main والـ Preload و whatsapp-service، أريد المساعدة في: 
-[اكتب مشكلتك أو استفسارك هنا، مثلاً: تحسين أداء إرسال الرسائل، إضافة ميزة إرسال صور، حل مشكلة معينة في IPC، إلخ...]"
+[اكتب مشكلتك أو استفسارك هنا]"

@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>EL-TARZY — تفعيل النظام</title>
+  <title>نظام إدارة استوديو التصوير — تفعيل النظام</title>
   <style>
     :root {
       --accent:      #1B2A4A;
@@ -304,9 +304,9 @@
 
   <!-- Header -->
   <div class="header">
-    <div class="logo-badge">✂️</div>
+    <div class="logo-badge">📸</div>
     <div class="header-info">
-      <div class="shop-name" id="shopNameDisplay">EL-TARZY</div>
+      <div class="shop-name" id="shopNameDisplay">استوديو التصوير</div>
       <div class="page-title" id="pageTitle">تفعيل النظام</div>
     </div>
     <button class="back-btn" id="backBtn" onclick="goBack()">↩ رجوع للنظام</button>
@@ -395,7 +395,7 @@
       const settingsRes = await window.db.getSettings();
       if (settingsRes.success && settingsRes.data) {
         const s = settingsRes.data;
-        document.getElementById('shopNameDisplay').textContent = s.company_name || 'EL-TARZY';
+        document.getElementById('shopNameDisplay').textContent = s.company_name || 'استوديو التصوير';
 
         // Contact phones are hardcoded in the HTML for activation support.
       }

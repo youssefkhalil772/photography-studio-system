@@ -1,7 +1,7 @@
-﻿'use strict';
+'use strict';
 const fs = require('fs');
 const os = require('os');
-const logPath = require('path').join(os.homedir(), 'Desktop', 'eltarzy-error.txt');
+const logPath = require('path').join(os.homedir(), 'Desktop', 'photostudio-error.txt');
 function logError(msg) {
   try { fs.appendFileSync(logPath, `\n[${new Date().toISOString()}] ${msg}`); } catch(e){}
 }
@@ -15,6 +15,8 @@ logError('=== APP STARTING ===');
 
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
+const JsBarcode = require('jsbarcode');
+const { DOMImplementation, XMLSerializer } = require('@xmldom/xmldom');
 const { setupIpcHandlers, createBackup, copyBackupToExternal, saveWhatsAppMessage, deleteWhatsAppConversation, deleteWhatsAppMessage } = require('./database/db');
 const {
   initWhatsAppManagerWithApp,
@@ -50,7 +52,7 @@ async function initWebhookAndTunnel(db, win) {
   try {
     const settings = getWhatsAppSettings(db);
     const port = settings.webhook_port || 3000;
-    const verifyToken = settings.webhook_verify_token || 'eltarzy_wa_token';
+    const verifyToken = settings.webhook_verify_token || 'photostudio_wa_token';
 
     const serverRes = await startWebhookServer({
       port,
@@ -102,14 +104,17 @@ function createWindow() {
     frame: true,
     titleBarStyle: 'default',
     backgroundColor: '#F0F2F7',  // Ø§Ù„Ù…Ø·Ø§Ø¨Ù‚Ø© Ø§Ù„ØªØ§Ù…Ø© Ù„Ù„ÙˆÙ† Ø®Ù„ÙÙŠØ© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ù„Ù…Ø­Ùˆ Ø£ÙŠ ÙˆÙ…ÙŠØ¶
-    title: 'Ø§Ù„ØªØ±Ø²ÙŠ â€” Ù†Ø¸Ø§Ù… Ø¥Ø¯Ø§Ø±Ø© Ù…Ø­Ù„ Ø§Ù„ØªØ±Ø²ÙŠ',
+    title: 'نظام إدارة استوديو التصوير',
     ...(fs.existsSync(path.join(__dirname, 'assets', 'icon.png')) ? { icon: path.join(__dirname, 'assets', 'icon.png') } : {}),
-    show: false  // Ù†Ø®ÙÙŠÙ‡Ø§ Ø­ØªÙ‰ ØªÙƒØªÙ…Ù„ Ù„Ù…Ù†Ø¹ Ø§Ù„ÙˆÙ…ÙŠØ¶
+    show: true  // Ù†Ø®ÙÙŠÙ‡Ø§ Ø­ØªÙ‰ ØªÙƒØªÙ…Ù„ Ù„Ù…Ù†Ø¹ Ø§Ù„ÙˆÙ…ÙŠØ¶
   });
   logError('BrowserWindow created.');
 
   // Ø¯Ø§Ø¦Ù…Ø§Ù‹ Ø§ÙØªØ­ ØµÙØ­Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„ â€” Ø§Ù„Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯ ÙŠØªØ­ÙƒÙ… ÙÙŠ ÙˆØ¶Ø¹ Ø§Ù„ØªØ¬Ø±Ø¨Ø©/Ø§Ù„Ù‚Ø±Ø§Ø¡Ø© ÙÙ‚Ø·
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'login.html'));
+  mainWindow.show();
+  mainWindow.maximize();
+  mainWindow.focus();
 
   let windowShown = false;
   mainWindow.once('ready-to-show', () => {
@@ -145,10 +150,19 @@ function createWindow() {
 
   // â”€â”€â”€ Graceful Shutdown â€” Backup Confirmation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
-    console.log(`[Renderer] ${message}`);
+    logError(`[Renderer] ${message}`);
+  });
+
+  mainWindow.webContents.on('did-fail-load', (e, code, desc, url) => {
+    logError(`[did-fail-load] code=${code}, desc=${desc}, url=${url}`);
+  });
+
+  mainWindow.webContents.on('render-process-gone', (e, details) => {
+    logError(`[render-process-gone] reason=${details.reason}, exitCode=${details.exitCode}`);
   });
 
   mainWindow.on('close', (e) => {
+    logError(`[mainWindow close event] allowQuit=${allowQuit}`);
     if (!allowQuit) {
       e.preventDefault();
       mainWindow.webContents.send('confirm-backup-before-quit');
@@ -156,6 +170,7 @@ function createWindow() {
   });
 
   mainWindow.on('closed', () => {
+    logError(`[mainWindow closed event]`);
     mainWindow = null;
   });
 }
@@ -182,6 +197,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  logError('[app window-all-closed event]');
   stopPerformanceManager();
   stopWebhookServer();
   stopTunnel();
@@ -211,8 +227,14 @@ ipcMain.on('cancel-quit', () => {
 // â”€â”€â”€ Navigation IPC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ipcMain.handle('navigate', async (_, page) => {
   if (!mainWindow) return;
-  const pagePath = path.join(__dirname, 'renderer', page);
-  mainWindow.loadFile(pagePath);
+  if (typeof page === 'string' && page.includes('?')) {
+    const [pageFile, query] = page.split('?');
+    const pagePath = path.join(__dirname, 'renderer', pageFile);
+    mainWindow.loadFile(pagePath, { search: '?' + query });
+  } else {
+    const pagePath = path.join(__dirname, 'renderer', page);
+    mainWindow.loadFile(pagePath);
+  }
 });
 
 // â”€â”€â”€ Focus Recovery IPC (Windows keyboard fix) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -246,6 +268,263 @@ ipcMain.handle('print', async (_, options) => {
     });
   });
 });
+
+ipcMain.handle('printers:list', async (event) => {
+  try {
+    const win = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+    if (!win) return [];
+    return await win.webContents.getPrintersAsync();
+  } catch (e) {
+    console.error('Failed to get printers:', e.message);
+    return [];
+  }
+});
+
+// ─── Inventory: Print Barcode Labels ────────────────────────────────────────
+function generateBarcodeSvg(barcodeValue, width = 1.3, height = 36) {
+  try {
+    const xmlSerializer = new XMLSerializer();
+    const document = new DOMImplementation().createDocument('http://www.w3.org/1999/xhtml', 'html', null);
+    const svgNode = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+
+    JsBarcode(svgNode, barcodeValue, {
+      xmlDocument: document,
+      format: 'CODE128',
+      width: width,
+      height: height,
+      displayValue: false,
+      margin: 0
+    });
+    return xmlSerializer.serializeToString(svgNode);
+  } catch (e) {
+    try {
+      const xmlSerializer = new XMLSerializer();
+      const document = new DOMImplementation().createDocument('http://www.w3.org/1999/xhtml', 'html', null);
+      const svgNode = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      JsBarcode(svgNode, barcodeValue, {
+        xmlDocument: document,
+        format: 'auto',
+        width: width,
+        height: height,
+        displayValue: false,
+        margin: 0
+      });
+      return xmlSerializer.serializeToString(svgNode);
+    } catch (e2) {
+      return '';
+    }
+  }
+}
+
+function buildBarcodeHtmlDocument(items, copies, settings) {
+  const labelW = parseFloat(settings.barcode_width) || 38;
+  const labelH = parseFloat(settings.barcode_height) || 25;
+  const showPrice = settings.barcode_show_price !== 0;
+  const showName  = settings.barcode_show_name  !== 0;
+  const showStudio = settings.barcode_show_studio !== 0;
+  const studioName = settings.company_name || settings.studio_name || 'استوديو التصوير';
+
+  const barHeightMm = Math.max(7, Math.min(22, Math.round(labelH * 0.42)));
+  const barWidthVal = labelW <= 35 ? 1.1 : (labelW <= 45 ? 1.3 : 1.6);
+
+  const labelRows = [];
+  for (const item of items) {
+    const n = item.copies !== undefined ? Math.max(0, parseInt(item.copies) || 0) : Math.max(1, parseInt(copies) || 1);
+    if (n <= 0) continue;
+
+    const barcodeVal = (item.barcode || '').trim();
+    const svgContent = barcodeVal ? generateBarcodeSvg(barcodeVal, barWidthVal, 38) : '';
+
+    for (let i = 0; i < n; i++) {
+      const studioHtml = showStudio ? `<div class="label-studio">${studioName}</div>` : '';
+      const nameHtml   = showName   ? `<div class="label-name">${item.name || ''}</div>` : '';
+      const priceHtml  = showPrice  ? `<div class="label-price">${Number(item.sell_price || 0).toFixed(2)} ج.م</div>` : '';
+      const codeHtml   = barcodeVal ? `<div class="barcode-code">${barcodeVal}</div>` : '';
+
+      labelRows.push(`
+        <div class="label">
+          ${studioHtml}
+          ${nameHtml}
+          <div class="barcode-box">
+            <div class="barcode-svg-wrap">${svgContent}</div>
+            ${codeHtml}
+          </div>
+          ${priceHtml}
+        </div>
+      `);
+    }
+  }
+
+  return `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  @page {
+    size: ${labelW}mm ${labelH}mm;
+    margin: 0;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  }
+  .label {
+    width: ${labelW}mm;
+    height: ${labelH}mm;
+    max-width: ${labelW}mm;
+    max-height: ${labelH}mm;
+    padding: 1mm 1.5mm;
+    page-break-after: always;
+    page-break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    text-align: center;
+    background: #fff;
+    overflow: hidden;
+  }
+  .label:last-child {
+    page-break-after: avoid;
+  }
+  .label-studio {
+    font-size: 7.5pt;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .label-name {
+    font-size: 7pt;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .barcode-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    margin: 0.2mm 0;
+  }
+  .barcode-svg-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+  }
+  .barcode-svg-wrap svg {
+    display: block;
+    max-width: 100%;
+    height: ${barHeightMm}mm;
+    shape-rendering: crispEdges;
+  }
+  .barcode-svg-wrap svg rect {
+    shape-rendering: crispEdges;
+  }
+  .barcode-code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 6.5pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #000;
+    line-height: 1;
+    margin-top: 0.5mm;
+    direction: ltr;
+  }
+  .label-price {
+    font-size: 8.5pt;
+    font-weight: 900;
+    line-height: 1.1;
+    color: #000;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+${labelRows.join('\n')}
+</body>
+</html>`;
+}
+
+ipcMain.handle('inventory:printBarcodeLabels', async (_, items, copies = 1) => {
+  return new Promise((resolve) => {
+    try {
+      const settings = getShopSettings();
+      const labelW = parseFloat(settings.barcode_width) || 38;
+      const labelH = parseFloat(settings.barcode_height) || 25;
+      const printerName = settings.printer_barcode || '';
+
+      const htmlContent = buildBarcodeHtmlDocument(items, copies, settings);
+      const tempFile = path.join(app.getPath('temp'), `barcode_labels_${Date.now()}.html`);
+      fs.writeFileSync(tempFile, htmlContent, 'utf8');
+
+      const labelWin = new BrowserWindow({
+        width: 800,
+        height: 600,
+        show: false,
+        webPreferences: { nodeIntegration: false, contextIsolation: false, sandbox: false }
+      });
+
+      labelWin.loadFile(tempFile);
+
+      labelWin.webContents.on('did-finish-load', () => {
+        setTimeout(() => {
+          const isSilent = Boolean(printerName);
+          const printOpts = {
+            silent: isSilent,
+            printBackground: true,
+            color: true,
+            margins: { marginType: 'none' },
+            pageSize: { width: Math.round(labelW * 1000), height: Math.round(labelH * 1000) }
+          };
+          if (printerName) printOpts.deviceName = printerName;
+
+          labelWin.webContents.print(printOpts, (success, err) => {
+            labelWin.destroy();
+            try { fs.unlinkSync(tempFile); } catch(e) {}
+            resolve({ success, error: err || null });
+          });
+        }, 300);
+      });
+
+      labelWin.webContents.on('did-fail-load', (e, code, desc) => {
+        labelWin.destroy();
+        try { fs.unlinkSync(tempFile); } catch(err) {}
+        resolve({ success: false, error: desc });
+      });
+
+      setTimeout(() => {
+        if (!labelWin.isDestroyed()) {
+          labelWin.destroy();
+          try { fs.unlinkSync(tempFile); } catch(err) {}
+          resolve({ success: false, error: 'Timeout printing labels' });
+        }
+      }, 25000);
+    } catch (e) {
+      resolve({ success: false, error: e.message });
+    }
+  });
+});
+
+
 
 // â”€â”€â”€ File Dialog IPC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ipcMain.handle('dialog:showSaveDialog', async (_, options) => {
@@ -294,7 +573,7 @@ ipcMain.handle('app:generateAndSendReport', async (_, { date, savePath, phone })
       const reportWin = new BrowserWindow({
         width: 1200,
         height: 900,
-        show: false,
+        show: true,
         webPreferences: {
           preload: path.join(__dirname, 'preload.js'),
           contextIsolation: true,
@@ -714,7 +993,7 @@ ipcMain.handle('whatsapp:getWebhookInfo', () => {
         tunnel: tunnelStatus,
         settings: {
           port: settings.webhook_port || 3000,
-          verifyToken: settings.webhook_verify_token || 'eltarzy_wa_token',
+          verifyToken: settings.webhook_verify_token || 'photostudio_wa_token',
           customUrl: settings.webhook_custom_url || '',
           autoTunnel: settings.webhook_auto_tunnel !== 0,
           provider: settings.provider

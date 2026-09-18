@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>EL-TARZY — المرتجعات</title>
+  <title>نظام إدارة استوديو التصوير — المرتجعات</title>
   <link rel="stylesheet" href="../styles/global.css" />
   <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
   <style>
@@ -387,6 +387,7 @@ async function processReturn(type) {
   if(type==='full'){
     returnItems = currentItems.map(item=>({
       invoice_item_id: item.id,
+      service_id: item.service_id,
       product_name: item.service_name,
       quantity_returned: item.available_qty,
       price_before_discount: item.sell_price,
@@ -403,7 +404,9 @@ async function processReturn(type) {
       if(!item) return;
       const unitPrice=item.sell_price-(item.item_discount||0);
       returnItems.push({
-        invoice_item_id:item.id, product_name:item.service_name,
+        invoice_item_id:item.id,
+        service_id:item.service_id,
+        product_name:item.service_name,
         quantity_returned:qty, price_before_discount:item.sell_price,
         item_discount:item.item_discount||0, price_after_discount:unitPrice,
         total: (unitPrice*qty) * ratio

@@ -145,7 +145,7 @@ class CloudAPIProvider extends BaseWhatsAppProvider {
    * @param {string} webhookUrl رابط الـ Webhook الجديد المولد من النفق
    * @param {string} verifyToken رمز التحقق السري
    */
-  async syncWebhookUrlToMeta(webhookUrl, verifyToken = 'eltarzy_wa_token') {
+  async syncWebhookUrlToMeta(webhookUrl, verifyToken = 'photostudio_wa_token') {
     if (!this.config?.accessToken || !this.config?.businessAccountId) {
       return { success: false, error: 'Access Token أو WABA ID غير متوفر' };
     }
@@ -750,7 +750,7 @@ class CloudAPIProvider extends BaseWhatsAppProvider {
       total: '0',
       paid: '0',
       remaining: '0',
-      tailor_name: '—',
+      seller_name: '—',
       phone: '—', // رقم المحل للتواصل (وليس رقم العميل المُرسل إليه)
       payment_method: 'غير محدد',
       paid_now: '0',
@@ -767,7 +767,7 @@ class CloudAPIProvider extends BaseWhatsAppProvider {
       total:          payload.total,
       paid:           payload.paid,
       remaining:      payload.remaining,
-      tailor_name:    payload.tailorName,
+      seller_name:    payload.sellerName || payload.employeeName || '—',
       phone:          s.wa_phone1 || s.phone || payload.contactPhone,
       payment_method: payload.paymentMethod ? paymentMethodLabel(payload.paymentMethod) : null,
       paid_now:       payload.paidNow || payload.paid,
@@ -776,7 +776,7 @@ class CloudAPIProvider extends BaseWhatsAppProvider {
     // القوالب وترتيبها وأسماء المتغيرات (يطابق بالضبط ما هو مسجّل على Meta)
     const templates = {
       invoice_confirm: [
-        'customer_name', 'shop_name', 'invoice_number', 'total', 'paid', 'remaining', 'tailor_name', 'phone'
+        'customer_name', 'shop_name', 'invoice_number', 'total', 'paid', 'remaining', 'seller_name', 'phone'
       ],
       order_ready: [
         'customer_name', 'invoice_number', 'shop_name', 'phone'

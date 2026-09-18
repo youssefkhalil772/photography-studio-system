@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>EL-TARZY — شئون الموظفين</title>
+  <title>Photography Studio System — شئون الموظفين</title>
   <link rel="stylesheet" href="../styles/global.css" />
   <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
   <style>
@@ -166,17 +166,15 @@
               <input type="date" id="ne_hiredate" class="form-control" />
             </div>
             <div class="form-group">
-              <label class="form-label">نسبة الخياط % (إن وجد)</label>
-              <input type="number" id="ne_commission" class="form-control" placeholder="مثال: 33.3" value="0" step="any" />
+              <label class="form-label">نسبة العمولة % (للبائع)</label>
+              <input type="number" id="ne_commission" class="form-control" placeholder="مثال: 10" value="0" step="any" />
             </div>
             <div class="form-group">
               <label class="form-label">نوع الموظف</label>
               <select id="ne_type" class="form-control">
-                <option>موظف عادي</option>
                 <option>مدير</option>
                 <option>كاشير</option>
-                <option>بائع</option>
-                <option>خياط</option>
+                <option selected>بائع</option>
               </select>
             </div>
             <div class="form-group">
@@ -521,7 +519,7 @@
                 <tr>
                   <th>الموظف</th>
                   <th>الراتب الأساسي</th>
-                  <th>عمولة الخياط</th>
+                  <th>عمولة البائع</th>
                   <th>إجمالي السلف</th>
                   <th>الخصومات</th>
                   <th>الحوافز</th>

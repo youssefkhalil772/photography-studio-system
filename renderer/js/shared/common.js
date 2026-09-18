@@ -144,7 +144,7 @@ function fmt(n) {
  * @returns {boolean}
  */
 function checkAdmin() {
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   return role === 'admin';
 }
 
@@ -164,14 +164,14 @@ async function sendDailyReportAndQuit() {
   try {
     const setRes = await window.db.getSettings();
     if (setRes && setRes.success && setRes.data) {
-      sessionStorage.setItem('elTarzy_dayCutoffHour', setRes.data.day_cutoff_hour || 0);
+      sessionStorage.setItem('photoStudio_dayCutoffHour', setRes.data.day_cutoff_hour || 0);
     }
     const phone = setRes.data?.admin_wa_phone;
     const today = getLocalISODate();
 
     if (phone) {
       // ── جلب إعدادات المحل لاسم الملف ──
-      const shopName = setRes.data?.company_name || 'EL-Tarzy';
+      const shopName = setRes.data?.company_name || 'استوديو التصوير';
 
       // ── مسار حفظ PDF ──
       const basePath = (setRes.data?.report_save_path || '').replace(/[/\\]+$/, '');
@@ -261,7 +261,7 @@ async function sendDailyReportAndQuit() {
 }
 
 function getLocalISODate(d = new Date()) {
-  const cutoffHour = parseInt(sessionStorage.getItem('elTarzy_dayCutoffHour') || '0', 10);
+  const cutoffHour = parseInt(sessionStorage.getItem('photoStudio_dayCutoffHour') || '0', 10);
   const offset = d.getTimezoneOffset() * 60000;
   const localDate = new Date(d.getTime() - offset);
   const currentHour = localDate.getUTCHours();
@@ -277,7 +277,7 @@ function getLocalISODate(d = new Date()) {
     if (window.db && window.db.getSettings) {
       const setRes = await window.db.getSettings();
       if (setRes && setRes.success && setRes.data) {
-        sessionStorage.setItem('elTarzy_dayCutoffHour', setRes.data.day_cutoff_hour || 0);
+        sessionStorage.setItem('photoStudio_dayCutoffHour', setRes.data.day_cutoff_hour || 0);
       }
     }
   } catch (e) {}

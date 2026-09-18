@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EL-TARZY — إنهاء الشيفت</title>
+  <title>نظام إدارة استوديو التصوير — إنهاء الشيفت</title>
   <link rel="stylesheet" href="../styles/global.css" />
   <style>
     body {
@@ -517,14 +517,14 @@ let summaryData = null;
 // ─── Load shift summary ──────────────────────────────────────────────────────
 async function loadShiftSummary() {
   // Get shift ID from session
-  shiftId = sessionStorage.getItem('elTarzy_shiftId');
+  shiftId = sessionStorage.getItem('photoStudio_shiftId');
 
   if (!shiftId) {
     // Try from backend
     const currentRes = await window.shift.getCurrent();
     if (currentRes.success) {
       shiftId = currentRes.data.shift.id;
-      sessionStorage.setItem('elTarzy_shiftId', shiftId);
+      sessionStorage.setItem('photoStudio_shiftId', shiftId);
     } else {
       showToast('لا يوجد شيفت مفتوح', 'error');
       setTimeout(() => window.electron.navigate('main-dashboard.html'), 1500);
@@ -645,7 +645,7 @@ async function executeEndShift() {
     }
 
     showToast('تم إغلاق الشيفت بنجاح ', 'success');
-    sessionStorage.removeItem('elTarzy_shiftId');
+    sessionStorage.removeItem('photoStudio_shiftId');
 
     let treasuryDetailsHTML = '';
     if (summaryData.treasuryDetails && summaryData.treasuryDetails.length > 0) {
@@ -755,7 +755,7 @@ window.electron.onConfirmBackupBeforeQuit(() => {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 // Block admin — end shift is cashier-only
 (function() {
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   if (role === 'admin') {
     showToast('إنهاء الشيفت مخصص للكاشير فقط وليس لمدير النظام', 'warning');
     setTimeout(() => window.electron.navigate('main-dashboard.html'), 1500);

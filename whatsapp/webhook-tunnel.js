@@ -5,7 +5,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 
 const os = require('os');
-const logFile = path.join(os.homedir(), 'Desktop', 'eltarzy-error.txt');
+const logFile = path.join(os.homedir(), 'Desktop', 'photostudio-error.txt');
 function logTunnel(msg) {
   try { fs.appendFileSync(logFile, `\n[${new Date().toISOString()}] [Tunnel] ${msg}`); } catch(e){}
   console.log('[Tunnel]', msg);

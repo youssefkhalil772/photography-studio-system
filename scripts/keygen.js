@@ -1,6 +1,6 @@
 'use strict';
 // ═══════════════════════════════════════════════════════════════════════════════
-//  EL-TARZY — مولّد مفاتيح التفعيل (Keygen)
+//  Photography Studio System — مولّد مفاتيح التفعيل (Keygen)
 // ───────────────────────────────────────────────────────────────────────────────
 //  الاستخدام:
 //    تفعيل دائم:  node scripts/keygen.js <hwId> <installId>
@@ -32,7 +32,7 @@ if (daysArg !== undefined && (isNaN(days) || days <= 0)) {
 
 console.log('');
 console.log('══════════════════════════════════════════════════');
-console.log('   EL-TARZY — مولّد مفاتيح التفعيل');
+console.log('   Photography Studio System — مولّد مفاتيح التفعيل');
 console.log('══════════════════════════════════════════════════');
 console.log(`   كود الجهاز    : ${hwId}`);
 console.log(`   كود التثبيت   : ${installId}`);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EL-TARZY — تسجيل الدخول</title>
+  <title>نظام إدارة استوديو التصوير — تسجيل الدخول</title>
   <link rel="stylesheet" href="../styles/global.css" />
   <style>
     body {
@@ -257,9 +257,9 @@
 
   <!-- Logo -->
   <div class="login-logo">
-    <div class="login-logo-icon" id="logoIcon">T</div>
-    <div class="login-title" id="loginTitle">EL-TARZY</div>
-    <div class="login-subtitle">نظام إدارة محل الترزي</div>
+    <div class="login-logo-icon" id="logoIcon">📸</div>
+    <div class="login-title" id="loginTitle">استوديو التصوير</div>
+    <div class="login-subtitle">نظام إدارة استوديو التصوير</div>
   </div>
 
   <!-- Login Card -->
@@ -293,7 +293,7 @@
 
   <!-- Footer -->
   <div class="login-footer">
-    EL-TARZY — Dev Blue Tech © 2026
+    نظام إدارة استوديو التصوير — Dev Blue Tech © 2026
     <div class="login-version" id="appVersion"></div>
   </div>
 </div>
@@ -388,12 +388,12 @@ async function handleLogin(e) {
     const user = result.data;
 
     // Store session data in sessionStorage for renderer pages
-    sessionStorage.setItem('elTarzy_userId', user.userId);
-    sessionStorage.setItem('elTarzy_employeeId', user.employeeId);
-    sessionStorage.setItem('elTarzy_employeeName', user.employeeName);
-    sessionStorage.setItem('elTarzy_username', user.username);
-    sessionStorage.setItem('elTarzy_role', user.role);
-    sessionStorage.setItem('elTarzy_shiftId', user.shiftId || '');
+    sessionStorage.setItem('photoStudio_userId', user.userId);
+    sessionStorage.setItem('photoStudio_employeeId', user.employeeId);
+    sessionStorage.setItem('photoStudio_employeeName', user.employeeName);
+    sessionStorage.setItem('photoStudio_username', user.username);
+    sessionStorage.setItem('photoStudio_role', user.role);
+    sessionStorage.setItem('photoStudio_shiftId', user.shiftId || '');
 
     // Everyone needs to start a shift
     if (user.shiftId) {

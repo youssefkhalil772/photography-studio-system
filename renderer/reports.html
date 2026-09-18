@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>EL-TARZY — التقارير</title>
+  <title>Photography Studio System — التقارير</title>
   <link rel="stylesheet" href="../styles/global.css" />
   <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
   <style>
@@ -140,6 +140,7 @@
     <div class="rpt-tab" onclick="switchTab('purchases', this)">المشتريات</div>
     <div class="rpt-tab" onclick="switchTab('shifts', this)">تقارير الشيفتات</div>
     <div class="rpt-tab" onclick="switchTab('income', this)">قائمة الدخل</div>
+    <div class="rpt-tab" onclick="navigate('inventory-report.html')">تقرير المخزون الحي (A4) 📦</div>
     <div class="rpt-tab" id="cleanupTab" onclick="switchTab('cleanup', this)" style="color:var(--danger);">حذف البيانات</div>
   </div>
 
@@ -157,9 +158,9 @@
           <label class="form-label">إلى تاريخ</label>
           <input type="date" id="salesTo" class="form-control" />
         </div>
-        <div class="form-group" style="width:200px;">
+        <div class="form-group" style="width:220px;">
           <label class="form-label">بحث برقم الفاتورة / العميل</label>
-          <input type="text" id="salesSearch" class="form-control" placeholder="بحث..." oninput="loadSalesReport()" />
+          <input type="text" id="salesSearch" class="form-control" placeholder="بحث في كل الفواتير..." oninput="onSalesSearchInput()" />
         </div>
         <div class="form-group" style="width:160px;">
           <label class="form-label">حالة الفاتورة</label>
@@ -169,12 +170,6 @@
             <option value="في انتظار الاستلام">في انتظار الاستلام</option>
             <option value="تم التسليم">تم التسليم</option>
             <option value="غير مسددة">غير مسددة (مديونية)</option>
-          </select>
-        </div>
-        <div class="form-group" style="width:140px;">
-          <label class="form-label">الخياط</label>
-          <select id="salesTailorFilter" class="form-control" onchange="loadSalesReport()">
-            <option value="">الكل</option>
           </select>
         </div>
         <button class="btn btn-primary" onclick="loadSalesReport()">تحديث التقرير</button>
@@ -216,8 +211,7 @@
                 <th>رقم الفاتورة</th>
                 <th>التاريخ</th>
                 <th>العميل</th>
-                <th>الخياط</th>
-                <th>الكاشير</th>
+                <th>الكاشير/البائع</th>
                 <th>الحالة</th>
                 <th>نوع الدفع</th>
                 <th>الإجمالي</th>
@@ -229,9 +223,17 @@
               </tr>
             </thead>
             <tbody id="salesTableBody">
-              <tr><td colspan="10" class="table-empty">جاري التحميل...</td></tr>
+              <tr><td colspan="12" class="table-empty">جاري التحميل...</td></tr>
             </tbody>
           </table>
+        </div>
+        <div id="salesPagination" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; font-size:13px; color:var(--text-muted); border-top:1px solid var(--border);">
+          <span id="salesCountInfo">—</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-sm btn-outline" id="salesPrevBtn" onclick="changeSalesPage(-1)" disabled>السابق</button>
+            <span id="salesPageNum" style="display:flex; align-items:center; font-weight:700; color:var(--text-primary); padding:0 8px;">صفحة 1</span>
+            <button class="btn btn-sm btn-outline" id="salesNextBtn" onclick="changeSalesPage(1)" disabled>التالي</button>
+          </div>
         </div>
       </div>
     </div>

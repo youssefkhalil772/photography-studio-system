@@ -2,8 +2,9 @@ let currentLogoPath = null;
 
 
 function showSection(name) {
-  ['store', 'cashier', 'users', 'backup', 'whatsapp', 'wa-templates'].forEach(s => {
-    document.getElementById(`section-${s}`).style.display = s === name ? '' : 'none';
+  ['store', 'printers', 'cashier', 'users', 'backup', 'whatsapp', 'wa-templates'].forEach(s => {
+    const el = document.getElementById(`section-${s}`);
+    if (el) el.style.display = s === name ? '' : 'none';
   });
   document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.remove('active'));
   
@@ -19,6 +20,7 @@ function showSection(name) {
     });
   }
 
+  if (name === 'printers')     loadPrintersTab();
   if (name === 'users')        loadUsers();
   if (name === 'backup')       { loadBackups(); loadExternalBackupPath(); }
   if (name === 'whatsapp')     { checkWaStatus(); loadWaProviderSettings(); }
@@ -27,7 +29,7 @@ function showSection(name) {
 
 // ─── Admin check ──────────────────────────────────────────────────────────────
 async function checkAdmin() {
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   if (role !== 'admin') {
     showToast('هذه الصفحة متاحة للمدير فقط', 'error');
     setTimeout(() => goBack(), 1000);
@@ -49,13 +51,23 @@ async function loadSettings() {
   document.getElementById('currency').value               = s.currency || 'جنيه';
   document.getElementById('receiptNotes').value           = s.receipt_notes || '';
   document.getElementById('receiptFooter').value          = s.receipt_footer || '';
-  document.getElementById('showTailorName').checked       = Number(s.show_tailor_name) === 1;
   document.getElementById('showCustomerPhone').checked    = Number(s.show_customer_phone) === 1;
   document.getElementById('preventCashierPriceEdit').checked = Number(s.prevent_cashier_price_edit) === 1;
   if (document.getElementById('adminWaPhone')) document.getElementById('adminWaPhone').value = s.admin_wa_phone || '';
   if (document.getElementById('reportSavePath')) document.getElementById('reportSavePath').value = s.report_save_path || '';
   if (document.getElementById('dayCutoffHour')) document.getElementById('dayCutoffHour').value = s.day_cutoff_hour || 0;
-  sessionStorage.setItem('elTarzy_dayCutoffHour', s.day_cutoff_hour || 0);
+  sessionStorage.setItem('photoStudio_dayCutoffHour', s.day_cutoff_hour || 0);
+
+  // Printers & Barcode
+  if (document.getElementById('printerReceipt')) document.getElementById('printerReceipt').value = s.printer_receipt || '';
+  if (document.getElementById('printerBarcode')) document.getElementById('printerBarcode').value = s.printer_barcode || '';
+  if (document.getElementById('printerReports')) document.getElementById('printerReports').value = s.printer_reports || '';
+  if (document.getElementById('barcodeWidth')) document.getElementById('barcodeWidth').value = s.barcode_width || 38;
+  if (document.getElementById('barcodeHeight')) document.getElementById('barcodeHeight').value = s.barcode_height || 25;
+  if (document.getElementById('barcodeShowStudio')) document.getElementById('barcodeShowStudio').checked = s.barcode_show_studio !== 0;
+  if (document.getElementById('barcodeShowName')) document.getElementById('barcodeShowName').checked = s.barcode_show_name !== 0;
+  if (document.getElementById('barcodeShowPrice')) document.getElementById('barcodeShowPrice').checked = s.barcode_show_price !== 0;
+  updateBarcodePreview();
 
   // Cashier permissions
   document.getElementById('cashierHideReports').checked   = Number(s.cashier_hide_reports) === 1;
@@ -64,8 +76,8 @@ async function loadSettings() {
   document.getElementById('cashierHideFinance').checked   = Number(s.cashier_hide_finance) === 1;
   document.getElementById('cashierPreventDiscount').checked= Number(s.cashier_prevent_discount) === 1;
   document.getElementById('cashierPreventSettings').checked= Number(s.cashier_prevent_settings) === 1;
-  if (document.getElementById('tailorChangePin')) {
-    document.getElementById('tailorChangePin').value = s.tailor_change_pin || '123456';
+  if (document.getElementById('stockOutBehavior')) {
+    document.getElementById('stockOutBehavior').value = s.stock_out_behavior || 'warn';
   }
 
   // WhatsApp phones
@@ -73,7 +85,7 @@ async function loadSettings() {
   if (document.getElementById('waPhone2')) document.getElementById('waPhone2').value = s.wa_phone2 || '';
 
   // Update sidebar shop name
-  document.getElementById('sidebarShopName').textContent  = s.company_name || 'EL-TARZY';
+  document.getElementById('sidebarShopName').textContent  = s.company_name || 'استوديو التصوير';
 
   currentLogoPath = s.logo_path;
   if (s.logo_path) {
@@ -91,11 +103,11 @@ async function loadWaTemplates() {
   const s = res.data;
   
   // Default values if empty
-  const d_inv = `أهلاً {customerName} 🤍\n\nطلبك اتسجل عندنا في {shopName} ✂️\n📋 تفاصيل الفاتورة:\nرقم الفاتورة: {invoiceNumber}\nتاريخ الاستلام: {date} {time}\nالفني المنفذ: {tailorName}\nالإجمالي: {total} جنيه\nالمدفوع: {paid} جنيه\nالباقي: {remaining} جنيه\n🧵 ميعاد التسليم المتوقع للتصاليح: 48 ساعة من تاريخ الفاتورة\nكل غرزة بتشيلها عنينا، وكل قطعة بنسلمها وإحنا مطمنين إنها بأحسن صورة.\nفي انتظار إطلالتك الجديدة 🤍\n{shopName}\n📍 {address}\n📞 {contactPhone}`;
-  const d_rdy = `أهلاً {customerName} 🤍\n\nشغلك جاهز عندنا في {shopName} ✂️\nتم تجهيز طلبك بفاتورة رقم {invoiceNumber} وفي انتظار استلامك في أقرب فرصة.\nنتمنى نكون عند حسن ظنك 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`;
-  const d_del = `أهلاً {customerName} 🤍\n\nشكراً لاستلامك طلبك من {shopName} ✂️\nفاتورة رقم {invoiceNumber} — تم التسليم بنجاح ✅\n\nنتشرف بخدمتك دايماً وفي انتظار إطلالتك القادمة 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`;
+  const d_inv = `أهلاً {customerName} 🤍\n\nطلبك اتسجل عندنا في {shopName} 📸\n📋 تفاصيل الفاتورة:\nرقم الفاتورة: {invoiceNumber}\nتاريخ الاستلام: {date} {time}\nالمسؤول: {sellerName}\nالإجمالي: {total} جنيه\nالمدفوع: {paid} جنيه\nالباقي: {remaining} جنيه\n📸 ميعاد الاستلام المتوقع للصور/الألبومات: سيتم إشعاركم فور الجاهزية\nنتشرف بخدمتكم وتخليد أجمل لحظاتكم 🤍\n{shopName}\n📍 {address}\n📞 {contactPhone}`;
+  const d_rdy = `أهلاً {customerName} 🤍\n\nطلبك جاهز عندنا في {shopName} 📸\nتم تجهيز طلبك بفاتورة رقم {invoiceNumber} وفي انتظار استلامك في أقرب فرصة.\nنتمنى نكون عند حسن ظنك 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`;
+  const d_del = `أهلاً {customerName} 🤍\n\nشكراً لاستلامك طلبك من {shopName} 📸\nفاتورة رقم {invoiceNumber} — تم التسليم بنجاح ✅\n\nنتشرف بخدمتك دايماً وفي انتظار زيارتك القادمة 🤍\n\n{shopName}\n📍 {address}\n📞 {contactPhone}`;
   const d_full= `أهلاً {customerName} 🤍\n\nتم استلام دفعتك، وفاتورتك رقم {invoiceNumber} مسددة بالكامل ✅\n💵 المبلغ المدفوع: {paid} جنيه\n\nشكرًا لثقتك في {shopName} 🤍 نتشرف بزيارتك دايمًا\n📞 {contactPhone}`;
-  const d_part= `أهلاً {customerName} 🤍\n\nتم استلام دفعتك بنجاح في {shopName} ✂️\n🧾 فاتورة رقم {invoiceNumber}\n💵 المبلغ المدفوع الآن: {paidNow} جنيه\n📊 إجمالي المدفوع لحد دلوقتي: {totalPaid} جنيه\n📌 الباقي: {remaining} جنيه\n\nشكرًا لثقتك في {shopName} 🤍\n📞 {contactPhone}`;
+  const d_part= `أهلاً {customerName} 🤍\n\nتم استلام دفعتك بنجاح في {shopName} 📸\n🧾 فاتورة رقم {invoiceNumber}\n💵 المبلغ المدفوع الآن: {paidNow} جنيه\n📊 إجمالي المدفوع لحد دلوقتي: {totalPaid} جنيه\n📌 الباقي: {remaining} جنيه\n\nشكرًا لثقتك في {shopName} 🤍\n📞 {contactPhone}`;
 
   if(document.getElementById('tplInvoiceConfirm')) document.getElementById('tplInvoiceConfirm').value = s.wa_tpl_invoice_confirm || d_inv;
   if(document.getElementById('tplOrderReady')) document.getElementById('tplOrderReady').value = s.wa_tpl_order_ready || d_rdy;
@@ -119,7 +131,6 @@ async function saveCashierPermissions() {
       tax_number:                s.tax_number || '',
       receipt_footer:            s.receipt_footer || '',
       receipt_notes:             s.receipt_notes || '',
-      show_tailor_name:          s.show_tailor_name !== 0,
       show_customer_phone:       s.show_customer_phone !== 0,
       currency:                  s.currency || 'جنيه',
       wa_phone1:                 s.wa_phone1 || '',
@@ -132,6 +143,14 @@ async function saveCashierPermissions() {
       admin_wa_phone:            s.admin_wa_phone || '',
       report_save_path:          s.report_save_path || '',
       day_cutoff_hour:           s.day_cutoff_hour || 0,
+      printer_receipt:           s.printer_receipt || '',
+      printer_barcode:           s.printer_barcode || '',
+      printer_reports:           s.printer_reports || '',
+      barcode_width:             s.barcode_width || 38,
+      barcode_height:            s.barcode_height || 25,
+      barcode_show_price:        s.barcode_show_price !== 0,
+      barcode_show_name:         s.barcode_show_name !== 0,
+      barcode_show_studio:       s.barcode_show_studio !== 0,
       // Permissions — read from checkboxes
       prevent_cashier_price_edit: document.getElementById('preventCashierPriceEdit').checked,
       cashier_hide_reports:       document.getElementById('cashierHideReports').checked,
@@ -140,6 +159,7 @@ async function saveCashierPermissions() {
       cashier_hide_finance:       document.getElementById('cashierHideFinance').checked,
       cashier_prevent_discount:   document.getElementById('cashierPreventDiscount').checked,
       cashier_prevent_settings:   document.getElementById('cashierPreventSettings').checked,
+      stock_out_behavior:         document.getElementById('stockOutBehavior') ? document.getElementById('stockOutBehavior').value : (s.stock_out_behavior || 'warn'),
     };
     const res = await window.db.updateSettings(data);
     if (res.success) {
@@ -160,7 +180,6 @@ async function saveSettings() {
     tax_number:                document.getElementById('taxNumber').value.trim(),
     receipt_footer:            document.getElementById('receiptFooter').value.trim(),
     receipt_notes:             document.getElementById('receiptNotes').value.trim(),
-    show_tailor_name:          document.getElementById('showTailorName').checked,
     show_customer_phone:       document.getElementById('showCustomerPhone').checked,
     prevent_cashier_price_edit:document.getElementById('preventCashierPriceEdit').checked,
     currency:                  document.getElementById('currency').value.trim() || 'جنيه',
@@ -171,6 +190,7 @@ async function saveSettings() {
     cashier_hide_finance:      document.getElementById('cashierHideFinance').checked,
     cashier_prevent_discount:  document.getElementById('cashierPreventDiscount').checked,
     cashier_prevent_settings:  document.getElementById('cashierPreventSettings').checked,
+    stock_out_behavior:        document.getElementById('stockOutBehavior') ? document.getElementById('stockOutBehavior').value : 'warn',
     // WhatsApp
     wa_phone1:                 document.getElementById('waPhone1')?.value.trim() || '',
     wa_phone2:                 document.getElementById('waPhone2')?.value.trim() || '',
@@ -183,49 +203,175 @@ async function saveSettings() {
     admin_wa_phone:            document.getElementById('adminWaPhone')?.value.trim() || '',
     report_save_path:          document.getElementById('reportSavePath')?.value.trim() || '',
     day_cutoff_hour:           parseInt(document.getElementById('dayCutoffHour')?.value || '0', 10),
-    tailor_change_pin:         document.getElementById('tailorChangePin')?.value.trim() || '123456',
+    // Printers & Barcode
+    printer_receipt:           document.getElementById('printerReceipt')?.value || '',
+    printer_barcode:           document.getElementById('printerBarcode')?.value || '',
+    printer_reports:           document.getElementById('printerReports')?.value || '',
+    barcode_width:             parseFloat(document.getElementById('barcodeWidth')?.value) || 38,
+    barcode_height:            parseFloat(document.getElementById('barcodeHeight')?.value) || 25,
+    barcode_show_price:        document.getElementById('barcodeShowPrice')?.checked ? 1 : 0,
+    barcode_show_name:         document.getElementById('barcodeShowName')?.checked ? 1 : 0,
+    barcode_show_studio:       document.getElementById('barcodeShowStudio')?.checked ? 1 : 0,
   };
 
   const res = await window.db.updateSettings(data);
   if (res.success) {
-    sessionStorage.setItem('elTarzy_dayCutoffHour', data.day_cutoff_hour);
+    sessionStorage.setItem('photoStudio_dayCutoffHour', data.day_cutoff_hour);
     showToast('تم حفظ الإعدادات بنجاح ', 'success');
     if (data.company_name) document.getElementById('sidebarShopName').textContent = data.company_name;
+    updateBarcodePreview();
   } else {
     showToast('خطأ في حفظ الإعدادات: ' + res.error, 'error');
   }
 }
 
-async function saveTailorChangePinDirect() {
-  const pinInput = document.getElementById('tailorChangePin');
-  if (!pinInput) return;
-  const pin = pinInput.value.trim();
-
-  if (!pin || pin.length !== 6 || !/^\d{6}$/.test(pin)) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'رمز غير صالح',
-      text: 'يجب أن يتكون رمز الأمان من 6 أرقام بالضبط (مثال: 123456)'
+// ─── Printer Management & Barcode Preview ─────────────────────────────────────
+async function populatePrintersList() {
+  try {
+    const printers = await window.electron.getPrinters() || [];
+    const selects = ['printerReceipt', 'printerBarcode', 'printerReports'];
+    selects.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const currentVal = el.value;
+      el.innerHTML = '<option value="">(الافتراضية لنظام التشغيل)</option>';
+      printers.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = `${p.displayName || p.name} ${p.isDefault ? '⭐ (الافتراضية)' : ''}`;
+        el.appendChild(opt);
+      });
+      if (currentVal) el.value = currentVal;
     });
-    return;
-  }
-
-  const res = await window.db.saveTailorChangePin(pin);
-  if (res && res.success) {
-    showToast('تم حفظ رمز أمان تغيير الخياط بنجاح 🔒', 'success');
-  } else {
-    showToast(res ? res.error : 'فشل حفظ الرمز', 'error');
+  } catch (err) {
+    console.error('Error fetching printers list:', err);
   }
 }
 
-function togglePinVisibility() {
-  const pinInput = document.getElementById('tailorChangePin');
-  if (!pinInput) return;
-  if (pinInput.type === 'password') {
-    pinInput.type = 'text';
-  } else {
-    pinInput.type = 'password';
+async function loadPrintersTab() {
+  await populatePrintersList();
+  const res = await window.db.getSettings();
+  if (res.success && res.data) {
+    const s = res.data;
+    if (document.getElementById('printerReceipt') && s.printer_receipt) document.getElementById('printerReceipt').value = s.printer_receipt;
+    if (document.getElementById('printerBarcode') && s.printer_barcode) document.getElementById('printerBarcode').value = s.printer_barcode;
+    if (document.getElementById('printerReports') && s.printer_reports) document.getElementById('printerReports').value = s.printer_reports;
   }
+  updateBarcodePreview();
+}
+
+function updateBarcodePreview() {
+  const svgEl = document.getElementById('barcodePreviewSvg');
+  if (!svgEl) return;
+  const width = parseFloat(document.getElementById('barcodeWidth')?.value) || 38;
+  const height = parseFloat(document.getElementById('barcodeHeight')?.value) || 25;
+  const showStudio = document.getElementById('barcodeShowStudio')?.checked;
+  const showName = document.getElementById('barcodeShowName')?.checked;
+  const showPrice = document.getElementById('barcodeShowPrice')?.checked;
+  const studioName = document.getElementById('companyName')?.value.trim() || 'استوديو التصوير';
+
+  const previewStudio = document.getElementById('previewStudioName');
+  const previewItem = document.getElementById('previewItemName');
+  const previewPrice = document.getElementById('previewPrice');
+  const labelCard = document.getElementById('barcodeLabelCard');
+
+  if (previewStudio) {
+    previewStudio.textContent = studioName;
+    previewStudio.style.display = showStudio ? 'block' : 'none';
+  }
+  if (previewItem) {
+    previewItem.style.display = showName ? 'block' : 'none';
+  }
+  if (previewPrice) {
+    previewPrice.style.display = showPrice ? 'block' : 'none';
+  }
+  if (labelCard) {
+    labelCard.style.width = Math.min(300, Math.max(160, width * 5)) + 'px';
+    labelCard.style.minHeight = Math.min(220, Math.max(100, height * 5)) + 'px';
+  }
+
+  if (typeof JsBarcode === 'function') {
+    try {
+      JsBarcode(svgEl, 'SRV-1001', {
+        format: 'CODE128',
+        lineColor: '#000',
+        width: 1.5,
+        height: 35,
+        displayValue: true,
+        fontSize: 11,
+        margin: 2
+      });
+    } catch (e) {
+      console.error('JsBarcode preview error:', e);
+    }
+  }
+}
+
+function testPrintBarcode() {
+  const width = parseFloat(document.getElementById('barcodeWidth')?.value) || 38;
+  const height = parseFloat(document.getElementById('barcodeHeight')?.value) || 25;
+  const showStudio = document.getElementById('barcodeShowStudio')?.checked;
+  const showName = document.getElementById('barcodeShowName')?.checked;
+  const showPrice = document.getElementById('barcodeShowPrice')?.checked;
+  const studioName = document.getElementById('companyName')?.value.trim() || 'استوديو التصوير';
+  const itemName = 'جلسة تصوير بورتريه VIP';
+  const price = '250 ج.م';
+
+  const printWin = window.open('', '_blank', 'width=400,height=300');
+  if (!printWin) {
+    showToast('تعذر فتح نافذة الطباعة (تأكد من السماح بالنوافذ المنبثقة)', 'error');
+    return;
+  }
+  const svgEl = document.getElementById('barcodePreviewSvg');
+  const svgHtml = svgEl ? svgEl.outerHTML : '';
+
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <title>طباعة ملصق تجريبي</title>
+      <style>
+        @page {
+          size: ${width}mm ${height}mm;
+          margin: 0;
+        }
+        body {
+          margin: 0;
+          padding: 2mm;
+          width: ${width}mm;
+          height: ${height}mm;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          font-family: Arial, sans-serif;
+          font-size: 8px;
+          overflow: hidden;
+        }
+        .studio-name { font-weight: bold; font-size: 9px; margin-bottom: 1mm; }
+        .item-name { font-size: 8px; margin-bottom: 1mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .barcode-svg { max-width: 95%; max-height: 12mm; }
+        .price { font-weight: bold; font-size: 9px; margin-top: 1mm; }
+      </style>
+    </head>
+    <body>
+      ${showStudio ? ('<div class="studio-name">' + studioName + '</div>') : ''}
+      ${showName ? ('<div class="item-name">' + itemName + '</div>') : ''}
+      <div class="barcode-svg">${svgHtml}</div>
+      ${showPrice ? ('<div class="price">' + price + '</div>') : ''}
+      <script>
+        window.onload = function() {
+          window.print();
+          setTimeout(() => window.close(), 500);
+        };
+      </script>
+    </body>
+    </html>
+  `);
+  printWin.document.close();
 }
 
 // ─── Select Report Folder ───────────────────────────────────────────────────
@@ -568,6 +714,7 @@ window.electron.onConfirmBackupBeforeQuit(() => {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 (async () => {
   if (await checkAdmin()) {
+    await populatePrintersList();
     await loadSettings();
     const targetSection = sessionStorage.getItem('settings_target_section');
     if (targetSection) {
@@ -620,7 +767,7 @@ async function loadWaProviderSettings() {
       document.getElementById('settingsWebhookPort').value = s.webhook_port || 3000;
     }
     if (document.getElementById('settingsVerifyToken')) {
-      document.getElementById('settingsVerifyToken').value = s.webhook_verify_token || 'eltarzy_wa_token';
+      document.getElementById('settingsVerifyToken').value = s.webhook_verify_token || 'photoStudio_wa_token';
     }
     loadSettingsWebhookStatus();
 
@@ -732,7 +879,7 @@ async function saveWaProviderSettings() {
       settings.webhook_port = Number(document.getElementById('settingsWebhookPort').value) || 3000;
     }
     if (document.getElementById('settingsVerifyToken')) {
-      settings.webhook_verify_token = document.getElementById('settingsVerifyToken').value.trim() || 'eltarzy_wa_token';
+      settings.webhook_verify_token = document.getElementById('settingsVerifyToken').value.trim() || 'photoStudio_wa_token';
     }
 
     if (!settings.wa_phone_number_id) {

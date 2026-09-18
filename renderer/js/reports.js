@@ -27,16 +27,83 @@ document.getElementById('shiftFrom').value = firstDay;
 document.getElementById('shiftTo').value = today;
 document.getElementById('incomeMonth').value = today.slice(0,7);
 
-// ─── Tailors Dropdown ──────────────────────────────────────────────────────────
-async function loadTailorsDropdown() {
-  const select = document.getElementById('salesTailorFilter');
-  if(!select) return;
-  const res = await window.db.query("SELECT id, name FROM employees WHERE job_title LIKE '%خياط%' OR job_title LIKE '%ترزي%' OR employee_type='عادي' OR is_active=1");
-  if(res.success && res.data) {
-    let options = '<option value="">الكل</option>';
-    res.data.forEach(t => options += `<option value="${t.id}">${t.name}</option>`);
-    select.innerHTML = options;
+// ─── Fast Search & Pagination State ───────────────────────────────────────────
+let searchDebounceTimer = null;
+let currentSalesData = [];
+let currentSalesPage = 1;
+const SALES_PAGE_SIZE = 50;
+
+function onSalesSearchInput() {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    currentSalesPage = 1;
+    loadSalesReport();
+  }, 300);
+}
+
+function changeSalesPage(delta) {
+  const totalPages = Math.ceil(currentSalesData.length / SALES_PAGE_SIZE) || 1;
+  currentSalesPage = Math.max(1, Math.min(totalPages, currentSalesPage + delta));
+  renderSalesTablePage();
+}
+
+function renderSalesTablePage() {
+  const tbody = document.getElementById('salesTableBody');
+  const countInfo = document.getElementById('salesCountInfo');
+  const pageNum = document.getElementById('salesPageNum');
+  const prevBtn = document.getElementById('salesPrevBtn');
+  const nextBtn = document.getElementById('salesNextBtn');
+
+  if (!currentSalesData || !currentSalesData.length) {
+    tbody.innerHTML = '<tr><td colspan="12" class="table-empty">لا توجد مبيعات تطابق البحث</td></tr>';
+    if (countInfo) countInfo.textContent = 'إجمالي النتائج: 0';
+    if (pageNum) pageNum.textContent = 'صفحة 1 من 1';
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+    return;
   }
+
+  const totalPages = Math.ceil(currentSalesData.length / SALES_PAGE_SIZE) || 1;
+  currentSalesPage = Math.max(1, Math.min(totalPages, currentSalesPage));
+
+  const startIdx = (currentSalesPage - 1) * SALES_PAGE_SIZE;
+  const endIdx = Math.min(startIdx + SALES_PAGE_SIZE, currentSalesData.length);
+  const pageItems = currentSalesData.slice(startIdx, endIdx);
+
+  if (countInfo) {
+    countInfo.textContent = `عرض ${startIdx + 1} - ${endIdx} من إجمالي ${currentSalesData.length} فاتورة`;
+  }
+  if (pageNum) {
+    pageNum.textContent = `صفحة ${currentSalesPage} من ${totalPages}`;
+  }
+  if (prevBtn) prevBtn.disabled = currentSalesPage <= 1;
+  if (nextBtn) nextBtn.disabled = currentSalesPage >= totalPages;
+
+  tbody.innerHTML = pageItems.map(r => {
+    const statusColor = r.status === 'تم التسليم' ? 'success' : (r.status === 'في انتظار الاستلام' ? 'primary' : 'warning');
+    const statusBadge = r.is_returned
+      ? `<span class="badge badge-danger" title="فاتورة مرتجعة - لا يمكن تغيير الحالة">${r.status || 'مرتجع'}</span>`
+      : `<span class="badge badge-${statusColor}" style="cursor:pointer;" onclick="changeInvoiceStatus(${r.id}, '${r.status}', ${r.remaining || 0})"><bdi>${r.status || 'تحت الشغل'}</bdi> ✎</span>`;
+    return `
+      <tr class="${r.is_returned?'bg-red-50':''}">
+        <td style="font-weight:700;color:var(--primary);">${r.invoice_number} ${r.is_returned?'<span class="badge badge-danger">مرتجع</span>':''}</td>
+        <td>${r.invoice_date}</td>
+        <td>${r.customer_name || 'عميل نقدي'}</td>
+        <td>${r.emp_name || '—'}</td>
+        <td>${statusBadge}</td>
+        <td><span class="badge ${r.payment_method==='أجل'?'badge-warning':'badge-success'}">${r.payment_method}</span></td>
+        <td>${fmt(r.subtotal)}</td>
+        <td style="color:var(--danger);">${fmt((r.discount_amount||0) + ((r.subtotal||0)*(r.discount_percent||0)/100))}</td>
+        <td style="font-weight:700;color:var(--accent);">${fmt(r.dynamic_net_total)}</td>
+        <td style="color:var(--success);">${fmt(r.amount_paid)}</td>
+        <td style="color:var(--danger);">${fmt(r.remaining)}</td>
+        <td style="display:flex;gap:4px;flex-wrap:nowrap;">
+          ${r.remaining > 0 && !r.is_returned ? `<button class="btn btn-sm btn-success" onclick="payInvoiceDebt(${r.id}, ${r.remaining})">تسديد</button>` : ''}
+          <button class="btn btn-sm btn-outline" onclick='reprintPastInvoice(${JSON.stringify(r).replace(/\\x27/g,"&apos;")})' style="border-color:var(--text-muted); color:var(--text-primary);">طباعة</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 // ─── Sales Report ─────────────────────────────────────────────────────────────
@@ -45,25 +112,21 @@ async function loadSalesReport() {
   const to = document.getElementById('salesTo').value;
   const search = document.getElementById('salesSearch').value.trim();
   const statusFilter = document.getElementById('salesStatusFilter')?.value || '';
-  const tailorFilter = document.getElementById('salesTailorFilter')?.value || '';
   
   let sql = `SELECT i.*, 
                     c.name as customer_name,
                     e.name as emp_name,
-                    t.name as tailor_name,
                     (i.net_total - COALESCE(rr.total_returned, 0)) as dynamic_net_total
              FROM invoices i 
              LEFT JOIN customers c ON i.customer_id = c.id 
              LEFT JOIN employees e ON i.employee_id = e.id
-             LEFT JOIN employees t ON i.tailor_id = t.id
              LEFT JOIN (SELECT original_invoice_id, SUM(total_returned) as total_returned FROM returns GROUP BY original_invoice_id) rr ON rr.original_invoice_id = i.id
              WHERE 1=1`;
   const params = [];
 
   // ─── منطق البحث + التاريخ ──────────────────────────────────────────────────
-  // لو البحث برقم فاتورة (أرقام أو يبدأ بحرف/رقم) → ابحث في كل الفواتير بدون قيد التاريخ
-  // لو البحث باسم عميل فقط → خلي شرط التاريخ شغال
-  const isInvoiceNumberSearch = search && (search.toLowerCase().includes('inv') || /\d/.test(search)); // يحتوي على أرقام أو كلمة inv
+  // البحث السريع عبر كامل الفواتير برقم الفاتورة أو اسم العميل
+  const isInvoiceNumberSearch = search && (search.toLowerCase().includes('inv') || /\d/.test(search));
 
   if(search) {
     sql += ` AND (i.invoice_number LIKE ? OR c.name LIKE ?)`;
@@ -83,18 +146,13 @@ async function loadSalesReport() {
     params.push(statusFilter);
   }
 
-  if(tailorFilter) {
-    sql += ` AND i.tailor_id = ?`;
-    params.push(tailorFilter);
-  }
-
   sql += ' ORDER BY i.id DESC';
   
   const res = await window.db.query(sql, params);
-  const tbody = document.getElementById('salesTableBody');
   
   if(!res.success || !res.data.length) {
-    tbody.innerHTML = '<tr><td colspan="13" class="table-empty">لا توجد مبيعات تطابق البحث</td></tr>';
+    currentSalesData = [];
+    renderSalesTablePage();
     document.getElementById('salesTotal').textContent = '0.00';
     document.getElementById('salesPaid').textContent = '0.00';
     document.getElementById('salesDelivered').textContent = '0';
@@ -104,6 +162,8 @@ async function loadSalesReport() {
     return;
   }
   
+  currentSalesData = res.data;
+
   const totals = res.data.reduce((s, r) => {
     return {
       t: s.t + (r.dynamic_net_total || 0),
@@ -116,38 +176,7 @@ async function loadSalesReport() {
     };
   }, { t: 0, p: 0, rem: 0, delivered: 0, inProgress: 0, awaiting: 0, unpaidAmt: 0 });
   
-  tbody.innerHTML = res.data.map(r => {
-    const statusColor = r.status === 'تم التسليم' ? 'success' : (r.status === 'في انتظار الاستلام' ? 'primary' : 'warning');
-    const statusBadge = r.is_returned
-      ? `<span class="badge badge-danger" title="فاتورة مرتجعة - لا يمكن تغيير الحالة">${r.status || 'مرتجع'}</span>`
-      : `<span class="badge badge-${statusColor}" style="cursor:pointer;" onclick="changeInvoiceStatus(${r.id}, '${r.status}', ${r.remaining || 0})"><bdi>${r.status || 'تحت الشغل'}</bdi> ✎</span>`;
-    return `
-      <tr class="${r.is_returned?'bg-red-50':''}">
-        <td style="font-weight:700;color:var(--primary);">${r.invoice_number} ${r.is_returned?'<span class="badge badge-danger">مرتجع</span>':''}</td>
-        <td>${r.invoice_date}</td>
-        <td>${r.customer_name || 'عميل نقدي'}</td>
-        <td style="font-weight:700;color:var(--primary);cursor:pointer;" onclick="promptChangeInvoiceTailor(${r.id}, ${r.tailor_id || 'null'}, '${escapeHtml(r.tailor_name || '')}', '${escapeHtml(r.invoice_number)}', ${r.dynamic_net_total || 0})" title="اضغط لتغيير الخياط المسندة إليه الفاتورة">
-          <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(37,99,235,0.06);padding:3px 8px;border-radius:6px;border:1px dashed rgba(37,99,235,0.25);font-size:12px;">
-            ✂️ ${r.tailor_name || 'غير محدد'} <small style="color:var(--primary);font-size:11px;">✎</small>
-          </span>
-        </td>
-        <td>${r.emp_name || '—'}</td>
-        <td>${statusBadge}</td>
-        <td><span class="badge ${r.payment_method==='أجل'?'badge-warning':'badge-success'}">${r.payment_method}</span></td>
-        <td>${fmt(r.subtotal)}</td>
-        <td style="color:var(--danger);">${fmt((r.discount_amount||0) + ((r.subtotal||0)*(r.discount_percent||0)/100))}</td>
-        <td style="font-weight:700;color:var(--accent);">${fmt(r.dynamic_net_total)}</td>
-        <td style="color:var(--success);">${fmt(r.amount_paid)}</td>
-        <td style="color:var(--danger);">${fmt(r.remaining)}</td>
-        <td style="display:flex;gap:4px;flex-wrap:nowrap;">
-          <button class="btn btn-sm btn-outline" onclick="promptChangeInvoiceTailor(${r.id}, ${r.tailor_id || 'null'}, '${escapeHtml(r.tailor_name || '')}', '${escapeHtml(r.invoice_number)}', ${r.dynamic_net_total || 0})" title="تغيير الخياط المسندة إليه الفاتورة" style="border-color:var(--primary);color:var(--primary);">✂️ الخياط</button>
-          ${r.remaining > 0 && !r.is_returned ? `<button class="btn btn-sm btn-success" onclick="payInvoiceDebt(${r.id}, ${r.remaining})">تسديد</button>` : ''}
-          ${(r.amount_paid > 0 && sessionStorage.getItem('elTarzy_role') === 'admin') ? `<button class="btn btn-sm btn-danger" onclick="reversePaymentPrompt(${r.id}, ${r.amount_paid})">إرجاع تسديد</button>` : ''}
-          <button class="btn btn-sm btn-outline" onclick='reprintPastInvoice(${JSON.stringify(r).replace(/\\x27/g,"&apos;")})' style="border-color:var(--text-muted); color:var(--text-primary);">طباعة</button>
-        </td>
-      </tr>
-    `;
-  }).join('');
+  renderSalesTablePage();
   
   document.getElementById('salesTotal').textContent = fmt(totals.t);
   document.getElementById('salesPaid').textContent = fmt(totals.p);
@@ -609,23 +638,20 @@ async function reprintPastInvoice(inv) {
     const settingsRes = await window.db.getSettings();
     const settings = settingsRes.success ? settingsRes.data : {};
     
-    // جلب أحدث بيانات الفاتورة للتأكد من الخياط والكاشير
-    let tailorName = inv.tailor_name || '';
+    // جلب أحدث بيانات الفاتورة للتأكد من الكاشير
     let cashierName = inv.emp_name || '';
     if (inv.id) {
       const freshInv = await window.db.queryOne(
         `SELECT i.*, c.name as customer_name, c.phone as customer_phone,
-                e.name as cashier_name, t.name as tailor_name
+                e.name as cashier_name
          FROM invoices i
          LEFT JOIN customers c ON i.customer_id = c.id
          LEFT JOIN employees e ON i.employee_id = e.id
-         LEFT JOIN employees t ON i.tailor_id = t.id
          WHERE i.id = ?`,
         [inv.id]
       );
       if (freshInv.success && freshInv.data) {
         inv = Object.assign({}, inv, freshInv.data);
-        tailorName = freshInv.data.tailor_name || '';
         cashierName = freshInv.data.cashier_name || '';
       }
     }
@@ -654,9 +680,7 @@ async function reprintPastInvoice(inv) {
     const addressHTML = settings.address ? `<div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:2px;">العنوان: ${settings.address}</div>` : '';
     const phoneHTML = settings.phone ? `<div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:2px;">تليفون: ${settings.phone}</div>` : '';
     
-    const hasTailor = tailorName && tailorName.trim() !== '' && tailorName !== 'اختر الخياط...' && tailorName !== 'بدون خياط' && !tailorName.includes('--');
-    const tailorHTML = (settings.show_tailor_name && hasTailor) ? `<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-weight:700;">الخياط:</span><span style="font-weight:700;">${tailorName}</span></div>` : '';
-    const cashierHTML = cashierName ? `<div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px;color:#333;"><span>الكاشير:</span><span>${cashierName}</span></div>` : '';
+    const cashierHTML = cashierName ? `<div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px;color:#333;"><span>الكاشير/البائع:</span><span>${cashierName}</span></div>` : '';
     const custNameHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-weight:700;">العميل:</span><span style="font-weight:700;">${inv.customer_name || 'عميل نقدي'}</span></div>`;
     
     let custPhone = '';
@@ -686,8 +710,7 @@ async function reprintPastInvoice(inv) {
         print-color-adjust:exact;
       ">
         ${logoHTML}
-        <div style="text-align:center;font-size:20px;font-weight:900;margin-bottom:4px;letter-spacing:0.5px;">${settings.company_name||'EL-Tarzy'}</div>
-        <div style="text-align:center;font-size:14px;font-weight:700;margin-bottom:6px;">محل الترزي</div>
+        <div style="text-align:center;font-size:20px;font-weight:900;margin-bottom:4px;letter-spacing:0.5px;">${settings.company_name||'استوديو التصوير'}</div>
         ${addressHTML}
         ${phoneHTML}
         <div style="border-top:2px dashed #000;margin:6px 0;"></div>
@@ -695,7 +718,6 @@ async function reprintPastInvoice(inv) {
         <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-weight:700;">التاريخ:</span><span style="font-weight:700;">${date}</span></div>
         ${custNameHTML}
         ${custPhoneHTML}
-        ${tailorHTML}
         ${cashierHTML}
         <div style="border-top:2px dashed #000;margin:6px 0;"></div>
         <table style="width:100%;border-collapse:collapse;font-size:13px;font-weight:700;table-layout:fixed;">
@@ -770,7 +792,7 @@ async function factoryReset() {
   
   const tables = ['invoice_items','invoices','return_items','returns','attendance','leaves','advances',
     'deductions','incentives','salary_payments','custody','shifts','expenses','revenues','treasury',
-    'purchase_items','purchases','customers','suppliers','partners','employees','services'];
+    'purchase_items','purchases','customers','suppliers','employees','services'];
     
   for(let t of tables) await window.db.run(`DELETE FROM ${t}`,[]);
   
@@ -783,7 +805,7 @@ async function factoryReset() {
 
 // ─── Role Check & Quit ────────────────────────────────────────────────────────
 async function applyRoleVisibility() {
-  const role = sessionStorage.getItem('elTarzy_role');
+  const role = sessionStorage.getItem('photoStudio_role');
   if (role === 'cashier') {
     const cleanupTab = document.getElementById('cleanupTab');
     if(cleanupTab) cleanupTab.style.display = 'none';
@@ -817,94 +839,6 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-async function promptChangeInvoiceTailor(invoiceId, currentTailorId, currentTailorName, invoiceNumber, netTotal) {
-  try {
-    const tailorsRes = await window.db.query('SELECT id, name FROM employees WHERE is_active = 1 ORDER BY name');
-    const tailors = tailorsRes.success ? tailorsRes.data : [];
-
-    let optionsHtml = `<option value="">-- بدون خياط --</option>`;
-    tailors.forEach(t => {
-      const selected = (currentTailorId && Number(currentTailorId) === Number(t.id)) ? 'selected' : '';
-      optionsHtml += `<option value="${t.id}" ${selected}>${escapeHtml(t.name)}</option>`;
-    });
-
-    const displayCurrent = currentTailorName && currentTailorName.trim() !== '' ? currentTailorName : 'بدون خياط';
-
-    const { value: formValues } = await Swal.fire({
-      title: '✂️ تعديل الخياط المسندة إليه الفاتورة',
-      html: `
-        <div style="text-align:right;font-size:13px;line-height:1.7;color:#333;margin-bottom:12px;">
-          <div style="background:#f8fafc;padding:10px 14px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:12px;">
-            <div><strong>رقم الفاتورة:</strong> <span style="color:var(--primary);font-weight:700;">${escapeHtml(invoiceNumber)}</span></div>
-            <div><strong>الخياط الحالي:</strong> <span style="font-weight:700;color:#e11d48;">${escapeHtml(displayCurrent)}</span></div>
-            <div><strong>صافي الفاتورة:</strong> <span style="font-weight:700;color:#16a34a;">${fmt(netTotal)} ج.م</span></div>
-          </div>
-          <div style="background:#fffbeb;border-right:4px solid #f59e0b;padding:8px 12px;border-radius:4px;font-size:12px;color:#92400e;margin-bottom:14px;">
-            ⚠️ <strong>تنبيه مالي:</strong> عند تغيير الخياط، سيتم نقل قيمة الفاتورة وحساب عمولتها تلقائياً من مرتب الخياط السابق وإضافتها لمرتب الخياط الجديد في جميع كشوفات المرتبات والتقارير.
-          </div>
-          <label style="display:block;font-weight:700;margin-bottom:4px;">اختر الخياط الجديد:</label>
-          <select id="swalNewTailor" class="swal2-select" style="width:100%;margin:0 0 14px 0;padding:8px;border-radius:6px;border:1px solid #cbd5e1;font-size:14px;">
-            ${optionsHtml}
-          </select>
-          <label style="display:block;font-weight:700;margin-bottom:4px;">🔒 رمز الأمان (PIN المكون من 6 أرقام):</label>
-          <input id="swalTailorPin" type="password" maxlength="6" class="swal2-input" placeholder="أدخل 6 أرقام (افتراضي 123456)" style="width:100%;margin:0;padding:8px;box-sizing:border-box;border-radius:6px;border:1px solid #cbd5e1;text-align:center;font-size:18px;letter-spacing:4px;" autocomplete="off" />
-        </div>
-      `,
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: 'حفظ وتحديث الحسابات',
-      cancelButtonText: 'إلغاء',
-      confirmButtonColor: '#2563eb',
-      preConfirm: () => {
-        const newTailor = document.getElementById('swalNewTailor').value;
-        const pin = document.getElementById('swalTailorPin').value.trim();
-        if (!pin) {
-          Swal.showValidationMessage('يرجى إدخال رمز الأمان المكون من 6 أرقام');
-          return false;
-        }
-        if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
-          Swal.showValidationMessage('رمز الأمان يجب أن يتكون من 6 أرقام بالضبط');
-          return false;
-        }
-        return {
-          newTailorId: newTailor ? parseInt(newTailor, 10) : null,
-          pin: pin
-        };
-      }
-    });
-
-    if (formValues) {
-      const res = await window.db.updateInvoiceTailor({
-        invoiceId: invoiceId,
-        newTailorId: formValues.newTailorId,
-        pin: formValues.pin
-      });
-
-      if (res && res.success) {
-        await Swal.fire({
-          icon: 'success',
-          title: 'تم التعديل بنجاح',
-          text: res.message || 'تم تحديث خياط الفاتورة وإعادة ضبط كشوفات الحسابات والمرتبات فوراً',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        loadSalesReport();
-      } else {
-        await Swal.fire({
-          icon: 'error',
-          title: 'فشل التعديل',
-          text: (res && res.error) ? res.error : 'رمز الأمان غير صحيح أو حدث خطأ أثناء التحديث'
-        });
-      }
-    }
-  } catch (err) {
-    console.error('Error changing invoice tailor:', err);
-    showToast('حدث خطأ غير متوقع: ' + err.message, 'error');
-  }
-}
-
 // Init first tab
 applyRoleVisibility();
-loadTailorsDropdown().then(() => {
-  loadSalesReport();
-});
+loadSalesReport();

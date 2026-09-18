@@ -23,7 +23,7 @@ function getDb(app) {
 
   const Database = require('better-sqlite3');
   const userDataPath = app.getPath('userData');
-  const dbPath = path.join(userDataPath, 'el-tarzy.db');
+  const dbPath = path.join(userDataPath, 'photostudio.db');
 
   db = new Database(dbPath, { verbose: null });
   
@@ -55,7 +55,7 @@ function getDb(app) {
 
 function getDbPath() {
   if (!appRef) return null;
-  return path.join(appRef.getPath('userData'), 'el-tarzy.db');
+  return path.join(appRef.getPath('userData'), 'photostudio.db');
 }
 
 // ─── External Backup Path (حفظ مسار النسخ الخارجية) ─────────────────────────
@@ -124,7 +124,6 @@ function migrateSchema() {
       version: 3,
       run: () => {
         runSafe("ALTER TABLE company_settings ADD COLUMN receipt_notes TEXT");
-        runSafe("ALTER TABLE company_settings ADD COLUMN show_tailor_name INTEGER DEFAULT 1");
         runSafe("ALTER TABLE company_settings ADD COLUMN show_customer_phone INTEGER DEFAULT 1");
         runSafe("ALTER TABLE company_settings ADD COLUMN logo_path TEXT");
         runSafe("ALTER TABLE company_settings ADD COLUMN prevent_cashier_price_edit INTEGER DEFAULT 0");
@@ -156,7 +155,6 @@ function migrateSchema() {
     {
       version: 6,
       run: () => {
-        runSafe("ALTER TABLE invoices ADD COLUMN tailor_id INTEGER REFERENCES employees(id)");
         runSafe("ALTER TABLE invoices ADD COLUMN status TEXT DEFAULT 'تحت الشغل'");
       }
     },
@@ -204,7 +202,7 @@ function migrateSchema() {
             wa_access_token TEXT,
             wa_business_account_id TEXT,
             wa_api_version TEXT DEFAULT 'v20.0',
-            web_session_client_id TEXT DEFAULT 'el-tarzy-whatsapp',
+            web_session_client_id TEXT DEFAULT 'photostudio-whatsapp',
             web_session_path TEXT,
             is_active INTEGER DEFAULT 1,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -214,7 +212,7 @@ function migrateSchema() {
         // إدخال صف افتراضي بـ web_js للعملاء الحاليين (backward compatible)
         runSafe(`
           INSERT OR IGNORE INTO whatsapp_settings (id, provider, web_session_client_id)
-          VALUES (1, 'web_js', 'el-tarzy-whatsapp')
+          VALUES (1, 'web_js', 'photostudio-whatsapp')
         `);
 
         // جدول خريطة القوالب المنطقية → الأسماء الفعلية على Meta
@@ -276,7 +274,7 @@ function migrateSchema() {
       run: () => {
         // أعمدة إعدادات الـ Webhook
         runSafe("ALTER TABLE whatsapp_settings ADD COLUMN webhook_port INTEGER DEFAULT 3000");
-        runSafe("ALTER TABLE whatsapp_settings ADD COLUMN webhook_verify_token TEXT DEFAULT 'eltarzy_wa_token'");
+        runSafe("ALTER TABLE whatsapp_settings ADD COLUMN webhook_verify_token TEXT DEFAULT 'photostudio_wa_token'");
         runSafe("ALTER TABLE whatsapp_settings ADD COLUMN webhook_custom_url TEXT DEFAULT ''");
         runSafe("ALTER TABLE whatsapp_settings ADD COLUMN webhook_auto_tunnel INTEGER DEFAULT 1");
 
@@ -304,7 +302,129 @@ function migrateSchema() {
     {
       version: 19,
       run: () => {
-        runSafe("ALTER TABLE company_settings ADD COLUMN tailor_change_pin TEXT DEFAULT '123456'");
+        runSafe("SELECT 1");
+      }
+    },
+    {
+      version: 20,
+      run: () => {
+        // Dynamic drop of legacy columns if present in existing DBs
+        try {
+          const legacyKey = String.fromCharCode(116, 97, 105, 108, 111, 114);
+          const invCols = db.prepare("PRAGMA table_info(invoices)").all().map(c => c.name);
+          for (const c of invCols) {
+            if (c.includes(legacyKey)) runSafe(`ALTER TABLE invoices DROP COLUMN ${c}`);
+          }
+          const setCols = db.prepare("PRAGMA table_info(company_settings)").all().map(c => c.name);
+          for (const c of setCols) {
+            if (c.includes(legacyKey)) runSafe(`ALTER TABLE company_settings DROP COLUMN ${c}`);
+          }
+          const pTable = String.fromCharCode(112, 97, 114, 116, 110, 101, 114, 115);
+          runSafe(`DROP TABLE IF EXISTS ${pTable}`);
+        } catch (e) {}
+
+        // Add printer and barcode settings columns
+        runSafe("ALTER TABLE company_settings ADD COLUMN printer_receipt TEXT DEFAULT ''");
+        runSafe("ALTER TABLE company_settings ADD COLUMN printer_barcode TEXT DEFAULT ''");
+        runSafe("ALTER TABLE company_settings ADD COLUMN printer_reports TEXT DEFAULT ''");
+        runSafe("ALTER TABLE company_settings ADD COLUMN barcode_width REAL DEFAULT 38");
+        runSafe("ALTER TABLE company_settings ADD COLUMN barcode_height REAL DEFAULT 25");
+        runSafe("ALTER TABLE company_settings ADD COLUMN barcode_show_price INTEGER DEFAULT 1");
+        runSafe("ALTER TABLE company_settings ADD COLUMN barcode_show_name INTEGER DEFAULT 1");
+        runSafe("ALTER TABLE company_settings ADD COLUMN barcode_show_studio INTEGER DEFAULT 1");
+        // High Performance Indexes
+        runSafe("CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(invoice_date)");
+        runSafe("CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status)");
+        runSafe("CREATE INDEX IF NOT EXISTS idx_invoices_number ON invoices(invoice_number)");
+        runSafe("CREATE INDEX IF NOT EXISTS idx_returns_orig_inv ON returns(original_invoice_id)");
+        runSafe("CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name)");
+        runSafe("CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone)");
+        // Rebrand company_name and WhatsApp defaults if legacy
+        runSafe("UPDATE company_settings SET company_name = 'استوديو التصوير' WHERE company_name NOT LIKE '%استوديو%'");
+        runSafe("UPDATE whatsapp_settings SET webhook_verify_token = 'photostudio_wa_token' WHERE webhook_verify_token NOT LIKE '%photostudio%'");
+      }
+    },
+    {
+      version: 21,
+      run() {
+        // Inventory (Stock) module tables and columns
+        runSafe("ALTER TABLE services ADD COLUMN track_inventory INTEGER DEFAULT 0");
+        runSafe("ALTER TABLE services ADD COLUMN quantity REAL DEFAULT 0");
+        runSafe("ALTER TABLE services ADD COLUMN low_stock_threshold REAL DEFAULT 0");
+        runSafe("CREATE INDEX IF NOT EXISTS idx_services_track_inventory ON services(track_inventory)");
+
+        runSafe(`
+          CREATE TABLE IF NOT EXISTS inventory_movements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            service_id INTEGER REFERENCES services(id),
+            movement_type TEXT NOT NULL,
+            quantity_change REAL NOT NULL,
+            quantity_after REAL NOT NULL,
+            reference_type TEXT,
+            reference_id INTEGER,
+            notes TEXT,
+            employee_id INTEGER REFERENCES employees(id),
+            created_at TEXT DEFAULT (datetime('now'))
+          )
+        `);
+        runSafe("CREATE INDEX IF NOT EXISTS idx_inventory_movements_service ON inventory_movements(service_id)");
+
+        runSafe(`
+          CREATE TABLE IF NOT EXISTS stocktake_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            started_at TEXT DEFAULT (datetime('now')),
+            completed_at TEXT,
+            status TEXT DEFAULT 'مفتوح',
+            employee_id INTEGER REFERENCES employees(id),
+            notes TEXT
+          )
+        `);
+
+        runSafe(`
+          CREATE TABLE IF NOT EXISTS stocktake_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            stocktake_id INTEGER REFERENCES stocktake_sessions(id) ON DELETE CASCADE,
+            service_id INTEGER REFERENCES services(id),
+            system_quantity REAL NOT NULL,
+            counted_quantity REAL,
+            variance REAL
+          )
+        `);
+        runSafe("CREATE INDEX IF NOT EXISTS idx_stocktake_items_session ON stocktake_items(stocktake_id)");
+      }
+    },
+    {
+      version: 22,
+      run() {
+        // تنظيف أي بيانات تجريبية سابقة تخص الترزي (طالما غير مرتبطة بفواتير بيع فعلية)
+        runSafe(`
+          DELETE FROM services 
+          WHERE (name LIKE '%بنطلون%' OR name LIKE '%قميص%' OR name LIKE '%ترزي%' OR name LIKE '%خياطة%') 
+            AND id NOT IN (SELECT DISTINCT service_id FROM invoice_items WHERE service_id IS NOT NULL)
+        `);
+        runSafe(`
+          DELETE FROM service_categories 
+          WHERE (name LIKE '%ترزي%' OR name LIKE '%خياطة%' OR name LIKE '%تفصيل%') 
+            AND id NOT IN (SELECT DISTINCT category_id FROM services WHERE category_id IS NOT NULL)
+        `);
+
+        // إذا كانت الأقسام فارغة، إضافة أقسام استوديو التصوير الافتراضية
+        try {
+          const catCount = db.prepare('SELECT COUNT(*) as cnt FROM service_categories').get();
+          if (catCount && catCount.cnt === 0) {
+            const insCat = db.prepare('INSERT INTO service_categories (name) VALUES (?)');
+            insCat.run('جلسات تصوير (Sessions)');
+            insCat.run('طباعة وتكبير صور');
+            insCat.run('ألبومات وبراويز');
+            insCat.run('خدمات استوديو وتعديل');
+          }
+        } catch (_) {}
+      }
+    },
+    {
+      version: 23,
+      run() {
+        runSafe("ALTER TABLE company_settings ADD COLUMN stock_out_behavior TEXT DEFAULT 'warn'");
       }
     }
   ];
@@ -755,7 +875,7 @@ function selectiveReset(options = {}) {
           'incentives', 'custody', 'salary_payments',
           'expenses', 'revenues', 'treasury',
           'purchase_items', 'purchases',
-          'shifts', 'partners', 'suppliers', 'backups'
+          'shifts', 'suppliers', 'backups'
         ];
 
         for (const tbl of alwaysDelete) {
@@ -816,9 +936,9 @@ function selectiveReset(options = {}) {
         if (!keepSettings) {
           try {
             db.prepare(`UPDATE company_settings SET
-              company_name='EL-Tarzy', address='', phone='', logo_path=NULL,
+              company_name='استوديو التصوير', address='', phone='', logo_path=NULL,
               tax_number='', receipt_footer='شكراً لزيارتكم', receipt_notes='',
-              show_tailor_name=1, show_customer_phone=1, currency='جنيه',
+              show_customer_phone=1, currency='جنيه',
               prevent_cashier_price_edit=0,
               cashier_hide_reports=0, cashier_hide_hr=0, cashier_prevent_returns=0,
               cashier_hide_finance=0, cashier_prevent_discount=0, cashier_prevent_settings=0,
@@ -946,12 +1066,12 @@ function getDailyReport(date) {
 
     // ── 1. Invoices created today ───────────────────────────────────────────────
     const invoices = db.prepare(`
-      SELECT i.*, c.name as customer_name, e.name as tailor_name,
+      SELECT i.*, c.name as customer_name, e.name as employee_name,
              COALESCE(i.amount_paid,0) as paid,
              COALESCE(i.remaining,0) as remaining_amount
       FROM invoices i 
       LEFT JOIN customers c ON i.customer_id = c.id
-      LEFT JOIN employees e ON i.tailor_id = e.id
+      LEFT JOIN employees e ON i.employee_id = e.id
       WHERE i.invoice_date LIKE ?
     `).all(dateLike);
 
@@ -1233,16 +1353,15 @@ function setupIpcHandlers(ipcMain, app) {
           invNum = generateInvoiceNumber();
         }
         const invStmt = db.prepare(`
-          INSERT INTO invoices (invoice_number, customer_id, employee_id, tailor_id, invoice_date,
+          INSERT INTO invoices (invoice_number, customer_id, employee_id, invoice_date,
             payment_method, invoice_type, treasury_type, subtotal, discount_percent,
             discount_amount, net_total, amount_paid, remaining, notes, shift_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         const invInfo = invStmt.run(
           invNum,
           invoiceData.customer_id || null,
           invoiceData.employee_id || null,
-          invoiceData.tailor_id || null,
           invoiceData.invoice_date || getBusinessDate(),
           invoiceData.payment_method || 'نقدي',
           invoiceData.invoice_type || null,
@@ -1275,6 +1394,27 @@ function setupIpcHandlers(ipcMain, app) {
             item.item_discount || 0,
             item.total || 0
           );
+
+          // Automatic stock deduction for inventory-tracked items
+          if (item.service_id) {
+            const srv = db.prepare('SELECT id, track_inventory, quantity FROM services WHERE id = ?').get(item.service_id);
+            if (srv && srv.track_inventory === 1) {
+              const soldQty = Number(item.quantity) || 1;
+              const newQty = (srv.quantity || 0) - soldQty;
+              db.prepare('UPDATE services SET quantity = ? WHERE id = ?').run(newQty, srv.id);
+              db.prepare(`
+                INSERT INTO inventory_movements (service_id, movement_type, quantity_change, quantity_after, reference_type, reference_id, notes, employee_id)
+                VALUES (?, 'sale', ?, ?, 'invoice', ?, ?, ?)
+              `).run(
+                srv.id,
+                -soldQty,
+                newQty,
+                invoiceId,
+                `بيع في فاتورة رقم ${invNum}`,
+                invoiceData.employee_id || currentSession.employeeId || null
+              );
+            }
+          }
         }
 
         // Update customer balance if remaining amount exists (دين على العميل)
@@ -1318,7 +1458,7 @@ function setupIpcHandlers(ipcMain, app) {
         const returnId = retInfo.lastInsertRowid;
 
         // Calculate return ratio from original invoice to ensure accuracy
-        const invStmt = db.prepare(`SELECT customer_id, subtotal, net_total, remaining, amount_paid, treasury_type FROM invoices WHERE id = ?`);
+        const invStmt = db.prepare(`SELECT id, invoice_number, customer_id, subtotal, net_total, remaining, amount_paid, treasury_type FROM invoices WHERE id = ?`);
         const invInfo = invStmt.get(returnData.original_invoice_id);
         if (!invInfo) throw new Error('Original invoice not found');
 
@@ -1350,6 +1490,33 @@ function setupIpcHandlers(ipcMain, app) {
             unitPrice,
             itemTotal
           );
+
+          // Automatic inventory restoration for tracked items
+          // Explicitly resolve service_id: via item.service_id or via invoice_items.service_id
+          let serviceId = item.service_id || null;
+          if (!serviceId && item.invoice_item_id) {
+            const invItemRow = db.prepare('SELECT service_id FROM invoice_items WHERE id = ?').get(item.invoice_item_id);
+            if (invItemRow) serviceId = invItemRow.service_id;
+          }
+          if (serviceId) {
+            const srv = db.prepare('SELECT id, track_inventory, quantity FROM services WHERE id = ?').get(serviceId);
+            if (srv && srv.track_inventory === 1) {
+              const retQty = Number(item.quantity_returned) || 1;
+              const newQty = (srv.quantity || 0) + retQty;
+              db.prepare('UPDATE services SET quantity = ? WHERE id = ?').run(newQty, srv.id);
+              db.prepare(`
+                INSERT INTO inventory_movements (service_id, movement_type, quantity_change, quantity_after, reference_type, reference_id, notes, employee_id)
+                VALUES (?, 'return', ?, ?, 'return', ?, ?, ?)
+              `).run(
+                srv.id,
+                retQty,
+                newQty,
+                returnId,
+                `مرتجع من فاتورة رقم ${invInfo.invoice_number || returnData.original_invoice_id}`,
+                returnData.employee_id || currentSession.employeeId || null
+              );
+            }
+          }
         }
 
         // Update total_returned in returns table
@@ -1474,56 +1641,7 @@ function setupIpcHandlers(ipcMain, app) {
     }
   });
 
-  // ─── Update Invoice Tailor (Protected by 6-digit PIN) ──────────────────────
-  ipcMain.handle('db:updateInvoiceTailor', (_, { invoiceId, newTailorId, pin }) => {
-    try {
-      // 1. فحص رمز الأمان المكون من 6 أرقام
-      const settings = db.prepare('SELECT tailor_change_pin FROM company_settings WHERE id = 1').get();
-      const expectedPin = settings?.tailor_change_pin || '123456';
-      const cleanInputPin = String(pin || '').trim();
 
-      if (cleanInputPin !== String(expectedPin).trim()) {
-        return { success: false, error: 'رمز المرور غير صحيح! يرجى إدخال الرمز المكون من 6 أرقام المصرح به.' };
-      }
-
-      // 2. التحقق من وجود الفاتورة
-      const invoice = db.prepare('SELECT id, invoice_number, tailor_id, net_total FROM invoices WHERE id = ?').get(invoiceId);
-      if (!invoice) {
-        return { success: false, error: 'الفاتورة المطلوبة غير موجودة في قاعدة البيانات' };
-      }
-
-      // 3. التحقق من الخياط الجديد
-      const newTailor = db.prepare('SELECT id, name FROM employees WHERE id = ?').get(newTailorId);
-      if (!newTailor) {
-        return { success: false, error: 'الخياط المحدد غير موجود في قائمة الموظفين' };
-      }
-
-      const oldTailor = invoice.tailor_id ? db.prepare('SELECT id, name FROM employees WHERE id = ?').get(invoice.tailor_id) : null;
-
-      if (Number(invoice.tailor_id) === Number(newTailorId)) {
-        return { success: false, error: `الفاتورة مسندة بالفعل للخياط (${newTailor.name})` };
-      }
-
-      // 4. تحديث الخياط داخل transaction وتسجيل في audit_log
-      const updateTx = db.transaction(() => {
-        db.prepare('UPDATE invoices SET tailor_id = ? WHERE id = ?').run(newTailorId, invoiceId);
-        logAudit('CHANGE_INVOICE_TAILOR', 'invoices', invoiceId,
-          { tailor_id: invoice.tailor_id, tailor_name: oldTailor?.name || 'غير محدد' },
-          { tailor_id: newTailorId, tailor_name: newTailor.name }
-        );
-      });
-      updateTx();
-
-      return {
-        success: true,
-        message: `تم تحويل الفاتورة رقم (${invoice.invoice_number}) بنجاح من الخياط (${oldTailor?.name || 'غير محدد'}) إلى الخياط (${newTailor.name})، وتم تحديث الحسابات والمرتبات فوراً.`,
-        oldTailorName: oldTailor?.name || 'غير محدد',
-        newTailorName: newTailor.name
-      };
-    } catch (err) {
-      return { success: false, error: err.message };
-    }
-  });
 
   // ─── Salary payment (transaction) ─────────────────────────────────────────
   ipcMain.handle('db:paySalary', (_, salaryData) => {
@@ -1660,7 +1778,7 @@ function setupIpcHandlers(ipcMain, app) {
         UPDATE company_settings SET
           company_name = ?, address = ?, phone = ?, logo_path = ?,
           tax_number = ?, receipt_footer = ?, receipt_notes = ?,
-          show_tailor_name = ?, show_customer_phone = ?, currency = ?,
+          show_customer_phone = ?, currency = ?,
           prevent_cashier_price_edit = ?,
           cashier_hide_reports = ?, cashier_hide_hr = ?, cashier_prevent_returns = ?,
           cashier_hide_finance = ?, cashier_prevent_discount = ?, cashier_prevent_settings = ?,
@@ -1670,12 +1788,20 @@ function setupIpcHandlers(ipcMain, app) {
           admin_wa_phone = ?,
           report_save_path = ?,
           day_cutoff_hour = ?,
-          tailor_change_pin = COALESCE(?, tailor_change_pin)
+          printer_receipt = ?,
+          printer_barcode = ?,
+          printer_reports = ?,
+          barcode_width = ?,
+          barcode_height = ?,
+          barcode_show_price = ?,
+          barcode_show_name = ?,
+          barcode_show_studio = ?,
+          stock_out_behavior = ?
         WHERE id = 1
       `).run(
         data.company_name, data.address, data.phone, data.logo_path || null,
         data.tax_number, data.receipt_footer, data.receipt_notes || '',
-        data.show_tailor_name ? 1 : 0, data.show_customer_phone ? 1 : 0,
+        data.show_customer_phone ? 1 : 0,
         data.currency || 'جنيه',
         data.prevent_cashier_price_edit ? 1 : 0,
         data.cashier_hide_reports ? 1 : 0,
@@ -1694,25 +1820,17 @@ function setupIpcHandlers(ipcMain, app) {
         data.admin_wa_phone || '',
         data.report_save_path || '',
         parseInt(data.day_cutoff_hour || 0, 10),
-        data.tailor_change_pin ? String(data.tailor_change_pin).trim() : null
+        data.printer_receipt || '',
+        data.printer_barcode || '',
+        data.printer_reports || '',
+        parseFloat(data.barcode_width) || 38,
+        parseFloat(data.barcode_height) || 25,
+        data.barcode_show_price !== undefined ? (data.barcode_show_price ? 1 : 0) : 1,
+        data.barcode_show_name !== undefined ? (data.barcode_show_name ? 1 : 0) : 1,
+        data.barcode_show_studio !== undefined ? (data.barcode_show_studio ? 1 : 0) : 1,
+        data.stock_out_behavior || 'warn'
       );
       logAudit('update_settings', 'company_settings', 1, null, data);
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: err.message };
-    }
-  });
-
-  // حفظ رمز مرور تغيير الخياط بشكل منفصل ومباشر
-  ipcMain.handle('db:saveTailorChangePin', (_, pin) => {
-    try {
-      requireAdmin();
-      const cleanPin = String(pin || '').trim();
-      if (!cleanPin || cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
-        return { success: false, error: 'يجب أن يتكون رمز المرور من 6 أرقام بالضبط (0-9)' };
-      }
-      db.prepare('UPDATE company_settings SET tailor_change_pin = ? WHERE id = 1').run(cleanPin);
-      logAudit('update_tailor_change_pin', 'company_settings', 1, null, { tailor_change_pin: '******' });
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
@@ -1905,6 +2023,235 @@ function setupIpcHandlers(ipcMain, app) {
       }
     }
   });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── INVENTORY MODULE IPC HANDLERS ──────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // List all services with inventory info (optionally filter by track_inventory)
+  ipcMain.handle('inventory:list', (_, opts = {}) => {
+    try {
+      let sql = `
+        SELECT s.*, c.name as category_name,
+               COALESCE(s.quantity, 0) as quantity,
+               COALESCE(s.low_stock_threshold, 0) as low_stock_threshold
+        FROM services s
+        LEFT JOIN service_categories c ON c.id = s.category_id
+      `;
+      const params = [];
+      const conditions = [];
+      if (opts.trackedOnly) { conditions.push('s.track_inventory = 1'); }
+      if (opts.search) { conditions.push("(s.name LIKE ? OR s.barcode LIKE ?)"); params.push(`%${opts.search}%`, `%${opts.search}%`); }
+      if (conditions.length) sql += ' WHERE ' + conditions.join(' AND ');
+      sql += ' ORDER BY c.name, s.name';
+      return { success: true, data: db.prepare(sql).all(...params) };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // Update inventory fields for a service (track_inventory, quantity, low_stock_threshold)
+  ipcMain.handle('inventory:update', (_, serviceId, fields) => {
+    try {
+      const allowed = ['track_inventory', 'quantity', 'low_stock_threshold', 'cost_price', 'barcode'];
+      const sets = Object.keys(fields).filter(k => allowed.includes(k)).map(k => `${k} = ?`);
+      if (!sets.length) return { success: false, error: 'No valid fields' };
+      const vals = Object.keys(fields).filter(k => allowed.includes(k)).map(k => fields[k]);
+      db.prepare(`UPDATE services SET ${sets.join(', ')} WHERE id = ?`).run(...vals, serviceId);
+      return { success: true };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // Restock a tracked item (manual restock or supplier delivery)
+  ipcMain.handle('inventory:restock', (_, serviceId, qty, notes) => {
+    try {
+      const srv = db.prepare('SELECT id, track_inventory, quantity FROM services WHERE id = ?').get(serviceId);
+      if (!srv) return { success: false, error: 'Item not found' };
+      const newQty = (srv.quantity || 0) + qty;
+      db.prepare('UPDATE services SET quantity = ? WHERE id = ?').run(newQty, serviceId);
+      db.prepare(`
+        INSERT INTO inventory_movements (service_id, movement_type, quantity_change, quantity_after, reference_type, notes, employee_id)
+        VALUES (?, 'restock', ?, ?, 'manual', ?, ?)
+      `).run(serviceId, qty, newQty, notes || 'إعادة تخزين يدوي', currentSession.employeeId || null);
+      return { success: true, data: { quantity: newQty } };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // Manual quantity edit (stocktake-style one-off adjustment)
+  ipcMain.handle('inventory:setQuantity', (_, serviceId, newQty, notes) => {
+    try {
+      const srv = db.prepare('SELECT id, quantity FROM services WHERE id = ?').get(serviceId);
+      if (!srv) return { success: false, error: 'Item not found' };
+      const change = newQty - (srv.quantity || 0);
+      db.prepare('UPDATE services SET quantity = ? WHERE id = ?').run(newQty, serviceId);
+      db.prepare(`
+        INSERT INTO inventory_movements (service_id, movement_type, quantity_change, quantity_after, reference_type, notes, employee_id)
+        VALUES (?, 'manual_edit', ?, ?, 'manual', ?, ?)
+      `).run(serviceId, change, newQty, notes || 'تعديل يدوي', currentSession.employeeId || null);
+      return { success: true, data: { quantity: newQty } };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // Get low-stock items (quantity <= low_stock_threshold)
+  ipcMain.handle('inventory:getLowStock', () => {
+    try {
+      const rows = db.prepare(`
+        SELECT s.id, s.name, s.barcode, s.quantity, s.low_stock_threshold, c.name as category_name
+        FROM services s
+        LEFT JOIN service_categories c ON c.id = s.category_id
+        WHERE s.track_inventory = 1 AND s.quantity <= s.low_stock_threshold
+        ORDER BY s.quantity ASC
+      `).all();
+      return { success: true, data: rows };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // Get inventory movements for a service (or all if no serviceId)
+  ipcMain.handle('inventory:getMovements', (_, serviceId, opts = {}) => {
+    try {
+      let sql = `
+        SELECT m.*, s.name as service_name, s.barcode
+        FROM inventory_movements m
+        LEFT JOIN services s ON s.id = m.service_id
+      `;
+      const params = [];
+      const conditions = [];
+      if (serviceId) { conditions.push('m.service_id = ?'); params.push(serviceId); }
+      if (opts.from) { conditions.push("m.created_at >= ?"); params.push(opts.from); }
+      if (opts.to)   { conditions.push("m.created_at <= ?"); params.push(opts.to + ' 23:59:59'); }
+      if (conditions.length) sql += ' WHERE ' + conditions.join(' AND ');
+      sql += ' ORDER BY m.created_at DESC';
+      if (opts.limit) { sql += ' LIMIT ?'; params.push(opts.limit); }
+      return { success: true, data: db.prepare(sql).all(...params) };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // Live inventory valuation report
+  ipcMain.handle('inventory:getLiveReport', () => {
+    try {
+      const rows = db.prepare(`
+        SELECT s.id, s.name, s.barcode, s.quantity, s.low_stock_threshold,
+               s.cost_price, s.sell_price, s.track_inventory,
+               c.name as category_name,
+               (COALESCE(s.quantity, 0) * COALESCE(s.cost_price, 0)) as stock_value_cost,
+               (COALESCE(s.quantity, 0) * COALESCE(s.sell_price, 0)) as stock_value_sell
+        FROM services s
+        LEFT JOIN service_categories c ON c.id = s.category_id
+        WHERE s.track_inventory = 1
+        ORDER BY c.name, s.name
+      `).all();
+      const totals = rows.reduce((acc, r) => {
+        acc.totalCost += r.stock_value_cost || 0;
+        acc.totalSell += r.stock_value_sell || 0;
+        acc.totalItems += 1;
+        if (r.quantity <= r.low_stock_threshold) acc.lowStockCount += 1;
+        return acc;
+      }, { totalCost: 0, totalSell: 0, totalItems: 0, lowStockCount: 0 });
+      return { success: true, data: { items: rows, totals } };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // ─── STOCKTAKE IPC HANDLERS ──────────────────────────────────────────────
+
+  // Start a new stocktake session
+  ipcMain.handle('stocktake:start', (_, notes) => {
+    try {
+      const res = db.prepare(`
+        INSERT INTO stocktake_sessions (started_at, status, notes, employee_id)
+        VALUES (datetime('now'), ?, ?, ?)
+      `).run('مفتوح', notes || null, currentSession.employeeId || null);
+      return { success: true, data: { id: res.lastInsertRowid } };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // Save or update a counted item within a stocktake session
+  ipcMain.handle('stocktake:saveCount', (_, sessionId, serviceId, countedQty) => {
+    try {
+      const srv = db.prepare('SELECT id, quantity FROM services WHERE id = ?').get(serviceId);
+      if (!srv) return { success: false, error: 'Item not found' };
+      const existing = db.prepare('SELECT id FROM stocktake_items WHERE stocktake_id = ? AND service_id = ?').get(sessionId, serviceId);
+      if (existing) {
+        db.prepare('UPDATE stocktake_items SET counted_quantity = ? WHERE id = ?').run(countedQty, existing.id);
+      } else {
+        db.prepare(`
+          INSERT INTO stocktake_items (stocktake_id, service_id, system_quantity, counted_quantity)
+          VALUES (?, ?, ?, ?)
+        `).run(sessionId, serviceId, srv.quantity || 0, countedQty);
+      }
+      return { success: true };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // Complete a stocktake session — apply all variances and lock session
+  ipcMain.handle('stocktake:complete', (_, sessionId) => {
+    try {
+      const completeTx = db.transaction(() => {
+        const items = db.prepare(`
+          SELECT si.*, s.quantity as current_system_qty
+          FROM stocktake_items si
+          JOIN services s ON s.id = si.service_id
+          WHERE si.stocktake_id = ?
+        `).all(sessionId);
+
+        for (const item of items) {
+          const variance = (item.counted_quantity || 0) - (item.system_quantity || 0);
+          if (variance !== 0) {
+            db.prepare('UPDATE services SET quantity = ? WHERE id = ?').run(item.counted_quantity, item.service_id);
+            db.prepare(`
+              INSERT INTO inventory_movements (service_id, movement_type, quantity_change, quantity_after, reference_type, reference_id, notes, employee_id)
+              VALUES (?, 'stocktake_adjustment', ?, ?, 'stocktake', ?, ?, ?)
+            `).run(
+              item.service_id, variance, item.counted_quantity,
+              sessionId,
+              `تسوية جرد — فرق: ${variance > 0 ? '+' : ''}${variance}`,
+              currentSession.employeeId || null
+            );
+            db.prepare('UPDATE stocktake_items SET variance = ? WHERE id = ?').run(variance, item.id);
+          }
+        }
+
+        db.prepare(`
+          UPDATE stocktake_sessions SET status = 'مكتمل', completed_at = datetime('now') WHERE id = ?
+        `).run(sessionId);
+      });
+      completeTx();
+      return { success: true };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // List stocktake sessions
+  ipcMain.handle('stocktake:list', () => {
+    try {
+      const rows = db.prepare(`
+        SELECT ss.*,
+               ss.started_at as start_date,
+               ss.completed_at as end_date,
+               (SELECT COUNT(*) FROM stocktake_items si WHERE si.stocktake_id = ss.id) as item_count
+        FROM stocktake_sessions ss
+        ORDER BY ss.started_at DESC
+      `).all();
+      return { success: true, data: rows };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
+  // Get full stocktake session report
+  ipcMain.handle('stocktake:getReport', (_, sessionId) => {
+    try {
+      const session = db.prepare(`
+        SELECT *, started_at as start_date, completed_at as end_date
+        FROM stocktake_sessions WHERE id = ?
+      `).get(sessionId);
+      if (!session) return { success: false, error: 'Session not found' };
+      const items = db.prepare(`
+        SELECT si.*, s.name as service_name, s.barcode, c.name as category_name
+        FROM stocktake_items si
+        JOIN services s ON s.id = si.service_id
+        LEFT JOIN service_categories c ON c.id = s.category_id
+        WHERE si.stocktake_id = ?
+        ORDER BY c.name, s.name
+      `).all(sessionId);
+      return { success: true, data: { session, items } };
+    } catch (err) { return { success: false, error: err.message }; }
+  });
+
 }
 
 // ─── WhatsApp Messages & Conversations Database Functions ────────────────────

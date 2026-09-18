@@ -6,10 +6,9 @@ function renderPosHistory(invoices) {
     tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color:var(--text-muted);">لا توجد فواتير مطابقة</td></tr>';
   } else {
     tbody.innerHTML = invoices.map(inv => `
-      <tr data-id="${inv.id}" data-invnum="${(inv.invoice_number||'').toLowerCase()}" data-custname="${(inv.customer_name||'').toLowerCase()}" data-custphone="${(inv.customer_phone||'').toLowerCase()}" data-tailorid="${inv.tailor_id||''}" style="border-bottom:1px solid var(--border);">
+      <tr data-id="${inv.id}" data-invnum="${(inv.invoice_number||'').toLowerCase()}" data-custname="${(inv.customer_name||'').toLowerCase()}" data-custphone="${(inv.customer_phone||'').toLowerCase()}" style="border-bottom:1px solid var(--border);">
         <td style="padding:12px; font-weight:bold; color:var(--primary);">${inv.invoice_number}</td>
         <td style="padding:12px;">${inv.customer_name || 'عميل نقدي'}</td>
-        <td style="padding:12px; font-size:12px; color:var(--text-secondary);">${inv.tailor_name || '—'}</td>
         <td style="padding:12px; font-weight:bold; color:var(--success);">${fmt(inv.dynamic_net_total)}</td>
         <td style="padding:12px; font-size:12px; color:var(--text-muted);">${inv.invoice_date}</td>
         <td style="padding:12px; text-align:center;">
@@ -18,8 +17,6 @@ function renderPosHistory(invoices) {
             <button style="background:#25D366;border:none;color:#fff;padding:6px 8px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;" onclick='sendWhatsAppFromHistory(${JSON.stringify(inv).replace(/\x27/g,"&apos;")})' title="واتساب">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
             </button>
-            ${(inv.amount_paid > 0 && sessionStorage.getItem('elTarzy_role') === 'admin') ? 
-            `<button style="background:var(--danger);border:none;color:#fff;padding:6px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:bold;" onclick='reversePaymentPrompt(${inv.id}, ${inv.amount_paid})' title="إرجاع تسديد">إرجاع تسديد</button>` : ''}
           </div>
         </td>
       </tr>
@@ -36,9 +33,8 @@ function filterPosHistory() {
 function _doFilter() {
   const query    = (document.getElementById('posHistorySearch').value || '').toLowerCase();
   const phone    = (document.getElementById('posHistoryPhone').value || '').toLowerCase();
-  const tailorId = document.getElementById('posHistoryTailor')?.value || '';
 
-  if (!query && !phone && !tailorId) {
+  if (!query && !phone) {
     renderPosHistory(posAllInvoices.slice(0, 30));
     return;
   }
@@ -47,13 +43,11 @@ function _doFilter() {
     const invNum           = (inv.invoice_number || '').toLowerCase();
     const custName         = (inv.customer_name  || '').toLowerCase();
     const custPhone        = (inv.customer_phone || '').toLowerCase();
-    const rowTailor        = (inv.tailor_id      || '').toString();
     const dynamicNetTotal  = (inv.dynamic_net_total || 0).toString();
 
-    const matchQuery  = !query    || invNum.includes(query) || custName.includes(query) || dynamicNetTotal.includes(query);
-    const matchPhone  = !phone    || custPhone.includes(phone);
-    const matchTailor = !tailorId || rowTailor === tailorId;
-    return matchQuery && matchPhone && matchTailor;
+    const matchQuery  = !query || invNum.includes(query) || custName.includes(query) || dynamicNetTotal.includes(query);
+    const matchPhone  = !phone || custPhone.includes(phone);
+    return matchQuery && matchPhone;
   });
 
   renderPosHistory(filtered);
@@ -205,11 +199,11 @@ let allServices = [];
 let currentInvoiceNumber = '';
 let lastSavedInvoice = null;
 let sessionRole = null;
-let settings = { company_name: 'EL-Tarzy', currency: 'جنيه', receipt_footer: 'شكراً لزيارتكم' };
+let settings = { company_name: 'استوديو التصوير', currency: 'جنيه', receipt_footer: 'شكراً لزيارتكم' };
 
 // ─── Init ─────────────────────────────────────────────────────────────────────────────
 async function init() {
-  sessionRole = sessionStorage.getItem('elTarzy_role');
+  sessionRole = sessionStorage.getItem('photoStudio_role');
   
   // Date default
   document.getElementById('invoiceDate').value = getLocalISODate();
@@ -287,26 +281,19 @@ async function init() {
 
   // Employees
   const empSel  = document.getElementById('employeeSelect');
-  const tailorSel = document.getElementById('tailorSelect');
   if (empRes.success) {
     window.allEmployees = empRes.data;
-    let empHtml = '<option value="">اختر الكاشير</option>';
-    let tailorHtml = '<option value="">-- اختر الصنايعي / الخياط --</option>';
+    let empHtml = '<option value="">اختر الكاشير/البائع</option>';
     empRes.data.forEach(e => {
       empHtml += `<option value="${e.id}">${e.name}</option>`;
-      tailorHtml += `<option value="${e.id}">${e.name}</option>`;
     });
     if (empSel) empSel.innerHTML = empHtml;
-    if (tailorSel) tailorSel.innerHTML = tailorHtml;
-    const checkoutTailorSel = document.getElementById('checkoutTailorSelect');
-    if (checkoutTailorSel) checkoutTailorSel.innerHTML = tailorHtml;
   } else {
-    if (empSel) empSel.innerHTML = '<option value="">اختر الكاشير</option>';
-    if (tailorSel) tailorSel.innerHTML = '<option value="">بدون خياط</option>';
+    if (empSel) empSel.innerHTML = '<option value="">اختر الكاشير/البائع</option>';
   }
 
   // Auto-select current employee as cashier
-  const empIdSession = sessionStorage.getItem('elTarzy_employeeId');
+  const empIdSession = sessionStorage.getItem('photoStudio_employeeId');
   if (empIdSession && empSel.querySelector(`option[value="${empIdSession}"]`)) {
     empSel.value = empIdSession;
   }
@@ -385,19 +372,54 @@ function renderServiceGrid(services) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">لا توجد خدمات</div>';
     return;
   }
-  grid.innerHTML = services.map(s => `
-    <div class="svc-btn" onclick="addServiceFromGrid(${s.id})">
-      <div class="s-name">${s.name}</div>
-      <div class="s-price">${s.sell_price} ${settings.currency||'جنيه'}</div>
-    </div>
-  `).join('');
+  grid.innerHTML = services.map(s => {
+    // Show a subtle out-of-stock indicator only when item is completely out
+    let outIndicator = '';
+    if (s.track_inventory === 1 && Number(s.quantity || 0) <= 0) {
+      outIndicator = `<div style="font-size:9px;font-weight:700;color:#ef4444;margin-top:2px;">نفد</div>`;
+    }
+    return `
+      <div class="svc-btn" onclick="addServiceFromGrid(${s.id})">
+        <div class="s-name">${s.name}</div>
+        <div class="s-price">${s.sell_price} ${settings.currency||'جنيه'}</div>
+        ${outIndicator}
+      </div>
+    `;
+  }).join('');
 }
 
 function addServiceFromGrid(svcId) {
   const svc = allServices.find(s => s.id === svcId);
   if(!svc) return;
-  
+
   const exist = invoiceItems.find(i=>i.service_id===svc.id && i.sell_price===svc.sell_price && parseFloat(i.item_discount)===0);
+  const targetQty = (exist ? exist.quantity : 0) + 1;
+
+  if (svc.track_inventory === 1) {
+    const available = Number(svc.quantity || 0);
+    const behavior = settings.stock_out_behavior || 'warn';
+
+    if (targetQty > available) {
+      if (behavior === 'block') {
+        Swal.fire({
+          title: '⚠️ المخزون غير كافٍ!',
+          text: `الكمية المتاحة في المخزن من "${svc.name}" هي (${available}) قطعة فقط!`,
+          icon: 'error',
+          confirmButtonText: 'حسناً'
+        });
+        return;
+      } else {
+        showToast(`⚠️ تنبيه: الكمية المطلوبة (${targetQty}) تتجاوز رصيد المخزن (${available})`, 'warning');
+      }
+    } else {
+      const remainingStock = available - targetQty;
+      const threshold = Number(svc.low_stock_threshold || 0);
+      if (threshold > 0 && remainingStock <= threshold) {
+        showToast(`⚠️ انتبه: رصيد "${svc.name}" المتبقي (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
+      }
+    }
+  }
+
   if(exist) {
     exist.quantity++;
     exist.total = exist.quantity * exist.sell_price;
@@ -425,8 +447,11 @@ function populateCategorySelect() {
 
 function populateServiceSelect(services) {
   const sel = document.getElementById('itemService');
-  sel.innerHTML = '<option value="">اختر الخدمة</option>';
-  services.forEach(s=>{ sel.innerHTML+=`<option value="${s.id}" data-price="${s.sell_price}" data-barcode="${s.barcode||''}" data-cat="${s.cat_name||''}">${s.name}</option>`; });
+  sel.innerHTML = '<option value="">اختر الخدمة أو الصنف</option>';
+  services.forEach(s=>{
+    const stockInfo = s.track_inventory === 1 ? ` (متاح: ${s.quantity||0})` : '';
+    sel.innerHTML+=`<option value="${s.id}" data-price="${s.sell_price}" data-barcode="${s.barcode||''}" data-cat="${s.cat_name||''}">${s.name}${stockInfo}</option>`;
+  });
 }
 
 function loadCategoryServices() {
@@ -449,6 +474,48 @@ function lookupBarcode() {
   if(!bc) return;
   const svc = allServices.find(s=>s.barcode===bc);
   if(!svc){ showToast('لم يتم العثور على الباركود','warning'); return; }
+
+  const exist = invoiceItems.find(i => i.service_id === svc.id);
+  const targetQty = (exist ? exist.quantity : 0) + 1;
+
+  if (svc.track_inventory === 1) {
+    const available = Number(svc.quantity || 0);
+    const behavior = settings.stock_out_behavior || 'warn';
+
+    if (targetQty > available) {
+      if (behavior === 'block') {
+        Swal.fire({
+          title: '⚠️ المخزون غير كافٍ!',
+          text: `الكمية المتاحة في المخزن من "${svc.name}" هي (${available}) قطعة فقط!`,
+          icon: 'error',
+          confirmButtonText: 'حسناً'
+        });
+        document.getElementById('itemBarcode').value = '';
+        return;
+      } else {
+        showToast(`⚠️ تنبيه: الكمية المطلوبة (${targetQty}) تتجاوز رصيد المخزن (${available})`, 'warning');
+      }
+    } else {
+      const remainingStock = available - targetQty;
+      const threshold = Number(svc.low_stock_threshold || 0);
+      if (threshold > 0 && remainingStock <= threshold) {
+        showToast(`⚠️ انتبه: رصيد "${svc.name}" المتبقي (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
+      }
+    }
+  }
+
+  // إن كان الصنف موجوداً بالفعل في الفاتورة، زِد الكمية مباشرةً
+  if(exist){
+    exist.quantity++;
+    exist.total = exist.quantity * (exist.sell_price - (parseFloat(exist.item_discount)||0));
+    renderItemsTable();
+    recalcTotals();
+    document.getElementById('itemBarcode').value = '';
+    showToast(`تم زيادة كمية "${svc.name}" ← ${exist.quantity}`, 'success');
+    return;
+  }
+
+  // صنف جديد، أضفه
   document.getElementById('itemService').value = svc.id;
   document.getElementById('itemPrice').value = svc.sell_price;
   addItemToInvoice();
@@ -463,19 +530,73 @@ function addItemToInvoice() {
   const discount = parseFloat(document.getElementById('itemDiscount').value)||0;
   const barcode = document.getElementById('itemBarcode').value.trim();
 
-  let svcId = null, svcName = 'خدمة يدوية', catName = '';
+  let svcId = null, svcName = 'خدمة يدوية', catName = '', svcBarcode = barcode;
   if(opt && opt.value){
     svcId = parseInt(opt.value);
-    svcName = opt.text;
+    svcName = opt.text.replace(/\s*\(متاح:\s*\d+\)$/, '');
     catName = opt.dataset.cat || '';
+    svcBarcode = opt.dataset.barcode || barcode;
   }
   if(price<=0){ showToast('يرجى إدخال السعر','error'); return; }
+
+  // فحص المخزون للصنف المختار
+  if(svcId) {
+    const svc = allServices.find(s => s.id === svcId);
+    if(svc && svc.track_inventory === 1) {
+      const exist = invoiceItems.find(i => i.service_id === svcId);
+      const targetQty = (exist ? exist.quantity : 0) + qty;
+      const available = Number(svc.quantity || 0);
+      const behavior = settings.stock_out_behavior || 'warn';
+
+      if(targetQty > available) {
+        if(behavior === 'block') {
+          Swal.fire({
+            title: '⚠️ المخزون غير كافٍ!',
+            text: `الكمية المتوفرة بالمخزن من "${svc.name}" هي (${available}) فقط، لا يمكن بيع (${targetQty}) قطعة!`,
+            icon: 'error',
+            confirmButtonText: 'حسناً'
+          });
+          return;
+        } else {
+          showToast(`⚠️ تنبيه: الكمية المطلوبة (${targetQty}) تتجاوز رصيد المخزن (${available})`, 'warning');
+        }
+      } else {
+        const remainingStock = available - targetQty;
+        const threshold = Number(svc.low_stock_threshold || 0);
+        if(threshold > 0 && remainingStock <= threshold) {
+          showToast(`⚠️ انتبه: رصيد "${svc.name}" المتبقي (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
+        }
+      }
+    }
+  }
+
+  // إن كان الصنف نفسه موجوداً بنفس السعر والخصم، زِد الكمية
+  if(svcId){
+    const exist = invoiceItems.find(i =>
+      i.service_id === svcId &&
+      i.sell_price === price &&
+      parseFloat(i.item_discount) === discount
+    );
+    if(exist){
+      exist.quantity += qty;
+      exist.total = exist.quantity * (exist.sell_price - (parseFloat(exist.item_discount)||0));
+      renderItemsTable();
+      recalcTotals();
+      document.getElementById('itemService').value='';
+      document.getElementById('itemPrice').value='';
+      document.getElementById('itemQty').value='1';
+      document.getElementById('itemDiscount').value='0';
+      document.getElementById('itemBarcode').value='';
+      document.getElementById('itemService').focus();
+      return;
+    }
+  }
 
   const priceAfterDiscount = price - discount;
   const total = (priceAfterDiscount * qty);
 
   invoiceItems.push({ service_id:svcId, category_name:catName, service_name:svcName,
-    barcode, sell_price:price, quantity:qty, item_discount:discount, total });
+    barcode:svcBarcode, sell_price:price, quantity:qty, item_discount:discount, total });
 
   renderItemsTable();
   recalcTotals();
@@ -518,8 +639,43 @@ function renderItemsTable() {
 }
 
 function updateQty(idx, val) {
-  const qty = parseInt(val)||1;
+  const qty = parseInt(val) || 1;
+  if (qty <= 0) {
+    renderItemsTable();
+    return;
+  }
   const item = invoiceItems[idx];
+  const svc = allServices.find(s => s.id === item.service_id);
+
+  if (svc && svc.track_inventory === 1) {
+    const available = Number(svc.quantity || 0);
+    const behavior = settings.stock_out_behavior || 'warn';
+
+    if (qty > available) {
+      if (behavior === 'block') {
+        Swal.fire({
+          title: '⚠️ الكمية غير متوفرة!',
+          text: `الكمية المتوفرة بالمخزن من "${svc.name}" هي (${available}) فقط، لا يمكن بيع (${qty}) قطعة!`,
+          icon: 'error',
+          confirmButtonText: 'حسناً'
+        });
+        item.quantity = available > 0 ? available : 1;
+        item.total = (item.sell_price - item.item_discount) * item.quantity;
+        renderItemsTable();
+        recalcTotals();
+        return;
+      } else {
+        showToast(`⚠️ تنبيه: الكمية المطلوبة (${qty}) تتجاوز رصيد المخزن (${available})!`, 'warning');
+      }
+    } else {
+      const remainingStock = available - qty;
+      const threshold = Number(svc.low_stock_threshold || 0);
+      if (threshold > 0 && remainingStock <= threshold) {
+        showToast(`⚠️ انتبه: المتبقي بالمخزن من "${svc.name}" (${remainingStock}) وصل لحد التنبيه (${threshold})`, 'warning');
+      }
+    }
+  }
+
   item.quantity = qty;
   item.total = (item.sell_price - item.item_discount) * qty;
   renderItemsTable();
@@ -625,12 +781,56 @@ function onCheckoutPaidChange() {
   document.getElementById('checkoutRemaining').textContent = fmt(rem) + ' جنيه';
 }
 
-function openCheckoutModal(action) {
+async function openCheckoutModal(action) {
   if (!invoiceItems.length) {
     showToast('لا توجد أصناف في الفاتورة', 'error');
     return;
   }
-  
+
+  // ─── فحص المخزون قبل الحفظ ───────────────────────────────────────────
+  const stockIssues = [];
+  for (const item of invoiceItems) {
+    if (!item.service_id) continue;
+    const svc = allServices.find(s => s.id === item.service_id);
+    if (!svc || !svc.track_inventory) continue;
+    const available = Number(svc.quantity || 0);
+    if (item.quantity > available) {
+      stockIssues.push({
+        name: item.service_name,
+        requested: item.quantity,
+        available
+      });
+    }
+  }
+
+  if (stockIssues.length > 0) {
+    const behavior = settings.stock_out_behavior || 'warn';
+    const issueLines = stockIssues.map(x =>
+      `• ${x.name}: متاح ${x.available} قطعة فقط وأنت تطلب ${x.requested}`
+    ).join('\n');
+
+    if (behavior === 'block') {
+      await Swal.fire({
+        title: '⚠️ كمية غير كافية!',
+        text: 'لا يمكن إتمام البيع لأن الكمية المطلوبة تتجاوز المخزون:\n\n' + issueLines,
+        icon: 'error',
+        confirmButtonText: 'حسناً'
+      });
+      return; // منع الإتمام
+    } else {
+      // warn — تحذير فقط
+      const result = await Swal.fire({
+        title: '⚠️ تحذير: كمية غير كافية',
+        html: `<div style="text-align:right;direction:rtl;line-height:2;">${issueLines.replace(/\n/g,'<br/>')}</div><br/><b>هل تريد المتابعة بالبيع بالسالب؟</b>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، أكمل البيع',
+        cancelButtonText: 'لا، راجع الكمية'
+      });
+      if (!result.isConfirmed) return;
+    }
+  }
+
   pendingAction = action;
   const netTotal = parseFloat(document.getElementById('netTotalDisplay').textContent) || 0;
   
@@ -638,10 +838,6 @@ function openCheckoutModal(action) {
   document.getElementById('checkoutNetTotal').textContent = fmt(netTotal) + ' جنيه';
   document.getElementById('checkoutAmountPaid').value = '0';
   document.getElementById('checkoutRemaining').textContent = fmt(netTotal) + ' جنيه';
-  
-  // Reset tailor select to default
-  const tailorSel = document.getElementById('checkoutTailorSelect');
-  if (tailorSel) tailorSel.value = '';
 
   // Default payment method: Cash
   selectPaymentMethodCard('نقدي');
@@ -649,13 +845,8 @@ function openCheckoutModal(action) {
   openModal('checkoutModal');
 }
 
+
 async function executeConfirmedCheckout() {
-  const tailorId = document.getElementById('checkoutTailorSelect').value;
-  if (!tailorId) {
-    Swal.fire('تنبيه', 'يرجى اختيار الخياط / الصنايعي المنفذ أولاً لإتمام الفاتورة', 'warning');
-    return;
-  }
-  
   const paidVal = document.getElementById('checkoutAmountPaid').value;
   if (paidVal === '' || isNaN(parseFloat(paidVal)) || parseFloat(paidVal) < 0) {
     Swal.fire('تنبيه', 'يرجى إدخال المبلغ المدفوع بشكل صحيح (أو 0 في حالة الآجل)', 'warning');
@@ -680,7 +871,6 @@ async function executeConfirmedCheckout() {
   pendingAction = null;
   
   const success = await doSaveInvoice({
-    tailor_id: parseInt(tailorId),
     payment_method: method,
     treasury_type: treasuryType,
     amount_paid: paid
@@ -696,16 +886,16 @@ async function executeConfirmedCheckout() {
 }
 
 // ─── Button Interceptors ──────────────────────────────────────────────────────
-function saveInvoice() {
-  openCheckoutModal('save');
+async function saveInvoice() {
+  await openCheckoutModal('save');
 }
 
-function saveAndPrint() {
-  openCheckoutModal('saveAndPrint');
+async function saveAndPrint() {
+  await openCheckoutModal('saveAndPrint');
 }
 
-function savePrintAndWhatsApp() {
-  openCheckoutModal('savePrintAndWhatsApp');
+async function savePrintAndWhatsApp() {
+  await openCheckoutModal('savePrintAndWhatsApp');
 }
 
 // ─── Actual Save Invoice ──────────────────────────────────────────────────────
@@ -719,8 +909,7 @@ async function doSaveInvoice(checkoutData, isPrint = false) {
 
   const invoiceData = {
     customer_id: parseInt(document.getElementById('customerSelect').value)||null,
-    employee_id: parseInt(document.getElementById('employeeSelect')?.value)||null,
-    tailor_id: checkoutData.tailor_id || null,
+    employee_id: parseInt(document.getElementById('employeeSelect')?.value) || parseInt(sessionStorage.getItem('photoStudio_employeeId')) || null,
     invoice_date: document.getElementById('invoiceDate').value,
     invoiceNumber: window._resumedInvoiceNumber || null,
     payment_method: checkoutData.payment_method || 'نقدي',
@@ -749,6 +938,7 @@ async function doSaveInvoice(checkoutData, isPrint = false) {
       
       openModal('savedModal');
     }
+    await reloadServicesStock();
     showToast('تم حفظ الفاتورة بنجاح', 'success');
     return true;
   } else {
@@ -785,18 +975,14 @@ async function sendWhatsApp() {
     return;
   }
 
-  const shopName = settings.company_name || 'الترزي';
+  const shopName = settings.company_name || 'استوديو التصوير';
   const customerName = getSelectedCustomerName();
   
-  const tailorSelect = document.getElementById('checkoutTailorSelect') || document.getElementById('tailorSelect');
-  let tailorName = 'غير محدد';
-  if (lastSavedInvoice?.tailor_id && window.allEmployees) {
-    const t = window.allEmployees.find(e => e.id === parseInt(lastSavedInvoice.tailor_id));
-    if (t) tailorName = t.name;
-  } else if (tailorSelect && tailorSelect.selectedIndex >= 0) {
-    tailorName = tailorSelect.options[tailorSelect.selectedIndex]?.text || 'غير محدد';
+  let sellerName = 'غير محدد';
+  const empSelect = document.getElementById('employeeSelect');
+  if (empSelect && empSelect.selectedIndex >= 0) {
+    sellerName = empSelect.options[empSelect.selectedIndex]?.text || 'غير محدد';
   }
-  if (!tailorName || tailorName === 'بدون خياط' || tailorName.includes('--')) tailorName = 'غير محدد';
   const now = new Date();
   const timeStr = now.toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute:'2-digit' });
 
@@ -808,7 +994,7 @@ async function sendWhatsApp() {
     paid: fmt(lastSavedInvoice.amount_paid || 0),
     remaining: fmt(lastSavedInvoice.remaining || 0),
     shopName,
-    tailorName: tailorName,
+    sellerName: sellerName,
     date: lastSavedInvoice.invoice_date,
     time: timeStr
   });
@@ -831,7 +1017,7 @@ async function sendWhatsAppFromHistory(inv) {
     return;
   }
 
-  const shopName = settings.company_name || 'الترزي';
+  const shopName = settings.company_name || 'استوديو التصوير';
   const customerName = inv.customer_name || 'عميلنا العزيز';
 
   const res = await window.whatsapp.sendInvoiceConfirm({
@@ -842,7 +1028,7 @@ async function sendWhatsAppFromHistory(inv) {
     paid: fmt(inv.amount_paid || 0),
     remaining: fmt(inv.remaining || 0),
     shopName,
-    tailorName: inv.tailor_name || 'غير محدد',
+    sellerName: inv.emp_name || 'غير محدد',
     date: inv.invoice_date || '',
     time: ''
   });
@@ -880,17 +1066,7 @@ function buildReceiptHTML(inv) {
   const addressHTML = settings.address ? `<div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:2px;">العنوان: ${settings.address}</div>` : '';
   const phoneHTML = settings.phone ? `<div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:2px;">تليفون: ${settings.phone}</div>` : '';
   
-  const tailorSelect = document.getElementById('checkoutTailorSelect') || document.getElementById('tailorSelect');
   const custSelect = document.getElementById('customerSelect');
-  let tailorName = inv.tailor_name || inv.tailorName;
-  if (!tailorName && inv.tailor_id && window.allEmployees) {
-    const tEmp = window.allEmployees.find(e => e.id === parseInt(inv.tailor_id));
-    if (tEmp) tailorName = tEmp.name;
-  }
-  if (!tailorName && tailorSelect && tailorSelect.selectedIndex >= 0) {
-    tailorName = tailorSelect.options[tailorSelect.selectedIndex]?.text;
-  }
-  const tailorHTML = (settings.show_tailor_name && tailorName && tailorName !== 'اختر الخياط...' && tailorName !== 'بدون خياط' && !tailorName.includes('--')) ? `<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-weight:700;">الخياط:</span><span style="font-weight:700;">${tailorName}</span></div>` : '';
   
   // Note: if reprinted from history, customer info might be directly on inv object
   let custName = 'عميل نقدي';
@@ -934,8 +1110,7 @@ function buildReceiptHTML(inv) {
       print-color-adjust:exact;
     ">
       ${logoHTML}
-      <div style="text-align:center;font-size:20px;font-weight:900;margin-bottom:4px;letter-spacing:0.5px;">${settings.company_name||'EL-Tarzy'}</div>
-      <div style="text-align:center;font-size:14px;font-weight:700;margin-bottom:6px;">محل الترزي</div>
+      <div style="text-align:center;font-size:20px;font-weight:900;margin-bottom:4px;letter-spacing:0.5px;">${settings.company_name||'استوديو التصوير'}</div>
       ${addressHTML}
       ${phoneHTML}
       <div style="border-top:2px dashed #000;margin:6px 0;"></div>
@@ -943,7 +1118,6 @@ function buildReceiptHTML(inv) {
       <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-weight:700;">التاريخ:</span><span style="font-weight:700;">${date}</span></div>
       ${custNameHTML}
       ${custPhoneHTML}
-      ${tailorHTML}
       <div style="border-top:2px dashed #000;margin:6px 0;"></div>
       <table style="width:100%;border-collapse:collapse;font-size:13px;font-weight:700;table-layout:fixed;">
         <colgroup>
@@ -1025,9 +1199,9 @@ async function directPrintReceipt(withWhatsApp = false) {
     const receiptHTML = buildReceiptHTML(inv);
     document.getElementById('receiptPrint').innerHTML = receiptHTML;
     
-    // Print directly
+    // Print directly using configured printer if available
     await new Promise(r => setTimeout(r, 120));
-    await window.electron.print();
+    await window.electron.print(settings.printer_receipt ? { deviceName: settings.printer_receipt } : {});
     await new Promise(r => setTimeout(r, 500));
     
     if (withWhatsApp) {
@@ -1043,6 +1217,19 @@ async function directPrintReceipt(withWhatsApp = false) {
 
 function printReceipt(withWhatsApp = false) {
   directPrintReceipt(withWhatsApp);
+}
+
+async function reloadServicesStock() {
+  try {
+    const srvRes = await window.db.query('SELECT s.*, sc.name as cat_name FROM services s LEFT JOIN service_categories sc ON s.category_id=sc.id ORDER BY s.name', []);
+    if (srvRes.success && srvRes.data) {
+      allServices = srvRes.data;
+      populateServiceSelect(allServices);
+      renderServiceGrid(allServices);
+    }
+  } catch (e) {
+    console.error('reloadServicesStock error:', e);
+  }
 }
 
 // ─── New / Reset Invoice ──────────────────────────────────────────────────────
@@ -1062,6 +1249,7 @@ async function newInvoice() {
   window._resumedInvoiceNumber = null; // Fix 1: clear any resumed invoice number
   window._resumedPaymentMethod = null;
   closeModal('savedModal');
+  await reloadServicesStock();
   const invRes = await window.db.generateInvoiceNumber();
   if(invRes.success){ currentInvoiceNumber=invRes.data; document.getElementById('invoiceNumberDisplay').textContent=invRes.data; }
 }
@@ -1145,6 +1333,24 @@ async function saveNewCustomer(){
   } else { showToast('خطأ: '+res.error,'error'); }
 }
 
+// ─── Navigation ───────────────────────────────────────────────────────────────
+async function goBack() {
+  if (invoiceItems && invoiceItems.length > 0) {
+    const res = await Swal.fire({
+      title: 'تنبيه',
+      text: 'الأصناف الموجودة في الفاتورة سيتم مسحها. هل تريد الرجوع؟',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'نعم، رجوع',
+      cancelButtonText: 'إلغاء'
+    });
+    if (!res.isConfirmed) return;
+  }
+  navigate('main-dashboard.html');
+}
+
 // ─── Keyboard ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e=>{
   if(e.key==='Enter' && e.target.id==='itemBarcode'){ e.preventDefault(); lookupBarcode(); }
@@ -1157,29 +1363,14 @@ async function openHistoryModal() {
   document.getElementById('posHistorySearch').value = '';
   if (document.getElementById('posHistoryPhone')) document.getElementById('posHistoryPhone').value = '';
 
-  // Load tailors dropdown
-  const tailorSel = document.getElementById('posHistoryTailor');
-  if (tailorSel && tailorSel.options.length <= 1) {
-    const tRes = await window.db.query('SELECT id, name FROM employees WHERE is_active=1 ORDER BY name', []);
-    if (tRes.success) {
-      let tHtml = tailorSel.innerHTML; // keep existing options (like the default one)
-      tRes.data.forEach(e => {
-        tHtml += `<option value="${e.id}">${e.name}</option>`;
-      });
-      tailorSel.innerHTML = tHtml;
-    }
-  }
-
   // جلب آخر 300 فاتورة فقط — لتجنب بطء الجلب عند كثرة الفواتير
   const res = await window.db.query(`
     SELECT i.*, 
            c.name as customer_name, 
            c.phone as customer_phone,
-           t.name as tailor_name,
            (i.net_total - COALESCE((SELECT SUM(total_returned) FROM returns WHERE original_invoice_id = i.id), 0)) as dynamic_net_total
     FROM invoices i 
     LEFT JOIN customers c ON i.customer_id = c.id
-    LEFT JOIN employees t ON i.tailor_id = t.id
     ORDER BY i.id DESC
     LIMIT 300
   `, []);

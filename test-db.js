@@ -1,5 +1,4 @@
-const Database = require('better-sqlite3');
-const db = new Database('C:/Users/lenovo/AppData/Roaming/el-tarzy/database.sqlite', { fileMustExist: false });
+const db = new Database('C:/Users/lenovo/AppData/Roaming/photostudio/database.sqlite', { fileMustExist: false });
 
 const date = '2026-08-12';
 const dateLike = date + '%';
