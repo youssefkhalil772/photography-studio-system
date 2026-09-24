@@ -765,11 +765,11 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="savedModal">
+<div class="modal-overlay" id="savedModal" onclick="if(event.target===this) newInvoice()">
   <div class="modal modal-sm">
     <div class="modal-header">
       <div class="modal-title" style="color:var(--success);"> تم حفظ الفاتورة</div>
-      <button class="modal-close" onclick="closeModal('savedModal')">✕</button>
+      <button class="modal-close" onclick="newInvoice()" title="إغلاق وفاتورة جديدة">✕</button>
     </div>
     <div class="modal-body" style="text-align:center;">
       <div style="font-size:48px;margin-bottom:12px;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>

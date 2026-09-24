@@ -69,11 +69,16 @@ class BaseWhatsAppProvider {
    */
   formatEgyptianPhone(phone) {
     if (!phone) return '';
-    const clean = phone.replace(/\D/g, '');
+    const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+    let str = String(phone).trim();
+    for (let i = 0; i < 10; i++) {
+      str = str.replace(new RegExp(arabicDigits[i], 'g'), i);
+    }
+    const clean = str.replace(/\D/g, '');
     if (clean.startsWith('20')) return clean;
     if (clean.startsWith('01')) return '2' + clean;
     if (clean.startsWith('1') && clean.length === 10) return '20' + clean;
-    return '20' + clean;
+    return clean.startsWith('2') ? clean : '20' + clean;
   }
 
   /**

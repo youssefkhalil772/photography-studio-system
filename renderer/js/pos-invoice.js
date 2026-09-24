@@ -923,17 +923,33 @@ async function doSaveInvoice(checkoutData, isPrint = false) {
 
   const res = await window.db.saveInvoice(invoiceData, invoiceItems);
   if(res.success){
-    lastSavedInvoice = { ...invoiceData, items:[...invoiceItems], invoiceNumber:res.data.invoiceNumber };
+    const custPhone = getSelectedCustomerPhone();
+    const custName = getSelectedCustomerName();
+    lastSavedInvoice = { 
+      ...invoiceData, 
+      items:[...invoiceItems], 
+      invoiceNumber:res.data.invoiceNumber,
+      customer_phone: custPhone,
+      customer_name: custName
+    };
 
     // ── عرض نافذة النجاح (فقط إذا كان الإجراء حفظ فقط بدون طباعة) ──
     if (!isPrint) {
       document.getElementById('savedInvNum').textContent = `فاتورة رقم: ${res.data.invoiceNumber}`;
       document.getElementById('savedInvTotal').textContent = `الإجمالي: ${fmt(netTotal)} جنيه | المدفوع: ${fmt(amtPaid)} | المتبقي: ${fmt(remaining)}`;
       
-      const customerPhone = getSelectedCustomerPhone();
+      const customerPhone = custPhone;
       const waBtn = document.getElementById('savedModalWaBtn');
       if (waBtn) {
         waBtn.style.display = customerPhone ? 'inline-flex' : 'none';
+        waBtn.disabled = false;
+        waBtn.style.opacity = '1';
+        waBtn.style.background = '#25d366';
+        waBtn.style.borderColor = '#25d366';
+        waBtn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-left:4px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+          واتساب
+        `;
       }
       
       openModal('savedModal');
@@ -966,43 +982,80 @@ function getSelectedCustomerName() {
 async function sendWhatsApp() {
   if (!lastSavedInvoice) { showToast('لا توجد فاتورة محفوظة', 'error'); return; }
 
-  const phone = getSelectedCustomerPhone();
+  const phone = lastSavedInvoice.customer_phone || getSelectedCustomerPhone();
   if (!phone) { showToast('العميل ليس لديه رقم هاتف مسجل', 'warning'); return; }
 
-  const status = await window.whatsapp.getStatus();
-  if (!status.ready) {
-    showToast('واتساب غير متصل — تحقق من الإعدادات', 'warning');
-    return;
+  const waBtn = document.getElementById('savedModalWaBtn');
+  let originalBtnHtml = '';
+  if (waBtn) {
+    originalBtnHtml = waBtn.innerHTML;
+    waBtn.disabled = true;
+    waBtn.style.opacity = '0.7';
+    waBtn.innerHTML = `جاري الإرسال...`;
   }
 
-  const shopName = settings.company_name || 'استوديو التصوير';
-  const customerName = getSelectedCustomerName();
-  
-  let sellerName = 'غير محدد';
-  const empSelect = document.getElementById('employeeSelect');
-  if (empSelect && empSelect.selectedIndex >= 0) {
-    sellerName = empSelect.options[empSelect.selectedIndex]?.text || 'غير محدد';
-  }
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute:'2-digit' });
+  showToast('جاري إرسال واتساب للعميل...', 'info');
 
-  const res = await window.whatsapp.sendInvoiceConfirm({
-    phone,
-    customerName,
-    invoiceNumber: lastSavedInvoice.invoiceNumber,
-    total: fmt(lastSavedInvoice.net_total || 0),
-    paid: fmt(lastSavedInvoice.amount_paid || 0),
-    remaining: fmt(lastSavedInvoice.remaining || 0),
-    shopName,
-    sellerName: sellerName,
-    date: lastSavedInvoice.invoice_date,
-    time: timeStr
-  });
+  try {
+    const status = await window.whatsapp.getStatus();
+    if (!status.ready) {
+      showToast('واتساب غير متصل — يرجى فتح الواتساب ومسح رمز QR من الإعدادات', 'warning');
+      if (waBtn) {
+        waBtn.disabled = false;
+        waBtn.style.opacity = '1';
+        waBtn.innerHTML = originalBtnHtml;
+      }
+      return;
+    }
 
-  if (res.success) {
-    showToast('تم إرسال واتساب للعميل!', 'success');
-  } else {
-    showToast(`فشل الإرسال: ${res.error}`, 'error');
+    const shopName = settings.company_name || 'استوديو التصوير';
+    const customerName = lastSavedInvoice.customer_name || getSelectedCustomerName();
+    
+    let sellerName = 'غير محدد';
+    const empSelect = document.getElementById('employeeSelect');
+    if (empSelect && empSelect.selectedIndex >= 0) {
+      sellerName = empSelect.options[empSelect.selectedIndex]?.text || 'غير محدد';
+    }
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute:'2-digit' });
+
+    const res = await window.whatsapp.sendInvoiceConfirm({
+      phone,
+      customerName,
+      invoiceNumber: lastSavedInvoice.invoiceNumber,
+      total: fmt(lastSavedInvoice.net_total || 0),
+      paid: fmt(lastSavedInvoice.amount_paid || 0),
+      remaining: fmt(lastSavedInvoice.remaining || 0),
+      shopName,
+      sellerName: sellerName,
+      date: lastSavedInvoice.invoice_date,
+      time: timeStr
+    });
+
+    if (res && res.success) {
+      showToast('تم إرسال واتساب للعميل بنجاح ✓', 'success');
+      if (waBtn) {
+        waBtn.disabled = false;
+        waBtn.style.opacity = '1';
+        waBtn.style.background = '#16a34a';
+        waBtn.style.borderColor = '#16a34a';
+        waBtn.innerHTML = `✓ تم الإرسال`;
+      }
+    } else {
+      showToast(`فشل الإرسال: ${res?.error || 'خطأ غير معروف'}`, 'error');
+      if (waBtn) {
+        waBtn.disabled = false;
+        waBtn.style.opacity = '1';
+        waBtn.innerHTML = originalBtnHtml;
+      }
+    }
+  } catch (err) {
+    showToast(`خطأ في الإرسال: ${err.message}`, 'error');
+    if (waBtn) {
+      waBtn.disabled = false;
+      waBtn.style.opacity = '1';
+      waBtn.innerHTML = originalBtnHtml;
+    }
   }
 }
 
@@ -1011,32 +1064,38 @@ async function sendWhatsAppFromHistory(inv) {
   const phone = inv.customer_phone;
   if (!phone) { showToast('العميل ليس لديه رقم هاتف مسجل', 'warning'); return; }
 
-  const status = await window.whatsapp.getStatus();
-  if (!status.ready) {
-    showToast('واتساب غير متصل — تحقق من الإعدادات', 'warning');
-    return;
-  }
+  showToast('جاري إرسال واتساب للعميل...', 'info');
 
-  const shopName = settings.company_name || 'استوديو التصوير';
-  const customerName = inv.customer_name || 'عميلنا العزيز';
+  try {
+    const status = await window.whatsapp.getStatus();
+    if (!status.ready) {
+      showToast('واتساب غير متصل — تحقق من الإعدادات', 'warning');
+      return;
+    }
 
-  const res = await window.whatsapp.sendInvoiceConfirm({
-    phone, 
-    customerName,
-    invoiceNumber: inv.invoice_number,
-    total: fmt(inv.net_total || 0),
-    paid: fmt(inv.amount_paid || 0),
-    remaining: fmt(inv.remaining || 0),
-    shopName,
-    sellerName: inv.emp_name || 'غير محدد',
-    date: inv.invoice_date || '',
-    time: ''
-  });
+    const shopName = settings.company_name || 'استوديو التصوير';
+    const customerName = inv.customer_name || 'عميلنا العزيز';
 
-  if (res && res.success) {
-    showToast('تم إرسال واتساب للعميل!', 'success');
-  } else {
-    showToast(`فشل الإرسال: ${res?.error || 'خطأ غير معروف'}`, 'error');
+    const res = await window.whatsapp.sendInvoiceConfirm({
+      phone, 
+      customerName,
+      invoiceNumber: inv.invoice_number,
+      total: fmt(inv.net_total || 0),
+      paid: fmt(inv.amount_paid || 0),
+      remaining: fmt(inv.remaining || 0),
+      shopName,
+      sellerName: inv.emp_name || 'غير محدد',
+      date: inv.invoice_date || '',
+      time: ''
+    });
+
+    if (res && res.success) {
+      showToast('تم إرسال واتساب للعميل بنجاح ✓', 'success');
+    } else {
+      showToast(`فشل الإرسال: ${res?.error || 'خطأ غير معروف'}`, 'error');
+    }
+  } catch (err) {
+    showToast(`خطأ في الإرسال: ${err.message}`, 'error');
   }
 }
 
@@ -1352,10 +1411,36 @@ async function goBack() {
 }
 
 // ─── Keyboard ─────────────────────────────────────────────────────────────────
-document.addEventListener('keydown', e=>{
-  if(e.key==='Enter' && e.target.id==='itemBarcode'){ e.preventDefault(); lookupBarcode(); }
-  if(e.key==='F1'){ e.preventDefault(); saveInvoice(false); }
-  if(e.key==='Escape'){ goBack(); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'itemBarcode') { e.preventDefault(); lookupBarcode(); }
+  if (e.key === 'F1') { e.preventDefault(); saveInvoice(false); }
+  if (e.key === 'Escape') {
+    const savedModal = document.getElementById('savedModal');
+    if (savedModal && savedModal.classList.contains('open')) {
+      e.preventDefault();
+      newInvoice();
+      return;
+    }
+    const checkoutModal = document.getElementById('checkoutModal');
+    if (checkoutModal && checkoutModal.classList.contains('open')) {
+      e.preventDefault();
+      closeModal('checkoutModal');
+      return;
+    }
+    const historyModal = document.getElementById('historyModal');
+    if (historyModal && historyModal.classList.contains('open')) {
+      e.preventDefault();
+      closeModal('historyModal');
+      return;
+    }
+    const suspendedModal = document.getElementById('suspendedModal');
+    if (suspendedModal && suspendedModal.classList.contains('open')) {
+      e.preventDefault();
+      closeModal('suspendedModal');
+      return;
+    }
+    goBack();
+  }
 });
 
 // ─── Invoices History ───────────────────────────────────────────────────────────

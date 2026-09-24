@@ -73,6 +73,9 @@ class WebJSProvider extends BaseWhatsAppProvider {
     // تنظيف أي عمليات سابقة معلقة أو ملفات قفل تمنع كروم من الفتح
     this._cleanupOrphanedProcessesAndLocks(sessionDir);
 
+    const cacheDir = path.join(userDataPath, 'wwebjs_cache');
+    try { fs.mkdirSync(cacheDir, { recursive: true }); } catch (e) {}
+
     this.client = new Client({
       authStrategy: new LocalAuth({
         clientId,
@@ -81,6 +84,7 @@ class WebJSProvider extends BaseWhatsAppProvider {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       webVersionCache: {
         type: 'local',
+        path: cacheDir,
       },
       puppeteer: {
         headless: false,  // المتصفح ظاهر دائماً أمام المستخدم لضمان أقصى سرعة واستقرار
@@ -137,9 +141,9 @@ class WebJSProvider extends BaseWhatsAppProvider {
       this.currentQR = null;
       this._statusLabel = 'جاري التحقق من الجلسة...';
       this._sendToRenderer('whatsapp:authenticated');
-      this._log('✅ تم المصادقة — في انتظار حدث ready');
+      this._log('✅ تم المصادقة — في انتظار جاهزية واتساب (ready)');
 
-      // ── فحص احتياطي: التحقق الدوري من حالة الاتصال لضمان عدم التعليق ──
+      // ── فحص احتياطي: التحقق الدوري مع التأكد التام من حقن WWebJS ──
       if (this._stateCheckInterval) clearInterval(this._stateCheckInterval);
       this._stateCheckInterval = setInterval(async () => {
         if (this.clientReady) {
@@ -148,21 +152,25 @@ class WebJSProvider extends BaseWhatsAppProvider {
         }
         try {
           if (this.client) {
-            const state = await this.client.getState();
-            this._log(`🔍 فحص الحالة الدوري: ${state}`);
+            const state = await this.client.getState().catch(() => null);
             if (state === 'CONNECTED') {
-              clearInterval(this._stateCheckInterval);
-              this.clientReady = true;
-              this._statusLabel = '✅ متصل — جلسة واتساب نشطة';
-              this._sendToRenderer('whatsapp:ready');
-              this._log('✅ تم التأكد من الاتصال بنجاح عبر getState()!');
-              if (this.messageQueue.length > 0) {
-                this._processQueue();
+              const isReady = await this._ensureWWebJS();
+              if (isReady) {
+                clearInterval(this._stateCheckInterval);
+                this.clientReady = true;
+                this._statusLabel = '✅ متصل — جلسة واتساب نشطة';
+                this._sendToRenderer('whatsapp:ready');
+                this._log('✅ تم التأكد من الاتصال وجاهزية WWebJS بنجاح!');
+                if (this.messageQueue.length > 0) {
+                  this._processQueue();
+                }
+              } else {
+                this._log('⏳ متصفح واتساب متصل وجاري استكمال حقن WWebJS...');
               }
             }
           }
         } catch (e) {}
-      }, 4000);
+      }, 3000);
 
       // إيقاف الفحص بعد دقيقتين تجنباً لاستنزاف الموارد
       setTimeout(() => {
@@ -177,7 +185,8 @@ class WebJSProvider extends BaseWhatsAppProvider {
       this._log(`❌ auth_failure: ${msg}`);
     });
 
-    this.client.on('ready', () => {
+    this.client.on('ready', async () => {
+      await this._ensureWWebJS();
       this.clientReady = true;
       this.currentQR = null;
       this._statusLabel = '✅ متصل — جلسة واتساب نشطة';
@@ -191,6 +200,7 @@ class WebJSProvider extends BaseWhatsAppProvider {
 
     this.client.on('disconnected', (reason) => {
       this.clientReady = false;
+      this.currentQR = null;
       this._statusLabel = '🔴 غير متصل';
       this._sendToRenderer('whatsapp:disconnected', reason);
       this._log(`🔴 انقطع الاتصال: ${reason}`);
@@ -201,6 +211,42 @@ class WebJSProvider extends BaseWhatsAppProvider {
       this._statusLabel = `⚠️ خطأ: ${err.message}`;
       this._sendToRenderer('whatsapp:error', err.message);
     });
+  }
+
+  // ──────────────────────────────────────────────
+  // التأكد من حقن window.WWebJS وحمايته من السقوط
+  // ──────────────────────────────────────────────
+  async _ensureWWebJS() {
+    if (!this.client || !this.client.pupPage || this.client.pupPage.isClosed()) {
+      return false;
+    }
+    try {
+      const isReady = await this.client.pupPage.evaluate(() => {
+        return typeof window.WWebJS !== 'undefined' && typeof window.WWebJS.getChat === 'function';
+      }).catch(() => false);
+      if (isReady) return true;
+
+      this._log('🔄 جاري فحص وحقن window.WWebJS (LoadUtils)...');
+      const { LoadUtils } = require('whatsapp-web.js/src/util/Injected/Utils');
+      await this.client.pupPage.evaluate(LoadUtils).catch(e => {
+        this._log(`⚠️ خطأ أثناء evaluate LoadUtils: ${e.message}`);
+      });
+
+      for (let i = 0; i < 15; i++) {
+        const ready = await this.client.pupPage.evaluate(() => {
+          return typeof window.WWebJS !== 'undefined' && typeof window.WWebJS.getChat === 'function';
+        }).catch(() => false);
+        if (ready) {
+          this._log('✅ تم التحقق من حقن window.WWebJS بنجاح');
+          return true;
+        }
+        await new Promise(r => setTimeout(r, 200));
+      }
+      return false;
+    } catch (e) {
+      this._log(`⚠️ _ensureWWebJS exception: ${e.message}`);
+      return false;
+    }
   }
 
   // ──────────────────────────────────────────────
@@ -246,20 +292,29 @@ class WebJSProvider extends BaseWhatsAppProvider {
   // ──────────────────────────────────────────────
   // إرسال رسالة
   // ──────────────────────────────────────────────
-  async sendMessage({ type, phone, payload, settings }) {
+  sendMessage({ type, phone, payload, settings }) {
     if (!this.clientReady || !this.client) {
       this._log(`⚠️ محاولة إرسال لـ ${phone} لكن clientReady=${this.clientReady}`);
-      return { success: false, error: 'واتساب غير متصل — يرجى الانتظار أو ربط الواتساب من الإعدادات' };
+      return Promise.resolve({ success: false, error: 'واتساب غير متصل — يرجى فتح واتساب ومسح رمز QR من الإعدادات' });
     }
-    if (!phone || phone.trim() === '') {
-      return { success: false, error: 'رقم الهاتف غير موجود' };
+    if (!phone || String(phone).trim() === '') {
+      return Promise.resolve({ success: false, error: 'رقم الهاتف غير موجود للعميل' });
     }
 
-    this._log(`📤 طلب إرسال (${type}) لـ ${phone}`);
-    this.messageQueue.push({ type, phone, payload, settings });
-    this._processQueue();
+    return new Promise((resolve) => {
+      this._log(`📤 إضافة رسالة للطابور (${type}) لـ ${phone}`);
+      this.messageQueue.push({ type, phone: String(phone).trim(), payload, settings, resolve });
+      this._processQueue();
+    });
+  }
 
-    return { success: true, queued: true };
+  // للتوافق مع whatsapp-manager
+  enqueue(phone, type, payload, settings, manualPriority = false) {
+    return this.sendMessage({ type, phone, payload, settings });
+  }
+
+  async sendTextMessage(phone, text) {
+    return await this.sendMessage({ type: 'free_text', phone, payload: { text, message: text } });
   }
 
   // ── معالجة الطابور ──────────────────────────────────────────────────────────
@@ -270,67 +325,114 @@ class WebJSProvider extends BaseWhatsAppProvider {
     while (this.messageQueue.length > 0) {
       const msg = this.messageQueue.shift();
 
-      // إعادة المحاولة لو الـ client انقطع في منتصف الطابور
       if (!this.clientReady || !this.client) {
-        this._log(`⚠️ الـ client غير جاهز — تم تخطي رسالة لـ ${msg.phone}`);
+        this._log(`⚠️ الـ client غير جاهز — تم رفض رسالة لـ ${msg.phone}`);
+        if (msg.resolve) msg.resolve({ success: false, error: 'انقطع اتصال واتساب أثناء الإرسال' });
         continue;
       }
 
       try {
         const formatted = this.formatEgyptianPhone(msg.phone);
+        if (!formatted || formatted.length < 10) {
+          this._log(`❌ رقم الهاتف غير صالح: ${msg.phone}`);
+          if (msg.resolve) msg.resolve({ success: false, error: `رقم الهاتف "${msg.phone}" غير صالح` });
+          continue;
+        }
+
         const chatId = `${formatted}@c.us`;
         const message = this._buildMessage(msg.type, msg.payload, msg.settings);
 
         if (!message) {
           this._log(`⚠️ لم يُبنَ نص الرسالة من النوع "${msg.type}" لـ ${msg.phone}`);
+          if (msg.resolve) msg.resolve({ success: false, error: 'فشل بناء محتوى الرسالة' });
           continue;
         }
 
-        this._log(`📨 جاري الإرسال لـ ${msg.phone} (${chatId})...`);
-        
-        // ── محاكاة الكتابة البشرية للحماية من الحظر ──
-        try {
-          await this.client.sendPresenceAvailable();
-          const chat = await this.client.getChatById(chatId);
-          if (chat) {
-            await chat.sendStateTyping();
-            // حساب وقت كتابة واقعي بناءً على طول الرسالة (بين 2 إلى 5 ثوانٍ)
-            const typingTime = Math.min(Math.max(message.length * 50, 2000), 5000);
-            await new Promise(r => setTimeout(r, typingTime));
-            // clearState is usually automatic when message is sent
-          } else {
-            await new Promise(r => setTimeout(r, 2000));
-          }
-        } catch (typingErr) {
-          this._log(`⚠️ تعذر محاكاة الكتابة لـ ${chatId}: ${typingErr.message}`);
-          await new Promise(r => setTimeout(r, 2000));
+        this._log(`📨 جاري إرسال الرسالة لـ ${msg.phone} (${chatId})...`);
+
+        // التأكد من جاهزية WWebJS وحقنها إن لزم
+        let ready = await this._ensureWWebJS();
+        if (!ready && this.client.pupBrowser) {
+          try {
+            const pages = await this.client.pupBrowser.pages();
+            if (pages.length > 0 && !pages[0].isClosed()) {
+              this.client.pupPage = pages[0];
+              ready = await this._ensureWWebJS();
+            }
+          } catch (pErr) {}
         }
 
-        await this.client.sendMessage(chatId, message);
+        // محاكاة كتابة سريعة وواقعية (1.2 ثانية) مع حماية ضد أي خطأ
+        try {
+          if (this.client.sendPresenceAvailable) {
+            await this.client.sendPresenceAvailable().catch(() => {});
+          }
+          const chat = await this.client.getChatById(chatId).catch(() => null);
+          if (chat && typeof chat.sendStateTyping === 'function') {
+            await chat.sendStateTyping().catch(() => {});
+            await new Promise(r => setTimeout(r, 1200));
+          }
+        } catch (_) {}
+
+        // إرسال الرسالة
+        let sendResult = null;
+        try {
+          sendResult = await this.client.sendMessage(chatId, message);
+        } catch (sendErr) {
+          // التعامل مع مشكلة detached Frame واستعادة الصفحة
+          if (sendErr.message && (sendErr.message.includes('detached Frame') || sendErr.message.includes('Execution context was destroyed'))) {
+            this._log('🔄 تم اكتشاف detached Frame — محاولة استعادة الصفحة والـ Frame...');
+            if (this.client.pupBrowser) {
+              const pages = await this.client.pupBrowser.pages();
+              if (pages.length > 0 && !pages[0].isClosed()) {
+                this.client.pupPage = pages[0];
+                await this._ensureWWebJS();
+                sendResult = await this.client.sendMessage(chatId, message);
+              } else {
+                throw sendErr;
+              }
+            } else {
+              throw sendErr;
+            }
+          } else {
+            throw sendErr;
+          }
+        }
+
         this._log(`✅ تم الإرسال لـ ${msg.phone} بنجاح`);
+        if (msg.resolve) msg.resolve({ success: true, messageId: sendResult?.id?.id || null });
 
       } catch (err) {
-        this._log(`❌ فشل إرسال رسالة لـ ${msg.phone}: ${err.message}\n${err.stack}`);
+        this._log(`❌ فشل إرسال رسالة لـ ${msg.phone}: ${err.message}`);
+        let friendlyErr = err.message;
+        if (err.message && err.message.includes('getChat')) {
+          friendlyErr = 'جلسة واتساب لا تزال قيد التحميل في المتصفح، يرجى الانتظار بضع ثوانٍ وإعادة المحاولة';
+        } else if (err.message && err.message.includes('detached Frame')) {
+          friendlyErr = 'حدث تحديث لصفحة واتساب، يرجى إعادة المحاولة الآن';
+        }
+        if (msg.resolve) msg.resolve({ success: false, error: friendlyErr });
       }
 
-      // تأخير عشوائي طبيعي بين الرسائل (3 إلى 6 ثوانٍ) لمنع الحظر
-      const delay = 3000 + Math.floor(Math.random() * 3000);
-      await new Promise(r => setTimeout(r, delay));
+      // تأخير بسيط لمنع الحظر
+      await new Promise(r => setTimeout(r, 1500));
     }
 
     this.isProcessingQueue = false;
   }
 
   async sendFile(phone, caption, filePath) {
-    if (!this.clientReady || !this.client) return { success: false, error: 'Client not ready' };
+    if (!this.clientReady || !this.client) return { success: false, error: 'واتساب غير متصل' };
     try {
+      await this._ensureWWebJS();
       const { MessageMedia } = require('whatsapp-web.js');
       const formatted = this.formatEgyptianPhone(phone);
       const chatId = `${formatted}@c.us`;
       const media = MessageMedia.fromFilePath(filePath);
       await this.client.sendMessage(chatId, media, { caption });
+      this._log(`✅ تم إرسال الملف لـ ${phone} بنجاح`);
       return { success: true };
     } catch (e) {
+      this._log(`❌ فشل إرسال الملف لـ ${phone}: ${e.message}`);
       return { success: false, error: e.message };
     }
   }

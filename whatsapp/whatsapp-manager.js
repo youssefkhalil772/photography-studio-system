@@ -188,10 +188,19 @@ async function switchProvider(newProviderType, newConfig, db, app) {
 // الحصول على المزوّد النشط
 // ──────────────────────────────────────────────
 async function enqueueMessage(phone, type, payload, manualPriority = false) {
-  if (!activeProvider) return { success: false, error: 'Provider not initialized' };
+  if (!activeProvider) return { success: false, error: 'خدمة الواتساب غير مهيأة' };
   
   const settings = getWhatsAppSettings(dbRef);
-  return await activeProvider.enqueue(phone, type, payload, settings, manualPriority);
+  if (typeof activeProvider.enqueue === 'function') {
+    return await activeProvider.enqueue(phone, type, payload, settings, manualPriority);
+  }
+  const text = payload.customText || payload.text || payload.message || '';
+  return await activeProvider.sendMessage({
+    type: type === 'custom' ? 'free_text' : type,
+    phone,
+    payload: { ...payload, text, message: text },
+    settings
+  });
 }
 
 async function sendFile(phone, caption, filePath, extraData = {}) {
