@@ -347,6 +347,8 @@ CREATE TABLE IF NOT EXISTS company_settings (
   barcode_show_price INTEGER DEFAULT 1,
   barcode_show_name INTEGER DEFAULT 1,
   barcode_show_studio INTEGER DEFAULT 1,
+  barcode_bar_height REAL DEFAULT 0,
+  barcode_orientation TEXT DEFAULT 'portrait',
   prevent_cashier_price_edit INTEGER DEFAULT 0,
   cashier_hide_reports INTEGER DEFAULT 0,
   cashier_hide_hr INTEGER DEFAULT 0,

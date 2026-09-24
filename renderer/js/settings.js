@@ -64,6 +64,9 @@ async function loadSettings() {
   if (document.getElementById('printerReports')) document.getElementById('printerReports').value = s.printer_reports || '';
   if (document.getElementById('barcodeWidth')) document.getElementById('barcodeWidth').value = s.barcode_width || 38;
   if (document.getElementById('barcodeHeight')) document.getElementById('barcodeHeight').value = s.barcode_height || 25;
+  if (document.getElementById('barcodeBarHeight')) document.getElementById('barcodeBarHeight').value = s.barcode_bar_height || '';
+  if (document.getElementById('barcodeOrientation')) document.getElementById('barcodeOrientation').value = s.barcode_orientation || 'portrait';
+  if (document.getElementById('printerBarcode')) document.getElementById('printerBarcode').value = s.printer_barcode || '';
   if (document.getElementById('barcodeShowStudio')) document.getElementById('barcodeShowStudio').checked = s.barcode_show_studio !== 0;
   if (document.getElementById('barcodeShowName')) document.getElementById('barcodeShowName').checked = s.barcode_show_name !== 0;
   if (document.getElementById('barcodeShowPrice')) document.getElementById('barcodeShowPrice').checked = s.barcode_show_price !== 0;
@@ -148,6 +151,7 @@ async function saveCashierPermissions() {
       printer_reports:           s.printer_reports || '',
       barcode_width:             s.barcode_width || 38,
       barcode_height:            s.barcode_height || 25,
+      barcode_bar_height:        s.barcode_bar_height || 0,
       barcode_show_price:        s.barcode_show_price !== 0,
       barcode_show_name:         s.barcode_show_name !== 0,
       barcode_show_studio:       s.barcode_show_studio !== 0,
@@ -173,35 +177,35 @@ async function saveCashierPermissions() {
 // ─── Save settings ────────────────────────────────────────────────────────────
 async function saveSettings() {
   const data = {
-    company_name:              document.getElementById('companyName').value.trim(),
-    address:                   document.getElementById('address').value.trim(),
-    phone:                     document.getElementById('phone').value.trim(),
-    logo_path:                 currentLogoPath,
-    tax_number:                document.getElementById('taxNumber').value.trim(),
-    receipt_footer:            document.getElementById('receiptFooter').value.trim(),
-    receipt_notes:             document.getElementById('receiptNotes').value.trim(),
-    show_customer_phone:       document.getElementById('showCustomerPhone').checked,
-    prevent_cashier_price_edit:document.getElementById('preventCashierPriceEdit').checked,
-    currency:                  document.getElementById('currency').value.trim() || 'جنيه',
+    company_name:              document.getElementById('companyName')?.value?.trim() || '',
+    address:                   document.getElementById('address')?.value?.trim() || '',
+    phone:                     document.getElementById('phone')?.value?.trim() || '',
+    logo_path:                 currentLogoPath || null,
+    tax_number:                document.getElementById('taxNumber')?.value?.trim() || '',
+    receipt_footer:            document.getElementById('receiptFooter')?.value?.trim() || '',
+    receipt_notes:             document.getElementById('receiptNotes')?.value?.trim() || '',
+    show_customer_phone:       document.getElementById('showCustomerPhone')?.checked ? 1 : 0,
+    prevent_cashier_price_edit:document.getElementById('preventCashierPriceEdit')?.checked ? 1 : 0,
+    currency:                  document.getElementById('currency')?.value?.trim() || 'جنيه',
     // Cashier permissions
-    cashier_hide_reports:      document.getElementById('cashierHideReports').checked,
-    cashier_hide_hr:           document.getElementById('cashierHideHr').checked,
-    cashier_prevent_returns:   document.getElementById('cashierPreventReturns').checked,
-    cashier_hide_finance:      document.getElementById('cashierHideFinance').checked,
-    cashier_prevent_discount:  document.getElementById('cashierPreventDiscount').checked,
-    cashier_prevent_settings:  document.getElementById('cashierPreventSettings').checked,
-    stock_out_behavior:        document.getElementById('stockOutBehavior') ? document.getElementById('stockOutBehavior').value : 'warn',
+    cashier_hide_reports:      document.getElementById('cashierHideReports')?.checked ? 1 : 0,
+    cashier_hide_hr:           document.getElementById('cashierHideHr')?.checked ? 1 : 0,
+    cashier_prevent_returns:   document.getElementById('cashierPreventReturns')?.checked ? 1 : 0,
+    cashier_hide_finance:      document.getElementById('cashierHideFinance')?.checked ? 1 : 0,
+    cashier_prevent_discount:  document.getElementById('cashierPreventDiscount')?.checked ? 1 : 0,
+    cashier_prevent_settings:  document.getElementById('cashierPreventSettings')?.checked ? 1 : 0,
+    stock_out_behavior:        document.getElementById('stockOutBehavior')?.value || 'warn',
     // WhatsApp
-    wa_phone1:                 document.getElementById('waPhone1')?.value.trim() || '',
-    wa_phone2:                 document.getElementById('waPhone2')?.value.trim() || '',
-    // Templates (saved separately via saveWaTemplates)
-    wa_tpl_invoice_confirm:    document.getElementById('tplInvoiceConfirm')?.value.trim() || '',
-    wa_tpl_order_ready:        document.getElementById('tplOrderReady')?.value.trim() || '',
-    wa_tpl_delivered:          document.getElementById('tplDelivered')?.value.trim() || '',
-    wa_tpl_full_payment:       document.getElementById('tplFullPayment')?.value.trim() || '',
-    wa_tpl_partial_payment:    document.getElementById('tplPartialPayment')?.value.trim() || '',
-    admin_wa_phone:            document.getElementById('adminWaPhone')?.value.trim() || '',
-    report_save_path:          document.getElementById('reportSavePath')?.value.trim() || '',
+    wa_phone1:                 document.getElementById('waPhone1')?.value?.trim() || '',
+    wa_phone2:                 document.getElementById('waPhone2')?.value?.trim() || '',
+    // Templates
+    wa_tpl_invoice_confirm:    document.getElementById('tplInvoiceConfirm')?.value?.trim() || '',
+    wa_tpl_order_ready:        document.getElementById('tplOrderReady')?.value?.trim() || '',
+    wa_tpl_delivered:          document.getElementById('tplDelivered')?.value?.trim() || '',
+    wa_tpl_full_payment:       document.getElementById('tplFullPayment')?.value?.trim() || '',
+    wa_tpl_partial_payment:    document.getElementById('tplPartialPayment')?.value?.trim() || '',
+    admin_wa_phone:            document.getElementById('adminWaPhone')?.value?.trim() || '',
+    report_save_path:          document.getElementById('reportSavePath')?.value?.trim() || '',
     day_cutoff_hour:           parseInt(document.getElementById('dayCutoffHour')?.value || '0', 10),
     // Printers & Barcode
     printer_receipt:           document.getElementById('printerReceipt')?.value || '',
@@ -209,6 +213,8 @@ async function saveSettings() {
     printer_reports:           document.getElementById('printerReports')?.value || '',
     barcode_width:             parseFloat(document.getElementById('barcodeWidth')?.value) || 38,
     barcode_height:            parseFloat(document.getElementById('barcodeHeight')?.value) || 25,
+    barcode_bar_height:        parseFloat(document.getElementById('barcodeBarHeight')?.value) || 0,
+    barcode_orientation:       document.getElementById('barcodeOrientation')?.value || 'portrait',
     barcode_show_price:        document.getElementById('barcodeShowPrice')?.checked ? 1 : 0,
     barcode_show_name:         document.getElementById('barcodeShowName')?.checked ? 1 : 0,
     barcode_show_studio:       document.getElementById('barcodeShowStudio')?.checked ? 1 : 0,
@@ -217,11 +223,13 @@ async function saveSettings() {
   const res = await window.db.updateSettings(data);
   if (res.success) {
     sessionStorage.setItem('photoStudio_dayCutoffHour', data.day_cutoff_hour);
-    showToast('تم حفظ الإعدادات بنجاح ', 'success');
+    showToast('تم حفظ الإعدادات بنجاح ✓', 'success');
     if (data.company_name) document.getElementById('sidebarShopName').textContent = data.company_name;
     updateBarcodePreview();
+    return true;
   } else {
-    showToast('خطأ في حفظ الإعدادات: ' + res.error, 'error');
+    showToast('خطأ في حفظ الإعدادات: ' + (res.error || ''), 'error');
+    return false;
   }
 }
 
@@ -265,6 +273,7 @@ function updateBarcodePreview() {
   if (!svgEl) return;
   const width = parseFloat(document.getElementById('barcodeWidth')?.value) || 38;
   const height = parseFloat(document.getElementById('barcodeHeight')?.value) || 25;
+  const customBarH = parseFloat(document.getElementById('barcodeBarHeight')?.value) || 0;
   const showStudio = document.getElementById('barcodeShowStudio')?.checked;
   const showName = document.getElementById('barcodeShowName')?.checked;
   const showPrice = document.getElementById('barcodeShowPrice')?.checked;
@@ -290,88 +299,52 @@ function updateBarcodePreview() {
     labelCard.style.minHeight = Math.min(220, Math.max(100, height * 5)) + 'px';
   }
 
+  let barH = 30;
+  if (customBarH > 0) {
+    barH = Math.max(14, Math.min(55, customBarH * 3.5));
+  } else if (height <= 21) {
+    barH = 18;
+  } else if (height <= 26) {
+    barH = 26;
+  }
+
   if (typeof JsBarcode === 'function') {
     try {
       JsBarcode(svgEl, 'SRV-1001', {
         format: 'CODE128',
         lineColor: '#000',
-        width: 1.5,
-        height: 35,
+        width: 1.3,
+        height: barH,
         displayValue: true,
-        fontSize: 11,
-        margin: 2
+        fontSize: height <= 21 ? 9 : 11,
+        margin: 1
       });
+      svgEl.setAttribute('preserveAspectRatio', 'none');
     } catch (e) {
       console.error('JsBarcode preview error:', e);
     }
   }
 }
 
-function testPrintBarcode() {
-  const width = parseFloat(document.getElementById('barcodeWidth')?.value) || 38;
-  const height = parseFloat(document.getElementById('barcodeHeight')?.value) || 25;
-  const showStudio = document.getElementById('barcodeShowStudio')?.checked;
-  const showName = document.getElementById('barcodeShowName')?.checked;
-  const showPrice = document.getElementById('barcodeShowPrice')?.checked;
-  const studioName = document.getElementById('companyName')?.value.trim() || 'استوديو التصوير';
-  const itemName = 'جلسة تصوير بورتريه VIP';
-  const price = '250 ج.م';
+async function testPrintBarcode() {
+  const saved = await saveSettings();
+  if (!saved) return;
 
-  const printWin = window.open('', '_blank', 'width=400,height=300');
-  if (!printWin) {
-    showToast('تعذر فتح نافذة الطباعة (تأكد من السماح بالنوافذ المنبثقة)', 'error');
-    return;
+  const sampleItems = [{
+    id: 0,
+    name: 'جلسة تصوير VIP (تجريبي)',
+    barcode: '1001002003',
+    sell_price: 250,
+    copies: 1
+  }];
+
+  showToast('جارٍ إرسال الملصق التجريبي إلى الطابعة...', 'info');
+  const res = await window.inventory.printBarcodeLabels(sampleItems, 1);
+  if (res.success) {
+    showToast('تمت طباعة الملصق التجريبي بنجاح ✓', 'success');
+  } else {
+    showToast('خطأ في الطباعة: ' + (res.error || ''), 'error');
   }
-  const svgEl = document.getElementById('barcodePreviewSvg');
-  const svgHtml = svgEl ? svgEl.outerHTML : '';
-
-  printWin.document.write(`
-    <!DOCTYPE html>
-    <html dir="rtl">
-    <head>
-      <meta charset="UTF-8">
-      <title>طباعة ملصق تجريبي</title>
-      <style>
-        @page {
-          size: ${width}mm ${height}mm;
-          margin: 0;
-        }
-        body {
-          margin: 0;
-          padding: 2mm;
-          width: ${width}mm;
-          height: ${height}mm;
-          box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          font-family: Arial, sans-serif;
-          font-size: 8px;
-          overflow: hidden;
-        }
-        .studio-name { font-weight: bold; font-size: 9px; margin-bottom: 1mm; }
-        .item-name { font-size: 8px; margin-bottom: 1mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-        .barcode-svg { max-width: 95%; max-height: 12mm; }
-        .price { font-weight: bold; font-size: 9px; margin-top: 1mm; }
-      </style>
-    </head>
-    <body>
-      ${showStudio ? ('<div class="studio-name">' + studioName + '</div>') : ''}
-      ${showName ? ('<div class="item-name">' + itemName + '</div>') : ''}
-      <div class="barcode-svg">${svgHtml}</div>
-      ${showPrice ? ('<div class="price">' + price + '</div>') : ''}
-      <script>
-        window.onload = function() {
-          window.print();
-          setTimeout(() => window.close(), 500);
-        };
-      </script>
-    </body>
-    </html>
-  `);
-  printWin.document.close();
 }
 
 // ─── Select Report Folder ───────────────────────────────────────────────────

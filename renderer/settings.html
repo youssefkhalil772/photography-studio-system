@@ -356,7 +356,7 @@
             إعدادات ملصق الباركود والمعاينة
           </div>
 
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:14px;">
             <div class="form-group">
               <label class="form-label">عرض الملصق (مم)</label>
               <input type="number" id="barcodeWidth" class="form-control" value="38" min="20" max="100" oninput="updateBarcodePreview()" />
@@ -364,6 +364,26 @@
             <div class="form-group">
               <label class="form-label">ارتفاع الملصق (مم)</label>
               <input type="number" id="barcodeHeight" class="form-control" value="25" min="15" max="100" oninput="updateBarcodePreview()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ارتفاع الباركود (مم)</label>
+              <input type="number" id="barcodeBarHeight" class="form-control" placeholder="تلقائي (0)" min="0" max="30" step="0.5" oninput="updateBarcodePreview()" title="اتركه 0 أو فارغاً للضبط التلقائي الذكي حسب مقاس الملصق" />
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">اتجاه الطباعة (Orientation)</label>
+              <select id="barcodeOrientation" class="form-control" onchange="updateBarcodePreview()">
+                <option value="portrait">رأسي / قياسي (Portrait - الافتراضي لرولات الباركود)</option>
+                <option value="landscape">أفقي / بالعرض (Landscape)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">طابعة الباركود</label>
+              <select id="printerBarcode" class="form-control">
+                <option value="">(الافتراضية لنظام التشغيل)</option>
+              </select>
             </div>
           </div>
 

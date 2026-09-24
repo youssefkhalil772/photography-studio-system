@@ -332,6 +332,8 @@ function migrateSchema() {
         runSafe("ALTER TABLE company_settings ADD COLUMN barcode_show_price INTEGER DEFAULT 1");
         runSafe("ALTER TABLE company_settings ADD COLUMN barcode_show_name INTEGER DEFAULT 1");
         runSafe("ALTER TABLE company_settings ADD COLUMN barcode_show_studio INTEGER DEFAULT 1");
+        runSafe("ALTER TABLE company_settings ADD COLUMN barcode_bar_height REAL DEFAULT 0");
+        runSafe("ALTER TABLE company_settings ADD COLUMN barcode_orientation TEXT DEFAULT 'portrait'");
         // High Performance Indexes
         runSafe("CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(invoice_date)");
         runSafe("CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status)");
@@ -1796,6 +1798,8 @@ function setupIpcHandlers(ipcMain, app) {
           barcode_show_price = ?,
           barcode_show_name = ?,
           barcode_show_studio = ?,
+          barcode_bar_height = ?,
+          barcode_orientation = ?,
           stock_out_behavior = ?
         WHERE id = 1
       `).run(
@@ -1828,6 +1832,8 @@ function setupIpcHandlers(ipcMain, app) {
         data.barcode_show_price !== undefined ? (data.barcode_show_price ? 1 : 0) : 1,
         data.barcode_show_name !== undefined ? (data.barcode_show_name ? 1 : 0) : 1,
         data.barcode_show_studio !== undefined ? (data.barcode_show_studio ? 1 : 0) : 1,
+        parseFloat(data.barcode_bar_height) || 0,
+        data.barcode_orientation || 'portrait',
         data.stock_out_behavior || 'warn'
       );
       logAudit('update_settings', 'company_settings', 1, null, data);

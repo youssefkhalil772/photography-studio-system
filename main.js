@@ -308,6 +308,7 @@ function generateBarcodeSvg(barcodeValue, width = 1.3, height = 36) {
       displayValue: false,
       margin: 0
     });
+    svgNode.setAttribute('preserveAspectRatio', 'none');
     return xmlSerializer.serializeToString(svgNode);
   } catch (e) {
     try {
@@ -322,6 +323,7 @@ function generateBarcodeSvg(barcodeValue, width = 1.3, height = 36) {
         displayValue: false,
         margin: 0
       });
+      svgNode.setAttribute('preserveAspectRatio', 'none');
       return xmlSerializer.serializeToString(svgNode);
     } catch (e2) {
       return '';
@@ -332,13 +334,57 @@ function generateBarcodeSvg(barcodeValue, width = 1.3, height = 36) {
 function buildBarcodeHtmlDocument(items, copies, settings) {
   const labelW = parseFloat(settings.barcode_width) || 38;
   const labelH = parseFloat(settings.barcode_height) || 25;
+  const customBarH = parseFloat(settings.barcode_bar_height) || 0;
+  const isLandscape = settings.barcode_orientation === 'landscape';
   const showPrice = settings.barcode_show_price !== 0;
   const showName  = settings.barcode_show_name  !== 0;
   const showStudio = settings.barcode_show_studio !== 0;
   const studioName = settings.company_name || settings.studio_name || 'استوديو التصوير';
 
-  const barHeightMm = Math.max(7, Math.min(22, Math.round(labelH * 0.42)));
-  const barWidthVal = labelW <= 35 ? 1.1 : (labelW <= 45 ? 1.3 : 1.6);
+  // Smart responsive calculations based on label dimensions
+  let barHeightMm;
+  if (customBarH > 0) {
+    barHeightMm = Math.max(3, Math.min(25, customBarH));
+  } else if (labelH <= 21) {
+    // For small labels (e.g. 20mm height):
+    barHeightMm = Math.max(4.2, Math.min(5.8, Math.round(labelH * 0.25 * 10) / 10));
+  } else if (labelH <= 26) {
+    // For standard labels (e.g. 25mm height):
+    barHeightMm = Math.max(6, Math.min(8, Math.round(labelH * 0.30 * 10) / 10));
+  } else {
+    // For larger labels (30mm+ height):
+    barHeightMm = Math.max(8, Math.min(20, Math.round(labelH * 0.38 * 10) / 10));
+  }
+
+  // Dynamic typography & spacing rules
+  let padV = '0.7mm';
+  let padH = '1mm';
+  let studioFont = '7.2pt';
+  let nameFont = '6.8pt';
+  let baseCodeFont = '6pt';
+  let priceFont = '8.2pt';
+  let headerGap = '0.25mm';
+  let codeMarginTop = '0.3mm';
+
+  if (labelH <= 21) {
+    padV = '0.35mm';
+    padH = '0.8mm';
+    studioFont = '5.8pt';
+    nameFont = '5.4pt';
+    baseCodeFont = '4.8pt';
+    priceFont = '6.6pt';
+    headerGap = '0.15mm';
+    codeMarginTop = '0.2mm';
+  } else if (labelH <= 26) {
+    padV = '0.55mm';
+    padH = '1mm';
+    studioFont = '6.6pt';
+    nameFont = '6.2pt';
+    baseCodeFont = '5.6pt';
+    priceFont = '7.6pt';
+    headerGap = '0.2mm';
+    codeMarginTop = '0.25mm';
+  }
 
   const labelRows = [];
   for (const item of items) {
@@ -346,18 +392,47 @@ function buildBarcodeHtmlDocument(items, copies, settings) {
     if (n <= 0) continue;
 
     const barcodeVal = (item.barcode || '').trim();
-    const svgContent = barcodeVal ? generateBarcodeSvg(barcodeVal, barWidthVal, 38) : '';
+    // Dynamic width calculation for CODE128 to handle long barcodes (15-20 digits) comfortably
+    let barWidthVal = 1.3;
+    if (barcodeVal.length >= 18) {
+      barWidthVal = labelW <= 38 ? 0.85 : 1.0;
+    } else if (barcodeVal.length >= 14) {
+      barWidthVal = labelW <= 38 ? 0.95 : 1.15;
+    } else if (labelW <= 35) {
+      barWidthVal = 1.1;
+    } else if (labelW <= 45) {
+      barWidthVal = 1.3;
+    } else {
+      barWidthVal = 1.5;
+    }
+
+    const svgContent = barcodeVal ? generateBarcodeSvg(barcodeVal, barWidthVal, 36) : '';
+
+    // Per-barcode dynamic code font and letter-spacing for long numbers
+    let itemCodeFont = baseCodeFont;
+    let itemLetterSpacing = '0.4px';
+    if (barcodeVal.length >= 18) {
+      itemCodeFont = '4.2pt';
+      itemLetterSpacing = '-0.1px';
+    } else if (barcodeVal.length >= 14) {
+      itemCodeFont = '4.8pt';
+      itemLetterSpacing = '0.1px';
+    } else if (labelH <= 21) {
+      itemLetterSpacing = '0.2px';
+    }
 
     for (let i = 0; i < n; i++) {
       const studioHtml = showStudio ? `<div class="label-studio">${studioName}</div>` : '';
       const nameHtml   = showName   ? `<div class="label-name">${item.name || ''}</div>` : '';
       const priceHtml  = showPrice  ? `<div class="label-price">${Number(item.sell_price || 0).toFixed(2)} ج.م</div>` : '';
-      const codeHtml   = barcodeVal ? `<div class="barcode-code">${barcodeVal}</div>` : '';
+      const codeHtml   = barcodeVal ? `<div class="barcode-code" style="font-size:${itemCodeFont}; letter-spacing:${itemLetterSpacing};">${barcodeVal}</div>` : '';
 
       labelRows.push(`
         <div class="label">
-          ${studioHtml}
-          ${nameHtml}
+          <div class="label-header">
+            ${studioHtml}
+            ${nameHtml}
+          </div>
           <div class="barcode-box">
             <div class="barcode-svg-wrap">${svgContent}</div>
             ${codeHtml}
@@ -381,27 +456,28 @@ function buildBarcodeHtmlDocument(items, copies, settings) {
     print-color-adjust: exact;
   }
   @page {
-    size: ${labelW}mm ${labelH}mm;
+    size: ${labelW}mm ${labelH}mm ${isLandscape ? 'landscape' : 'portrait'};
     margin: 0;
   }
   html, body {
     margin: 0;
     padding: 0;
     background: #fff;
-    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, -apple-system, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   .label {
     width: ${labelW}mm;
     height: ${labelH}mm;
     max-width: ${labelW}mm;
     max-height: ${labelH}mm;
-    padding: 1mm 1.5mm;
+    padding: ${padV} ${padH};
     page-break-after: always;
     page-break-inside: avoid;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-evenly;
+    justify-content: space-between;
     text-align: center;
     background: #fff;
     overflow: hidden;
@@ -409,44 +485,64 @@ function buildBarcodeHtmlDocument(items, copies, settings) {
   .label:last-child {
     page-break-after: avoid;
   }
-  .label-studio {
-    font-size: 7.5pt;
-    font-weight: 800;
-    line-height: 1.1;
-    color: #000;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-  .label-name {
-    font-size: 7pt;
-    font-weight: 700;
-    line-height: 1.1;
-    color: #000;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-  .barcode-box {
+  .label-header {
+    width: 100%;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: ${headerGap};
+  }
+  .label-studio {
+    font-size: ${studioFont};
+    font-weight: 800;
+    line-height: 1.15;
+    color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     max-width: 100%;
-    margin: 0.2mm 0;
+    flex-shrink: 0;
+  }
+  .label-name {
+    font-size: ${nameFont};
+    font-weight: 700;
+    line-height: 1.15;
+    color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    flex-shrink: 0;
+  }
+  .barcode-box {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 0.1mm 0;
   }
   .barcode-svg-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
     max-width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
   }
   .barcode-svg-wrap svg {
     display: block;
-    max-width: 100%;
+    width: 96%;
+    max-width: 98%;
     height: ${barHeightMm}mm;
+    max-height: ${barHeightMm}mm;
     shape-rendering: crispEdges;
   }
   .barcode-svg-wrap svg rect {
@@ -454,20 +550,23 @@ function buildBarcodeHtmlDocument(items, copies, settings) {
   }
   .barcode-code {
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 6.5pt;
     font-weight: 700;
-    letter-spacing: 1px;
     color: #000;
     line-height: 1;
-    margin-top: 0.5mm;
+    margin-top: ${codeMarginTop};
     direction: ltr;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 100%;
   }
   .label-price {
-    font-size: 8.5pt;
+    font-size: ${priceFont};
     font-weight: 900;
-    line-height: 1.1;
+    line-height: 1.15;
     color: #000;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 </style>
 </head>
@@ -505,6 +604,7 @@ ipcMain.handle('inventory:printBarcodeLabels', async (_, items, copies = 1) => {
             silent: isSilent,
             printBackground: true,
             color: true,
+            landscape: settings.barcode_orientation === 'landscape',
             margins: { marginType: 'none' },
             pageSize: { width: Math.round(labelW * 1000), height: Math.round(labelH * 1000) }
           };
