@@ -26,8 +26,8 @@
   "author": "Dev Blue Tech",
   "license": "MIT",
   "build": {
-    "appId": "com.deltatech.photostudiosystem",
-    "productName": "Photography Studio System",
+    "appId": "com.deltatech.studiopro",
+    "productName": "StudioPro",
     "asar": true,
     "compression": "maximum",
     "files": [
@@ -48,7 +48,7 @@
       "!electron-builder.win7.json"
     ],
     "win": {
-      "signAndEditExecutable": false,
+      "icon": "assets/icon.ico",
       "target": [
         "nsis"
       ]
@@ -58,7 +58,9 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "نظام الاستوديو"
+      "shortcutName": "StudioPro",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
     },
     "directories": {
       "output": "dist"

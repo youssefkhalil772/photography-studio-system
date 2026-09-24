@@ -1,6 +1,6 @@
 {
-  "appId": "com.deltatech.photostudiosystem",
-  "productName": "Photography Studio System",
+  "appId": "com.deltatech.studiopro",
+  "productName": "StudioPro",
   "electronVersion": "22.3.27",
   "asar": true,
   "compression": "maximum",
@@ -21,6 +21,7 @@
     "!electron-builder.win7.json"
   ],
   "win": {
+    "icon": "assets/icon.ico",
     "target": [
       {
         "target": "nsis",
@@ -36,7 +37,9 @@
     "allowToChangeInstallationDirectory": true,
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "نظام الاستوديو"
+    "shortcutName": "StudioPro",
+    "installerIcon": "assets/icon.ico",
+    "uninstallerIcon": "assets/icon.ico"
   },
   "directories": {
     "output": "dist-win7"

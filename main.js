@@ -107,8 +107,8 @@ function createWindow() {
     frame: true,
     titleBarStyle: 'default',
     backgroundColor: '#F0F2F7',  // Ø§Ù„Ù…Ø·Ø§Ø¨Ù‚Ø© Ø§Ù„ØªØ§Ù…Ø© Ù„Ù„ÙˆÙ† Ø®Ù„ÙÙŠØ© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ù„Ù…Ø­Ùˆ Ø£ÙŠ ÙˆÙ…ÙŠØ¶
-    title: 'نظام إدارة استوديو التصوير',
-    ...(fs.existsSync(path.join(__dirname, 'assets', 'icon.png')) ? { icon: path.join(__dirname, 'assets', 'icon.png') } : {}),
+    title: 'StudioPro',
+    icon: path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     show: true  // Ù†Ø®ÙÙŠÙ‡Ø§ Ø­ØªÙ‰ ØªÙƒØªÙ…Ù„ Ù„Ù…Ù†Ø¹ Ø§Ù„ÙˆÙ…ÙŠØ¶
   });
   logError('BrowserWindow created.');
@@ -195,6 +195,10 @@ app.disableHardwareAcceleration();
 // â”€â”€â”€ Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø£Ø¯Ø§Ø¡ + Windows 10 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
+
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.deltatech.studiopro');
+}
 
 app.whenReady().then(() => {
   setupIpcHandlers(ipcMain, app);

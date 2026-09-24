@@ -23,7 +23,13 @@ function getDb(app) {
 
   const Database = require('better-sqlite3');
   const userDataPath = app.getPath('userData');
-  const dbPath = path.join(userDataPath, 'photostudio.db');
+  let dbPath = path.join(userDataPath, 'photostudio.db');
+  if (!fs.existsSync(dbPath)) {
+    const legacyPath = path.join(app.getPath('appData'), 'photography-studio-system', 'photostudio.db');
+    if (fs.existsSync(legacyPath)) {
+      dbPath = legacyPath;
+    }
+  }
 
   db = new Database(dbPath, { verbose: null });
   
