@@ -17,8 +17,25 @@
     "!**/*.map",
     "!node_modules/.cache{,/**}",
     "!scripts{,/**}",
+    "!bin{,/**}",
+    "!*.png",
+    "!*.bat",
+    "!show-ids.js",
+    "!test-db.js",
+    "!test.js",
+    "!replace_dates.js",
     "!list-tables.js",
-    "!electron-builder.win7.json"
+    "!package-lock.json",
+    "!electron-builder.win7.json",
+    "!node_modules/**/test{,/**}",
+    "!node_modules/**/tests{,/**}",
+    "!node_modules/**/example{,/**}",
+    "!node_modules/**/examples{,/**}",
+    "!node_modules/**/docs{,/**}",
+    "!node_modules/**/*.ts",
+    "!node_modules/better-sqlite3/src{,/**}",
+    "!node_modules/better-sqlite3/deps{,/**}",
+    "!node_modules/better-sqlite3/build/Release/obj{,/**}"
   ],
   "win": {
     "icon": "assets/icon.ico",
@@ -26,8 +43,7 @@
       {
         "target": "nsis",
         "arch": [
-          "x64",
-          "ia32"
+          "x64"
         ]
       }
     ]
@@ -39,7 +55,8 @@
     "createStartMenuShortcut": true,
     "shortcutName": "StudioPro",
     "installerIcon": "assets/icon.ico",
-    "uninstallerIcon": "assets/icon.ico"
+    "uninstallerIcon": "assets/icon.ico",
+    "differentialPackage": false
   },
   "directories": {
     "output": "dist-win7"

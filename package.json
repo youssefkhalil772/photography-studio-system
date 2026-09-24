@@ -12,7 +12,7 @@
   "dependencies": {
     "@xmldom/xmldom": "^0.9.12",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.11.1",
+    "better-sqlite3": "^9.6.0",
     "jsbarcode": "^3.12.3",
     "qrcode": "^1.5.4",
     "sweetalert2": "^11.26.25",
